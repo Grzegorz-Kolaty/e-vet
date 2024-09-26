@@ -1,0 +1,10 @@
+
+//@import "../../node_modules/bootstrap/scss/bootstrap.scss";
+// Add as many as you need
+
+// Your custom styles
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* Importing Bootstrap SCSS file. */
+@import 'bootstrap/scss/bootstrap';

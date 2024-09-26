@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  useEmulators: false,
+  useEmulators: true,
   firebase: {
     "projectId": "e-veterinary",
     "appId": "1:437235153726:web:b651a0712e36ac02754a6f",

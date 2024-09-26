@@ -1,18 +1,16 @@
 import {Component} from '@angular/core';
 import {RouterLink, RouterOutlet} from '@angular/router';
+import {HeaderComponent} from "./shared/components/header/header.component";
+import {FooterComponent} from "./shared/components/footer/footer.component";
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink],
+  imports: [RouterOutlet, RouterLink, HeaderComponent, FooterComponent],
   template: `
-    <a routerLink="/auth">Auth</a>
-    <a routerLink="/auth/login">Login</a>
-    <a routerLink="/auth/register-user">Register</a>
-    <a routerLink="/dashboard/vet">Dashboard VET</a>
-    <a routerLink="/dashboard/user">Dashboard USER</a>
-
+    <app-header/>
     <router-outlet/>
+    <app-footer />
   `,
 })
 export class AppComponent {}

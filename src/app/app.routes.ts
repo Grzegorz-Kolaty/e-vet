@@ -1,12 +1,11 @@
 import {Route} from '@angular/router';
-import {AuthGuard, redirectUnauthorizedTo} from "@angular/fire/auth-guard";
+import {AuthGuard} from "@angular/fire/auth-guard";
 
-// const redirectUnauthorizedToLogin = () => redirectUnauthorizedTo(['auth', 'login']);
 
 export const routes: Route[] = [
   {
     path: 'home',
-    loadChildren: () => import('./home/home.routes').then((m) => m.HOME_ROUTES)
+    loadChildren: () => import('./home/home.routes').then((m) => m.HOME_ROUTES),
   },
   {
     path: 'auth',
@@ -14,11 +13,12 @@ export const routes: Route[] = [
   },
   {
     path: 'dashboard',
-    loadChildren: () => import('./dashboard/dashboard.routes').then((m) => m.DASHBOARD_ROUTES),
     canActivate: [AuthGuard],
+    loadChildren: () => import('./dashboard/dashboard.routes').then((m) => m.DASHBOARD_ROUTES),
   },
   {
-    path: '**',
-    redirectTo: 'home',
-  }
+    path: '',
+    redirectTo: 'auth',
+    pathMatch: 'full',
+  },
 ];

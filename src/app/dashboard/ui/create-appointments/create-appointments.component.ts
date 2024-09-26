@@ -11,14 +11,13 @@ import {FormControl, ReactiveFormsModule} from "@angular/forms";
       [formControl]="appointmentControl"
       placeholder="type a message..."
     />
-    <button
-      (click)="send.emit(appointmentControl.value); appointmentControl.reset()"
-    >
+    <button (click)="create.emit(appointmentControl.value); appointmentControl.reset()">
       send
-    </button>`
+    </button>
+  `
 })
 export class CreateAppointmentsComponent {
-  send = output()
+  create = output()
 
   appointmentControl = new FormControl()
 }

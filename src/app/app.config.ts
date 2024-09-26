@@ -1,5 +1,4 @@
 import {ApplicationConfig, provideZoneChangeDetection} from '@angular/core';
-import {provideRouter} from '@angular/router';
 
 import {routes} from './app.routes';
 import {getApp, initializeApp, provideFirebaseApp} from '@angular/fire/app';
@@ -13,12 +12,12 @@ import {
 } from '@angular/fire/firestore';
 import {environment} from "../environments/environment";
 import {provideHttpClient} from "@angular/common/http";
+import {provideRouter} from "@angular/router";
+import {connectFunctionsEmulator, getFunctions, provideFunctions} from "@angular/fire/functions";
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({eventCoalescing: true}),
-    provideRouter(routes),
-    provideHttpClient(),
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideFirestore(() => {
       let firestore: Firestore;
@@ -41,55 +40,17 @@ export const appConfig: ApplicationConfig = {
       }
       return auth;
     }),
+    provideFunctions(() => {
+      const functions = getFunctions();
+      if (environment.useEmulators) {
+        console.log('uzywam emulatora')
+        connectFunctionsEmulator(functions, 'localhost', 5001)
+      }
+      console.log('uzywam emulatora')
+      return functions;
+    }),
+
+    provideRouter(routes),
+    provideHttpClient(),
   ]
 };
-
-// import { ApplicationConfig, InjectionToken } from '@angular/core';
-// import { provideRouter } from '@angular/router';
-// import { initializeApp } from 'firebase/app';
-// import {
-//   Firestore,
-//   initializeFirestore,
-//   connectFirestoreEmulator,
-//   getFirestore,
-// } from 'firebase/firestore';
-// import { getAuth, connectAuthEmulator } from 'firebase/auth';
-// import { environment } from '../environments/environment';
-//
-// import { routes } from './app.routes';
-// import { provideAnimations } from '@angular/platform-browser/animations';
-//
-// const app = initializeApp(environment.firebase);
-//
-// export const AUTH = new InjectionToken('Firebase auth', {
-//   providedIn: 'root',
-//   factory: () => {
-//     const auth = getAuth();
-//     if (environment.useEmulators) {
-//       connectAuthEmulator(auth, 'http://localhost:9099', {
-//         disableWarnings: true,
-//       });
-//     }
-//     return auth;
-//   },
-// });
-//
-// export const FIRESTORE = new InjectionToken('Firebase firestore', {
-//   providedIn: 'root',
-//   factory: () => {
-//     let firestore: Firestore;
-//     if (environment.useEmulators) {
-//       firestore = initializeFirestore(app, {});
-//       connectFirestoreEmulator(firestore, 'localhost', 8080);
-//     } else {
-//       firestore = getFirestore();
-//     }
-//     return firestore;
-//   },
-// });
-//
-//
-// export const appConfig: ApplicationConfig = {
-//   providers: [provideRouter(routes), provideAnimations()],
-// };
-//

@@ -100,7 +100,7 @@ export class AppointmentsService implements OnDestroy {
       created: Date.now().toString(),
       dateTime: Date.now().toString()
     }
-
+    
     const appointmentsCollection = collection(this.firestore, 'appointments');
     const appointmentId = "custom-id";
     const appointmentDoc = doc(appointmentsCollection, appointmentId);

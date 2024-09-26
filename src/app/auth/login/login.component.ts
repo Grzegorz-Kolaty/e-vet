@@ -22,8 +22,9 @@ export default class LoginComponent {
   constructor() {
     effect(() => {
       if (this.authService.user()) {
-        this.router.navigate(['dashboard'])
-        this.authService.roles$?.subscribe(roles => console.log(roles))
+        // this.router.navigate(['dashboard'])
+        // console.log(this.permservice.getPermissions()
+        // )
         // this.authService.user()?.getIdTokenResult().then(customClaims => {
         //   const role = customClaims.claims['role'];
         //   console.log('Role:', role);
@@ -32,32 +33,3 @@ export default class LoginComponent {
     })
   }
 }
-// const user = this.authService.user()
-
-// if (user) {
-//   // Pobierz custom claims użytkownika
-//   user.getIdTokenResult().then(idTokenResult => {
-//     const claims = idTokenResult.claims;
-//     console.log({claims})
-//     console.log(claims['role'])
-//
-//     // Sprawdź custom claims i przekieruj w zależności od roli
-//     if (claims['role']) {
-//       this.router.navigate(['dashboard', 'vet']);
-//       console.log("vet")
-//     } else {
-//       this.router.navigate(['dashboard', 'user']);
-//       console.log("user")
-//
-//     }
-//   });
-// }
-//     });
-//   }
-// }
-
-
-// console.log(this.authService.user()?.getIdTokenResult().then(value => console.log(value)));
-// this.authService.user$.subscribe((data : any) => {
-//   console.log(data)
-// })

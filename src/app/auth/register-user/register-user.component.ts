@@ -12,11 +12,14 @@ import {Router} from "@angular/router";
   template: `
     <div class="container-fluid">
       <app-register-form (register)="this.registerService.createUser$.next($event)"/>
-    </div>`,
+      <button (click)="authService.createAccWithGoogle().subscribe()">Register with google</button>
+      <button id="sign-in-button" (click)="authService.signInWithPhone().subscribe()">Zaloguj telefonem</button>
+    </div>
+  `,
 })
 export default class RegisterUserComponent {
   public registerService = inject(RegisterService);
-  private authService = inject(AuthService);
+   authService = inject(AuthService);
   private router = inject(Router);
 
   constructor() {

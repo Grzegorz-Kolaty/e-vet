@@ -1,0 +1,16 @@
+<!-- Phone number sign-in form -->
+<form #signInForm (submit)="onSignInSubmit($event)">
+  <input type="tel" #phoneNumberInput placeholder="Enter phone number" />
+  <div id="recaptcha-container"></div>
+  <button type="submit">Sign In</button>
+</form>
+
+<!-- Verification code form -->
+<form #verificationCodeForm (submit)="onVerifyCodeSubmit($event)">
+  <input type="text" #verificationCodeInput placeholder="Enter verification code" />
+  <button type="submit">Verify Code</button>
+  <button (click)="cancelVerification($event)">Cancel</button>
+</form>
+
+<!-- Sign out button -->
+<button #signOutButton (click)="onSignOutClick()">Sign Out</button>

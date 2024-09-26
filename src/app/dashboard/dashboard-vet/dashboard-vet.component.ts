@@ -10,24 +10,12 @@ import {CreateAppointmentsComponent} from "../ui/create-appointments/create-appo
   standalone: true,
   imports: [DashboardListComponent, CreateAppointmentsComponent],
   providers: [AppointmentsService],
-  template: `
-    <p>dashboard works!</p>
-    <button (click)="logout()">Wyloguj</button>
-    <app-dashboard-list [appointments]="appointmentsService.appointments()"
-                        (reserve)="appointmentsService.patch$.next($event)"
-                        (delete)="appointmentsService.delete$.next($event)"/>
-    <app-create-appointments (send)="appointmentsService.add$.next($event)"/>
-    <button (click)="checkDataFromService()">GetApS</button>
-  `
+  templateUrl: "dashboard-vet.component.html"
 })
 export default class DashboardVetComponent {
   authService = inject(AuthService);
   appointmentsService = inject(AppointmentsService)
   private router = inject(Router);
-
-  logout() {
-    this.authService.logout();
-  }
 
   constructor() {
     effect(() => {

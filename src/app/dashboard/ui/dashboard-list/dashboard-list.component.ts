@@ -1,4 +1,4 @@
-import {Component, input, output} from '@angular/core';
+import {Component, input , output} from '@angular/core';
 import {Appointment} from "../../data-access/appointments.service";
 
 @Component({
@@ -11,7 +11,7 @@ import {Appointment} from "../../data-access/appointments.service";
         <li>
           {{ appointment.content }}
           <button (click)="reserve.emit(appointment)">Reserve</button>
-          <button (click)="delete.emit(appointment)">Delete</button>
+          <button (click)="deleteReservation.emit(appointment)">Delete</button>
         </li>
       }
     </ul>
@@ -20,6 +20,8 @@ import {Appointment} from "../../data-access/appointments.service";
 export class DashboardListComponent {
   appointments = input.required<Appointment[]>()
   reserve = output<Appointment>()
+  deleteReservation = output<Appointment>()
   delete = output<Appointment>()
+
 
 }
