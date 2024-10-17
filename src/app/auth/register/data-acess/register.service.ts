@@ -1,19 +1,19 @@
 import {inject, Injectable, OnDestroy} from '@angular/core';
-import {AuthService} from "../../../core/services/auth.service";
 import {catchError, EMPTY, Subject, switchMap} from "rxjs";
 import {Credentials} from "../../../core/interfaces/user.interface";
 import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 import {SubscriptionsManager} from "../../../shared/utils/subscriber-manager";
+import {AuthService} from "../../../core/services/auth.service";
 
 @Injectable({
   providedIn: 'root'
 })
 export class RegisterService implements OnDestroy {
   private authService = inject(AuthService);
-  private error$ = new Subject<unknown>()
-  private subs = new SubscriptionsManager()
+  private error$ = new Subject<unknown>();
+  private subs = new SubscriptionsManager();
 
-  createUser$ = new Subject<Credentials>()
+  createUser$ = new Subject<Credentials>();
 
   userCreated$ = this.createUser$.pipe(
     switchMap((credentials) =>

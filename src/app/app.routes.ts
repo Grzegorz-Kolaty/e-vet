@@ -1,11 +1,12 @@
 import {Route} from '@angular/router';
-import {AuthGuard} from "@angular/fire/auth-guard";
-
+import {HomeComponent} from "./home/home.component";
+import {isAuthenticatedGuard} from "./core/guards/auth.guard";
 
 export const routes: Route[] = [
   {
-    path: 'home',
-    loadChildren: () => import('./home/home.routes').then((m) => m.HOME_ROUTES),
+    path: '',
+    component: HomeComponent,
+    pathMatch: 'full',
   },
   {
     path: 'auth',
@@ -13,12 +14,11 @@ export const routes: Route[] = [
   },
   {
     path: 'dashboard',
-    canActivate: [AuthGuard],
+    canActivate: [isAuthenticatedGuard],
     loadChildren: () => import('./dashboard/dashboard.routes').then((m) => m.DASHBOARD_ROUTES),
   },
   {
-    path: '',
-    redirectTo: 'auth',
-    pathMatch: 'full',
-  },
+    path: '**',
+    component: HomeComponent
+  }
 ];

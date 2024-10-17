@@ -10,8 +10,9 @@ import {FooterComponent} from "./shared/components/footer/footer.component";
   template: `
     <app-header/>
     <router-outlet/>
-    <app-footer />
+    <app-footer/>
   `,
 })
-export class AppComponent {}
+export class AppComponent {
+}
 

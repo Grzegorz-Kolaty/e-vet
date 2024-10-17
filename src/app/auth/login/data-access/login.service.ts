@@ -10,7 +10,7 @@ import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 })
 export class LoginService implements OnDestroy {
   private authService = inject(AuthService);
-  private subs = new SubscriptionsManager()
+  private subs = new SubscriptionsManager();
 
   // sources
   error$ = new Subject<any>();

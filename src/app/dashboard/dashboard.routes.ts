@@ -1,27 +1,23 @@
 import {Route} from "@angular/router";
-import {AuthGuard, hasCustomClaim} from "@angular/fire/auth-guard";
 import {veterinaryGuard} from "../shared/guards/role.guard";
-
-const adminOnly = () => hasCustomClaim('admin');
+import {isAuthenticatedGuard} from "../core/guards/auth.guard";
 
 
 export const DASHBOARD_ROUTES: Route[] = [
   {
     path: '',
-    pathMatch: 'full',
-    redirectTo: 'user'
+    redirectTo: 'user',
+    pathMatch: 'full'
   },
   {
     path: 'user',
-    canActivate: [AuthGuard, veterinaryGuard],
+    canActivate: [isAuthenticatedGuard, veterinaryGuard],
     loadComponent: () => import('./dashboard-user/dashboard-user.component'),
   },
   {
     path: 'vet',
-    canActivate: [AuthGuard],
+    canActivate: [isAuthenticatedGuard],
     loadComponent: () => import('./dashboard-vet/dashboard-vet.component'),
-    data: {authGuardPipe: adminOnly}
-
   },
   {
     path: '**',

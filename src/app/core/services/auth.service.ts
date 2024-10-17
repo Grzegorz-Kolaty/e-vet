@@ -3,8 +3,6 @@ import {defer, from} from "rxjs";
 import {Credentials} from "../interfaces/user.interface";
 import {SubscriptionsManager} from "../../shared/utils/subscriber-manager";
 import {
-  Auth,
-  authState,
   createUserWithEmailAndPassword,
   getIdTokenResult,
   GoogleAuthProvider,
@@ -14,13 +12,12 @@ import {
   signInWithPopup,
   signOut,
   User
-} from '@angular/fire/auth';
-import {Firestore} from "@angular/fire/firestore";
-import {connectFunctionsEmulator, getFunctions, httpsCallable} from "@angular/fire/functions";
-
+} from 'firebase/auth';
+import {AUTH, FUNCTIONS} from "../../app.config";
+import {authState} from "rxfire/auth";
+import {httpsCallable} from "firebase/functions";
 
 export type AuthUser = User | null | undefined;
-
 
 interface AuthState {
   user: AuthUser;
@@ -30,12 +27,12 @@ interface AuthState {
   providedIn: 'root'
 })
 export class AuthService implements OnDestroy {
-  authInstance = inject(Auth);
-  firestore = inject(Firestore);
+  auth = inject(AUTH);
+  functions = inject(FUNCTIONS)
 
   //sources
-  subs = new SubscriptionsManager()
-  private user$ = authState(this.authInstance);
+  subs = new SubscriptionsManager();
+  private user$ = authState(this.auth);
 
   private state = signal<AuthState>({
     user: undefined,
@@ -46,45 +43,45 @@ export class AuthService implements OnDestroy {
 
   constructor() {
     this.subs.add = this.user$.pipe().subscribe(
-      (user: User) => {
+      (user) => {
         this.state.update((state) => ({
           ...state,
           user,
         }))
-      })
-
+      }
+    );
   }
 
   getUserClaims() {
     return from(
-      defer(() => getIdTokenResult(this.authInstance.currentUser!).then(
+      defer(() => getIdTokenResult(this.auth.currentUser!).then(
         (data) => data.claims
       ))
-    )
+    );
   }
 
   login(credentials: Credentials) {
     return from(
       defer(() =>
         signInWithEmailAndPassword(
-          this.authInstance,
+          this.auth,
           credentials.email,
           credentials.password
         )
       )
-    )
+    );
   }
 
 
   logout() {
-    signOut(this.authInstance);
+    signOut(this.auth);
   }
 
   createAccount(credentials: Credentials) {
     return from(
       defer(() =>
         createUserWithEmailAndPassword(
-          this.authInstance,
+          this.auth,
           credentials.email,
           credentials.password)
       )
@@ -92,57 +89,15 @@ export class AuthService implements OnDestroy {
   }
 
 
-  // setCustomClaims(userId: string, claims: any) {
-  //   // const callable = httpsCallable(this.functions, 'setCustomUserClaims');
-  //   // connectFunctionsEmulator(this.functions, "localhost", 5001);
-  //   //
-  //   // return from(
-  //   //   defer(() =>
-  //   //     callable({userId, claims}).then((result) => {
-  //   //       console.log("Clinic profile updated successfully:", result.data);
-  //   //       return result.data;
-  //   //     }).catch((error) => {
-  //   //       console.error("Error updating clinic profile:", error);
-  //   //       throw error;
-  //   //     })
-  //   //   )
-  //   // );
-  // }
+  setCustomClaimsToTrue() {
+    const uid = this.user()?.uid;
+    const claims = {admin: true};
 
-  getNumbersFunction() {
-    const functions = getFunctions();
-    // connectFunctionsEmulator(functions, 'localhost', 5001)
-    const callable = httpsCallable(functions, 'getNumbers');
-    const messageText = 'asd';
-    callable({text: messageText})
-      .then((result) => {
-        // Read result of the Cloud Function.
-        /** @type {any} */
-        const data = result.data;
-        // @ts-ignore
-        const sanitizedMessage = data.text;
-      })
-      .catch((error) => {
-        const code = error.code;
-        const message = error.message;
-        const details = error.details;
-      });
-  }
+    const callable = httpsCallable(this.functions, 'setCustomClaims');
 
-  setCustomClaims() {
-    const functions = getFunctions();
-    const uid = this.user()?.uid; // UID użytkownika
-    const claims = { admin: true }; // Claims do ustawienia
-    // Jeśli używasz emulatora lokalnie, podłącz go do odpowiedniego hosta i portu
-    connectFunctionsEmulator(functions, 'localhost', 5001);
-
-    // Pobierz funkcję callable
-    const callable = httpsCallable(functions, 'setCustomClaims');
-
-    // Zwróć wynik jako Observable
     return from(
       defer(() =>
-        callable({ uid, claims }).then((result) => {
+        callable({uid, claims}).then((result) => {
           console.log("Custom claims set successfully:", result.data);
           return result.data;
         }).catch((error) => {
@@ -153,20 +108,40 @@ export class AuthService implements OnDestroy {
     );
   }
 
+  setCustomClaimsToFalse() {
+    const uid = this.user()?.uid;
+    const claims = {admin: false};
+
+    const callable = httpsCallable(this.functions, 'setCustomClaims');
+
+    return from(
+      defer(() =>
+        callable({uid, claims}).then((result) => {
+            console.log("Custom claims set successfully:", result.data);
+            return result.data;
+          }
+        ).catch((error) => {
+          console.error("Error setting custom claims:", error);
+          throw error;
+        })
+      )
+    );
+  }
+
   createAccWithGoogle() {
     return from(
-      defer(() => signInWithPopup(this.authInstance, new GoogleAuthProvider()).then(
+      defer(() => signInWithPopup(this.auth, new GoogleAuthProvider()).then(
           (auth) => console.log(auth)
         )
       )
-    )
+    );
   }
 
   signInWithPhone() {
-    const phone: string = '500200111'
-    const recaptchaVerifier = new RecaptchaVerifier(this.authInstance, 'sign-in-button')
+    const phone: string = '500200111';
+    const recaptchaVerifier = new RecaptchaVerifier(this.auth, 'sign-in-button');
     return from(
-      defer(() => signInWithPhoneNumber(this.authInstance, phone, recaptchaVerifier))
+      defer(() => signInWithPhoneNumber(this.auth, phone, recaptchaVerifier))
     )
   }
 

@@ -8,14 +8,10 @@ import {passwordMatchesValidator} from "../../utils/password-matches";
   standalone: true,
   imports: [FormsModule, ReactiveFormsModule],
   template: `
-    <h1>Register</h1>
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-      <!--  <input type="text" placeholder="username" formControlName="username"/>-->
       <input type="text" placeholder="email" formControlName="email"/>
       <input type="password" placeholder="password" formControlName="password"/>
       <input type="password" placeholder="password" formControlName="confirmPassword"/>
-      <!--      <input type="text" placeholder="telephone" formControlName="phone">-->
-
       <button type="submit">Sign In</button>
     </form>
   `,

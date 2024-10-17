@@ -12,7 +12,8 @@ import {Router} from "@angular/router";
   template: `
     <div class="container">
       <app-login-form (login)="loginService.login$.next($event)"/>
-    </div>`,
+    </div>
+  `,
 })
 export default class LoginComponent {
   authService = inject(AuthService);
@@ -22,13 +23,7 @@ export default class LoginComponent {
   constructor() {
     effect(() => {
       if (this.authService.user()) {
-        // this.router.navigate(['dashboard'])
-        // console.log(this.permservice.getPermissions()
-        // )
-        // this.authService.user()?.getIdTokenResult().then(customClaims => {
-        //   const role = customClaims.claims['role'];
-        //   console.log('Role:', role);
-        // });
+        this.router.navigate(['dashboard'])
       }
     })
   }

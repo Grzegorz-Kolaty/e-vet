@@ -14,7 +14,10 @@
                         (delete)="appointmentsService.delete$.next($event)"/>
     <app-create-appointments (create)="appointmentsService.add$.next($event)"/>
     <button (click)="checkDataFromService()">GetApS</button>
-    <img class="img-fluid" [src]="authService.user()?.photoURL" alt="img">
+<!--    <img class="img-fluid" [src]="authService.user()?.photoURL" alt="img">-->
     <div>img{{ authService.user()?.photoURL }}</div>
   </div>
+
+  <button (click)="this.authService.setCustomClaimsToFalse().subscribe()">update claims to user</button>
+
 </div>

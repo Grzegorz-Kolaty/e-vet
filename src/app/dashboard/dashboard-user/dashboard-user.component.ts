@@ -1,4 +1,4 @@
-import {Component, effect, inject} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {AuthService} from "../../core/services/auth.service";
 import {Router} from "@angular/router";
 import {DashboardListComponent} from "../ui/dashboard-list/dashboard-list.component";
@@ -18,43 +18,23 @@ import {CreateAppointmentsComponent} from "../ui/create-appointments/create-appo
       (deleteReservation)="appointmentsService.delete$.next($event)"
     />
 
-    <button (click)="checkDataFromService()">GetApS</button>
-    <button (click)="this.authService.setCustomClaims().subscribe()">update claims</button>
-    <button (click)="this.authService.getNumbersFunction()">update claims</button>
+    <button (click)="this.authService.setCustomClaimsToTrue().subscribe()">update claims to vet</button>
+
+    <!--    <button (click)="this.appointmentsService.getAppointments().subscribe()">get apos</button>-->
+
   `
 })
 export default class DashboardUserComponent {
   authService = inject(AuthService);
-  appointmentsService = inject(AppointmentsService)
+  appointmentsService = inject(AppointmentsService);
   private router = inject(Router);
 
   constructor() {
-    effect(() => {
-      if (!this.authService.user()) {
-        this.router.navigate(['auth', 'login'])
-      }
-    });
-  }
-
-
-  setClaimsForUser() {
-
-    // const userId = this.authService.user()?.uid
-    //
-    // if (userId) {
-    //   const claims = {role: "admin"}; // Przykład custom claims
-    //   this.authService.setCustomClaims(userId, claims).subscribe(
-    //     (response) => {
-    //       console.log(response); // Odbiór wiadomości sukcesu z Firebase
-    //     },
-    //     (error) => {
-    //       console.error('Błąd przy ustawianiu custom claims:', error);
-    //     }
-    //   );
-    // }
-  }
-
-  checkDataFromService() {
-    console.log(this.appointmentsService.appointments());
+    console.log('user dash hit')
+    // effect(() => {
+    //   if (!this.authService.user()) {
+    //     this.router.navigate(['auth', 'login'])
+    //   }
+    // });
   }
 }
