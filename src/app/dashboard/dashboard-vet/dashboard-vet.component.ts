@@ -20,7 +20,7 @@ export default class DashboardVetComponent {
   constructor() {
     effect(() => {
       if (!this.authService.user()) {
-        this.router.navigate(['auth', 'login'])
+        this.router.navigate(['auth'])
       }
     });
   }

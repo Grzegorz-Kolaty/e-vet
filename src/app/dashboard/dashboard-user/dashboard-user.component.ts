@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, effect, inject } from '@angular/core';
 import { AuthService } from "../../core/services/auth.service";
 import { Router } from "@angular/router";
 import { DashboardListComponent } from "../ui/dashboard-list/dashboard-list.component";
@@ -11,18 +11,18 @@ import { CreateAppointmentsComponent } from "../ui/create-appointments/create-ap
   imports: [DashboardListComponent, CreateAppointmentsComponent],
   providers: [AppointmentsService],
   template: `
-        <p>dashboard works!</p>
-        <app-dashboard-list
-                [appointments]="appointmentsService.appointments()"
-                (reserve)="appointmentsService.patch$.next($event)"
-                (deleteReservation)="appointmentsService.delete$.next($event)"
-        />
+    <p>dashboard works!</p>
+    <app-dashboard-list
+      [appointments]="appointmentsService.appointments()"
+      (reserve)="appointmentsService.patch$.next($event)"
+      (deleteReservation)="appointmentsService.delete$.next($event)"
+    />
 
-        <button (click)="this.authService.setCustomClaimsToTrue().subscribe()">update claims to vet</button>
+    <button (click)="this.authService.setCustomClaimsToTrue().subscribe()">update claims to vet</button>
 
-        <!--    <button (click)="this.appointmentsService.getAppointments().subscribe()">get apos</button>-->
+    <!--    <button (click)="this.appointmentsService.getAppointments().subscribe()">get apos</button>-->
 
-    `
+  `
 })
 export default class DashboardUserComponent {
   authService = inject(AuthService);
@@ -31,10 +31,10 @@ export default class DashboardUserComponent {
 
   constructor() {
     console.log('user dash hit')
-    // effect(() => {
-    //   if (!this.authService.user()) {
-    //     this.router.navigate(['auth', 'login'])
-    //   }
-    // });
+    effect(() => {
+      if (!this.authService.user()) {
+        this.router.navigate(['auth'])
+      }
+    });
   }
 }
