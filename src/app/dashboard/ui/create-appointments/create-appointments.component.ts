@@ -1,11 +1,11 @@
-import {Component, output} from '@angular/core';
-import {FormControl, ReactiveFormsModule} from "@angular/forms";
+import { Component, output } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from "@angular/forms";
 
 @Component({
-    selector: 'app-create-appointments',
-    standalone: true,
-    imports: [ReactiveFormsModule],
-    template: `
+  selector: 'app-create-appointments',
+  standalone: true,
+  imports: [ReactiveFormsModule],
+  template: `
         <input
                 type="text"
                 [formControl]="appointmentControl"
@@ -17,7 +17,7 @@ import {FormControl, ReactiveFormsModule} from "@angular/forms";
     `
 })
 export class CreateAppointmentsComponent {
-    create = output()
+  create = output()
 
-    appointmentControl = new FormControl()
+  appointmentControl = new FormControl()
 }

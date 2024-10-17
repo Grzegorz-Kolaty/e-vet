@@ -1,23 +1,23 @@
 <div class="row row-cols-2">
-    <div class="col-3 p-0">
-        <nav class="nav flex-column">
-            <a aria-current="page" class="nav-link active" href="#">Active</a>
-            <a class="nav-link" href="#">Link</a>
-            <a class="nav-link" href="#">Link</a>
-            <a aria-disabled="true" class="nav-link disabled" href="#" tabindex="-1">Disabled</a>
-        </nav>
-    </div>
+  <div class="col-3 p-0">
+    <nav class="nav flex-column">
+      <a aria-current="page" class="nav-link active" href="#">Active</a>
+      <a class="nav-link" href="#">Link</a>
+      <a class="nav-link" href="#">Link</a>
+      <a aria-disabled="true" class="nav-link disabled" href="#" tabindex="-1">Disabled</a>
+    </nav>
+  </div>
 
-    <div class="col">
-        <p>dashboardvet works!</p>
-        <app-dashboard-list (delete)="appointmentsService.delete$.next($event)"
-                            [appointments]="appointmentsService.appointments()"/>
-        <app-create-appointments (create)="appointmentsService.add$.next($event)"/>
-        <button (click)="checkDataFromService()">GetApS</button>
-        <!--    <img class="img-fluid" [src]="authService.user()?.photoURL" alt="img">-->
-        <div>img{{ authService.user()?.photoURL }}</div>
-    </div>
+  <div class="col">
+    <p>dashboardvet works!</p>
+    <app-dashboard-list (delete)="appointmentsService.delete$.next($event)"
+                        [appointments]="appointmentsService.appointments()" />
+    <app-create-appointments (create)="appointmentsService.add$.next($event)" />
+    <button (click)="checkDataFromService()">GetApS</button>
+    <!--    <img class="img-fluid" [src]="authService.user()?.photoURL" alt="img">-->
+    <div>img{{ authService.user()?.photoURL }}</div>
+  </div>
 
-    <button (click)="this.authService.setCustomClaimsToFalse().subscribe()">update claims to user</button>
+  <button (click)="this.authService.setCustomClaimsToFalse().subscribe()">update claims to user</button>
 
 </div>

@@ -1,11 +1,11 @@
-import {Component, input, output} from '@angular/core';
-import {Appointment} from "../../data-access/appointments.service";
+import { Component, input, output } from '@angular/core';
+import { Appointment } from "../../data-access/appointments.service";
 
 @Component({
-    selector: 'app-dashboard-list',
-    standalone: true,
-    imports: [],
-    template: `
+  selector: 'app-dashboard-list',
+  standalone: true,
+  imports: [],
+  template: `
         <ul>
             @for (appointment of appointments(); track appointment.id) {
                 <li>
@@ -18,10 +18,10 @@ import {Appointment} from "../../data-access/appointments.service";
     `
 })
 export class DashboardListComponent {
-    appointments = input.required<Appointment[]>()
-    reserve = output<Appointment>()
-    deleteReservation = output<Appointment>()
-    delete = output<Appointment>()
+  appointments = input.required<Appointment[]>()
+  reserve = output<Appointment>()
+  deleteReservation = output<Appointment>()
+  delete = output<Appointment>()
 
 
 }

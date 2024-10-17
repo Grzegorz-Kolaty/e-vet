@@ -1,18 +1,18 @@
-import {Subscription} from "rxjs";
+import { Subscription } from "rxjs";
 
 export class SubscriptionsManager {
-    private subs: Subscription[] = [];
+  private subs: Subscription[] = [];
 
-    set add(s: Subscription) {
-        this.subs.push(s);
-        // console.log('subs when add: ', this.subs);
-    }
+  set add(s: Subscription) {
+    this.subs.push(s);
+    // console.log('subs when add: ', this.subs);
+  }
 
-    dispose() {
-        this.subs.forEach((s) => {
-            s.unsubscribe();
-        });
-        // console.log('subs when disposed: ', this.subs);
+  dispose() {
+    this.subs.forEach((s) => {
+      s.unsubscribe();
+    });
+    // console.log('subs when disposed: ', this.subs);
 
-    }
+  }
 }
