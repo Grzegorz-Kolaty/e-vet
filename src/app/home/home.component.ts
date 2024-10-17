@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
 
 @Component({
-  selector: 'app-home',
-  standalone: true,
-  imports: [],
-  template: `<div>homecomp</div>`,
+    selector: 'app-home',
+    standalone: true,
+    imports: [],
+    template: `
+        <div>homecomp</div>`,
 })
 export class HomeComponent {
 

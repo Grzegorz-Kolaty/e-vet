@@ -6,32 +6,30 @@ import {SubscriptionsManager} from "../../../shared/utils/subscriber-manager";
 import {AuthService} from "../../../core/services/auth.service";
 
 @Injectable({
-  providedIn: 'root'
+    providedIn: 'root'
 })
 export class RegisterService implements OnDestroy {
-  private authService = inject(AuthService);
-  private error$ = new Subject<unknown>();
-  private subs = new SubscriptionsManager();
-
-  createUser$ = new Subject<Credentials>();
-
-  userCreated$ = this.createUser$.pipe(
-    switchMap((credentials) =>
-      this.authService.createAccount(credentials).pipe(
-        catchError(error => {
-          this.error$.next(error);
-          return EMPTY
-        })
-      )
+    createUser$ = new Subject<Credentials>();
+    private authService = inject(AuthService);
+    private error$ = new Subject<unknown>();
+    userCreated$ = this.createUser$.pipe(
+        switchMap((credentials) =>
+            this.authService.createAccount(credentials).pipe(
+                catchError(error => {
+                    this.error$.next(error);
+                    return EMPTY
+                })
+            )
+        )
     )
-  )
+    private subs = new SubscriptionsManager();
 
-  constructor() {
-    this.subs.add = this.userCreated$.pipe(takeUntilDestroyed())
-      .subscribe(() => console.log("userCreated successfully"))
-  }
+    constructor() {
+        this.subs.add = this.userCreated$.pipe(takeUntilDestroyed())
+            .subscribe(() => console.log("userCreated successfully"))
+    }
 
-  ngOnDestroy() {
-    this.subs.dispose()
-  }
+    ngOnDestroy() {
+        this.subs.dispose()
+    }
 }

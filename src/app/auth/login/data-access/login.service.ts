@@ -6,33 +6,31 @@ import {SubscriptionsManager} from "../../../shared/utils/subscriber-manager";
 import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 
 @Injectable({
-  providedIn: 'root'
+    providedIn: 'root'
 })
 export class LoginService implements OnDestroy {
-  private authService = inject(AuthService);
-  private subs = new SubscriptionsManager();
+    // sources
+    error$ = new Subject<any>();
+    login$ = new Subject<Credentials>();
+    private authService = inject(AuthService);
+    userAuthenticated$ = this.login$.pipe(
+        switchMap((credentials) =>
+            this.authService.login(credentials).pipe(
+                catchError((err) => {
+                    this.error$.next(err);
+                    return EMPTY;
+                })
+            )
+        )
+    );
+    private subs = new SubscriptionsManager();
 
-  // sources
-  error$ = new Subject<any>();
-  login$ = new Subject<Credentials>();
+    constructor() {
+        this.subs.add = this.userAuthenticated$.pipe(takeUntilDestroyed()).subscribe()
+    }
 
-  userAuthenticated$ = this.login$.pipe(
-    switchMap((credentials) =>
-      this.authService.login(credentials).pipe(
-        catchError((err) => {
-          this.error$.next(err);
-          return EMPTY;
-        })
-      )
-    )
-  );
-
-  constructor() {
-    this.subs.add = this.userAuthenticated$.pipe(takeUntilDestroyed()).subscribe()
-  }
-
-  ngOnDestroy() {
-    this.subs.dispose()
-  }
+    ngOnDestroy() {
+        this.subs.dispose()
+    }
 
 }
