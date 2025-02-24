@@ -3,3 +3,48 @@
 /* Importing Bootstrap SCSS file. */
 @use 'bootstrap/scss/bootstrap';
 
+body::-webkit-scrollbar {
+  display: none;
+}
+
+html, body, app-root {
+  display: block;
+  height: 100%;
+}
+
+
+.catbackground {
+  background-size: contain;
+  background-position-x: -40%;
+  background-image: url('../assets/ceilingcat.png');
+}
+
+.brown__cat__background {
+  background-size: contain;
+  background-position-x: -20%;
+  background-image: url('../assets/browncat.png');
+}
+
+.dog__background {
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position-y: 35%;
+  background-image: url('../assets/doge.jpg');
+}
+
+
+.glass {
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+.w-20 {
+  width: 20% !important;
+}
+
+.w-15 {
+  width: 15% !important;
+}
+
+.w-10 {
+  width: 10% !important;
+}

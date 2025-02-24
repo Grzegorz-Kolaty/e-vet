@@ -1,4 +1,8 @@
-// import { z } from 'zod';
+export interface RegisterCredentials {
+  email: string;
+  password: string;
+  displayName: string;
+}
 
 export interface Credentials {
   email: string;
@@ -19,14 +23,6 @@ export interface Profile {
   photoUrl?: string;
 }
 
-// export const ProfileSchema = z.object({
-//   uid: z.string(),
-//   email: z.string(),
-//   displayName: z.string(),
-//   role: z.nativeEnum(Role),
-//   // photoUrl: z.string(),
-// });
-
 export interface Address {
   city: string;
   street: string;
@@ -38,6 +34,7 @@ export interface Address {
 export interface Appointment {
   id?: string;
   vetId?: string;
+  vetDisplayName: string;
   reserved: boolean;
   realised: boolean;
   dateTimeFrom: string;
@@ -48,9 +45,3 @@ export interface Appointment {
   patientId?: string;
   patientName?: string;
 }
-
-
-// export interface PhoneCredentials {
-//   phoneNumber: string;
-//   recaptchaVerifier: RecaptchaVerifier;
-// }

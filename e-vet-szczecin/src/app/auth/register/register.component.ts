@@ -1,42 +1,44 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  effect,
   inject,
   signal,
 } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AuthService } from '../../shared/data-access/auth.service';
-import { rxResource } from '@angular/core/rxjs-interop';
-import { Credentials } from '../../shared/interfaces/user.interface';
-import { Router } from '@angular/router';
+import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
+import {rxResource} from '@angular/core/rxjs-interop';
+import {Router} from '@angular/router';
+import {RegisterCredentials} from '../../shared/interfaces/user.interface';
+import {AuthService} from '../../shared/data-access/auth.service';
+import {FunctionsService} from '../../shared/data-access/functions.service';
+
 
 @Component({
   selector: 'app-register',
   imports: [ReactiveFormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="brown__cat__background p-5 mt-5">
+    <section class="brown__cat__background p-5 h-100">
       <form
         [formGroup]="registerForm"
         (ngSubmit)="onSubmit()"
         #form="ngForm"
-        class="mx-auto col-xl-4 p-lg-5 p-4 rounded glass__form fw-semibold">
+        class="mx-auto col-lg-5 p-5 d-flex flex-column gap-3 rounded glass shadow fw-semibold">
+
         <h3 class="mb-3 text-center fw-bold">Zarejestruj się</h3>
+
         <div class="mb-3">
           <label for="emailInput" class="form-label"> Email address </label>
           <input
             formControlName="email"
             placeholder="email"
             type="email"
-            class="form-control form-control-lg"
+            class="form-control form-control-lg shadow"
             id="emailInput"
-            aria-describedby="emailHelp" />
+            aria-describedby="emailHelp"
+            required/>
 
-          @if (
-            (registerForm.controls.email.dirty || form.submitted) &&
-            !registerForm.controls.email.valid
-          ) {
+          @if ((registerForm.controls.email.dirty || form.submitted) &&
+          !registerForm.controls.email.valid) {
             <div id="emailHelp" class="form-text text-danger">
               Pass proper email adress.
             </div>
@@ -44,77 +46,83 @@ import { Router } from '@angular/router';
         </div>
 
         <div class="mb-3">
+          <label for="displayNameInput" class="form-label"> Imię i nazwisko </label>
+          <input
+            formControlName="displayName"
+            placeholder="Imię i nazwisko"
+            type="text"
+            class="form-control form-control-lg shadow"
+            id="displayNameInput"
+            aria-describedby="displayNameInput"
+            required/>
+
+        </div>
+
+        <div class="mb-2">
           <label for="passwordInput" class="form-label">Password</label>
           <input
             formControlName="password"
             type="password"
-            class="form-control form-control-lg"
+            class="form-control form-control-lg shadow"
             id="passwordInput"
-            placeholder="password" />
+            placeholder="password"/>
         </div>
 
         <button
+          (click)="router.navigate(['auth', 'password-reset'])"
+          class="btn text-primary text-start mb-3 px-0"
+          type="button">
+          Nie pamiętasz hasła?
+        </button>
+
+        <button
           [disabled]="registration.isLoading()"
-          class="btn btn-lg btn-dark w-100 mb-3"
+          class="btn btn-lg btn-dark mb-3 p-3"
           type="submit">
           Zarejestruj
         </button>
 
-        <button
-          (click)="onSubmitResetPassword()"
-          class="btn btn-lg btn-dark w-100 mb-3"
-          type="submit">
-          Restetuj hasło
-        </button>
-
         @if (registration.error() && form.submitted) {
           <span class="text-danger">{{ registration.error() }}</span>
+        } @else if (registration.status() === 4) {
+          <span class="text-success">Rejestracja udana - wysłaliśmy mail weryfikacyjny!</span>
         } @else {
           <span class="visually-hidden">Nothing</span>
         }
       </form>
+
+
+      <button
+        (click)="functions.onRoleSelect()"
+        class="btn btn-lg btn-dark mb-3 p-3"
+        type="button">
+        Function check
+      </button>
     </section>
   `,
 })
 export default class RegisterComponent {
   public authService = inject(AuthService);
+  public functions = inject(FunctionsService)
   private fb = inject(FormBuilder);
   router = inject(Router);
 
-  register = signal<Credentials | null>(null);
+  register = signal<RegisterCredentials | undefined>(undefined);
   registration = rxResource({
-    request: this.register,
+    request: () => this.register(),
     loader: obj => this.authService.register(obj.request!),
   });
 
   registerForm = this.fb.nonNullable.group({
-    email: ['grzegorzkolaty@gmail.com', Validators.required],
+    email: ['grzegorzkolaty@gmail.com', [Validators.required, Validators.email]],
+    displayName: ['', Validators.required],
     password: ['Poszkole1', Validators.required],
   });
-
-  constructor() {
-    effect(() => {
-      const userLoggedIn = !!this.authService.user();
-      if (userLoggedIn) {
-        this.router.navigate(['auth', 'profile']);
-      }
-    });
-  }
 
   onSubmit(): void {
     const rawForm = this.registerForm.getRawValue();
     if (this.registerForm.valid) {
       this.register.set(rawForm);
     }
-  }
-
-  onSubmitResetPassword() {
-    const rawForm = this.registerForm;
-    if (this.registerForm.valid) {
-      const credentials = rawForm.getRawValue()
-      this.authService.resetPassword(credentials.email).subscribe(data => console.log(data)
-      )
-    }
-
   }
 }

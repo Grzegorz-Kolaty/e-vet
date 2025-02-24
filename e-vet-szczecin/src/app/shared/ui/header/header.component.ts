@@ -77,7 +77,7 @@ import {NgbPopover} from '@ng-bootstrap/ng-bootstrap';
 
             <div class="d-inline-flex flex-column flex-nowrap text-start">
             <span class="fw-semibold">
-              {{ user.displayName }}
+              {{ user.displayName ?? 'uzupełnij profil'}}
             </span>
               <span>{{ user.email }}</span>
             </div>
@@ -122,8 +122,9 @@ import {NgbPopover} from '@ng-bootstrap/ng-bootstrap';
 export class HeaderComponent {
   authService = inject(AuthService);
   appTitle = 'PetCare';
-  protected readonly Role = Role;
 
-  userProfile = this.authService.user;
-  userRole = this.authService.userRole;
+  userProfile = this.authService.verifiedEmailedUser;
+  userRole = this.authService.userRole
+
+  protected readonly Role = Role;
 }

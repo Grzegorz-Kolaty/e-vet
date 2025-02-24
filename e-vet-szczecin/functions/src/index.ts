@@ -21,7 +21,7 @@ initializeApp();
 export const setCustomClaims = onRequest(
   {cors: "https://e-vet-szczecin.web.app"},
 
-  (request, response) => {
+  async (request, response) => {
 
     try {
 
@@ -37,7 +37,14 @@ export const setCustomClaims = onRequest(
         return;
       }
 
-      response.status(204).send("");
+      const decodedToken = await getAuth().verifyIdToken(idToken);
+      await getAuth().setCustomUserClaims(decodedToken.uid, {role});
+
+      response.status(200).send({
+        data: 'data',
+        status: 'success',
+        message: `Custom claims set for user ${decodedToken.uid}`,
+      });
 
     } catch (error) {
       logger.error('Error setting custom claims', error);
@@ -45,20 +52,59 @@ export const setCustomClaims = onRequest(
     }
   });
 
-export const onRoleSelect = onCall(async (request) => {
-  if (!request.auth) {
+export const onRoleSelect = onCall(async (request, response) => {
+
+
+  if (!request) {
     throw new HttpsError("failed-precondition", "The function must be called while authenticated.");
   }
 
-  const authorizationHeader = request.rawRequest.headers.authorization;
-
-  if (!authorizationHeader) {
-    throw new HttpsError("unauthenticated", "Missing Authorization header.");
+  if (!request.rawRequest) {
+    throw new HttpsError("failed-precondition", "The function must be called while authenticated.");
   }
 
-  const token = authorizationHeader.replace("Bearer ", "").trim();
-  return await getAuth().verifyIdToken(token)
+  return response
 })
+
+
+
+// export const sendCustomVerificationEmail = functions.https.onCall(async (data) => {
+//   const { email } = data;
+//
+//   const actionCodeSettings = {
+//     url: "https://your-app.com",
+//     handleCodeInApp: true,
+//   };
+//
+//   const link = await admin.auth().generateEmailVerificationLink(email, actionCodeSettings);
+//
+//   // Pobieramy kod weryfikacyjny z linku
+//   const oobCode = new URL(link).searchParams.get("oobCode");
+//
+//   const mailOptions = {
+//     from: "your-email@gmail.com",
+//     to: email,
+//     subject: "Zweryfikuj swoje konto",
+//     text: `Twój kod weryfikacyjny to: ${oobCode}. Wpisz go w aplikacji.`,
+//   };
+//
+//   await transporter.sendMail(mailOptions);
+//   return { success: true };
+// });
+
+// if (!request.auth) {
+//   throw new HttpsError("failed-precondition", "The function must be called while authenticated.");
+// }
+//
+//
+// const authorizationHeader = request.rawRequest.headers.authorization;
+//
+// if (!authorizationHeader) {
+//   throw new HttpsError("unauthenticated", "Missing Authorization header.");
+// }
+
+// const token = authorizationHeader.replace("Bearer ", "").trim();
+// await getAuth().verifyIdToken(token)
   // const name = request.auth.token.name || null;
   // const picture = request.auth.token.picture || null;
   // const email = request.auth.token.email || null;

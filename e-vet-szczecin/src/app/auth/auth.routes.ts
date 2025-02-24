@@ -1,4 +1,4 @@
-import { Route } from '@angular/router';
+import {Route} from '@angular/router';
 // import { authGuard, noAuthGuard } from '../shared/guards/auth.guard';
 
 export const AUTH_ROUTES: Route[] = [
@@ -16,6 +16,10 @@ export const AUTH_ROUTES: Route[] = [
     path: 'register',
     // canActivate: [noAuthGuard],
     loadComponent: () => import('./register/register.component'),
+  },
+  {
+    path: 'password-reset',
+    loadComponent: () => import('./forgot-password/forgot-password.component')
   },
   // {
   //   path: 'email-verification',

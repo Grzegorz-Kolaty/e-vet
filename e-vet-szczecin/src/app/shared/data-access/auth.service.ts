@@ -1,12 +1,11 @@
 import {
+  computed,
   effect,
   inject,
-  Injectable,
-  linkedSignal,
-  signal,
+  Injectable, linkedSignal, signal,
 } from '@angular/core';
 import {from} from 'rxjs';
-import {Credentials, Role} from '../interfaces/user.interface';
+import {Credentials, RegisterCredentials, Role} from '../interfaces/user.interface';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -14,14 +13,16 @@ import {
   updateProfile,
   sendEmailVerification,
   applyActionCode,
-  getIdTokenResult,
   User,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  confirmPasswordReset,
+  getIdTokenResult,
 } from 'firebase/auth';
 import {authState} from 'rxfire/auth';
 import {AUTH} from '../../app.config';
 import {rxResource, toSignal} from '@angular/core/rxjs-interop';
 import {Router} from '@angular/router';
+
 
 @Injectable({
   providedIn: 'root',
@@ -31,49 +32,45 @@ export class AuthService {
   router = inject(Router);
 
   user = toSignal(authState(this.auth), {initialValue: null});
+  verifiedEmailedUser = linkedSignal(() => {
+    return this.user()?.emailVerified ? this.user() : null
+  })
+  userRole = signal<Role | null>(null);
 
   onGetToken = rxResource({
-    request: this.user,
-    loader: obj => from(getIdTokenResult(obj.request!)),
+    request: () => this.user(),
+    loader: obj => from(getIdTokenResult(obj.request!, true)),
   });
 
-  isEmailVerified = linkedSignal(() => {
-    return !!this.user()?.emailVerified;
-  });
-
-  userToken = linkedSignal(() => {
-    return this.onGetToken.value()?.token;
-  });
-
-  userDisplayName = linkedSignal(() => this.user()?.displayName);
-  userPhoto = linkedSignal(() => this.user()?.photoURL);
-
-  isProfileCompleted = linkedSignal(() => {
-    return !!this.user() && this.isEmailVerified() && !!this.userRole();
-  });
-
-  userRole = signal<Role | null>(null);
+  isLoadingToken = computed(() => this.onGetToken.isLoading());
 
   constructor() {
     effect(() => {
       const tokenResult = this.onGetToken.value();
       if (tokenResult) {
-        console.log('Role from token:', tokenResult.claims['role']);
+        console.log('Role from token:', tokenResult.claims['role'], tokenResult);
+        console.log('emailVerified from token:', tokenResult.claims['email_verified'])
+        this.verifiedEmailedUser.set((tokenResult.claims['email_verified'] ? this.user() : null))
         this.userRole.set((tokenResult.claims['role'] as Role) ?? null);
-        this.userToken.set(tokenResult.token);
       }
     });
   }
 
-  register(credentials: Credentials) {
+  refreshToken() {
+    this.onGetToken.reload()
+  }
+
+  register(credential: RegisterCredentials) {
     return from(
       createUserWithEmailAndPassword(
         this.auth,
-        credentials.email,
-        credentials.password
-      ).then(() => {
+        credential.email,
+        credential.password,
+      ).then((credentials) => {
+        return updateProfile(credentials.user, {displayName: credential.displayName}).then(
+          () => sendEmailVerification(credentials.user));
       })
-    );
+    )
   }
 
   login(credentials: Credentials) {
@@ -88,9 +85,7 @@ export class AuthService {
   }
 
   logout() {
-    return signOut(this.auth).then(() =>
-      this.router.navigate(['auth', 'login'])
-    );
+    return signOut(this.auth).then(() => this.router.navigate(['auth', 'login']));
   }
 
   updateProfileData(
@@ -105,34 +100,15 @@ export class AuthService {
   }
 
   resetPassword(email: string) {
-    const auth = this.auth
-    // const newPassword = password;
-    // const actions = {
-    //     url: `https://www.example.com/?email=${email}?newPassword=${newPassword}`,
-    //     iOS: {bundleId: 'com. example. ios'},
-    //     android: {packageName: 'com. example. android', installApp: true, minimumVersion: '12'},
-    //     handleCodeInApp: true
-    //
-    // }
-    return from(sendPasswordResetEmail(auth, email))
+    return from(sendPasswordResetEmail(this.auth, email))
   }
 
-  // applyEmailVerificationCode = (code: string) =>
-  //   applyActionCode(this.auth, code).then(() => window.location.reload());
-
-  applyEmailVerificationCode(code: string) {
-    const auth = this.auth;
-    return from(applyActionCode(auth, code).then(() => {
-    }));
-
-    // applyEmailVerificationCode(code: string) {
-    //   const auth = this.auth;
-    //   return applyActionCode(auth, code).then(() => {
-    //     if (auth.currentUser) {
-    //       return auth.currentUser.reload();
-    //     }
-    //     return
-    //   });
-    // }
+  confirmPasswordReset(oobCode: string, newPassword: string) {
+    return from(confirmPasswordReset(this.auth, oobCode, newPassword))
   }
+
+  verifyEmail(oobCode: string) {
+    return from(applyActionCode(this.auth, oobCode));
+  }
+
 }
