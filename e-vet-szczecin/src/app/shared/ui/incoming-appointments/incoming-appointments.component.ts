@@ -11,6 +11,7 @@ import {DatePipe} from '@angular/common';
     <section class="shadow border-warning-subtle border-2 rounded-2 p-4 m-4">
       <h4 class="mb-4">Nadchodzące wizyty</h4>
 
+      @defer (when appointments()) {
       <div class="row row-cols-1 row-cols-md-2 g-4">
         @for (appointment of appointments(); track appointment.id) {
           <div class="col">
@@ -27,6 +28,7 @@ import {DatePipe} from '@angular/common';
           <h6 class="bold">Brak nadchodzących wizyt!</h6>
         }
       </div>
+      }
     </section>
   `,
   styles: ``,

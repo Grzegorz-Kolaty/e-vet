@@ -15,14 +15,16 @@ html, body, app-root {
 
 .catbackground {
   background-size: contain;
-  background-position-x: -40%;
-  background-image: url('../assets/ceilingcat.png');
+  background-position-x: -100%;
+  background-image: linear-gradient(135deg, #4158D0 0%, #C850C0 100%), url('../assets/ceilingcat3.png');
+  background-blend-mode: overlay;
 }
 
 .brown__cat__background {
   background-size: contain;
-  background-position-x: -20%;
-  background-image: url('../assets/browncat.png');
+  background-position-x: -30%;
+  background-image: linear-gradient(183deg, #626a94 0%, #c59cc2 100%), url(../assets/browncat.png);
+  background-blend-mode: overlay;
 }
 
 .dog__background {
@@ -34,7 +36,7 @@ html, body, app-root {
 
 
 .glass {
-  background-color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(255, 255, 255, 0.5);
 }
 
 .w-20 {

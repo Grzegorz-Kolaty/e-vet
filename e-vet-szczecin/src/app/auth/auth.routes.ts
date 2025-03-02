@@ -1,19 +1,15 @@
 import {Route} from '@angular/router';
+import {Role} from '../shared/interfaces/user.interface';
 // import { authGuard, noAuthGuard } from '../shared/guards/auth.guard';
 
 export const AUTH_ROUTES: Route[] = [
-  {
-    path: '',
-    redirectTo: 'login',
-    pathMatch: 'full',
-  },
   {
     path: 'login',
     // canActivate: [noAuthGuard],
     loadComponent: () => import('./login/login.component'),
   },
   {
-    path: 'register',
+    path: `register/:role`,
     // canActivate: [noAuthGuard],
     loadComponent: () => import('./register/register.component'),
   },
@@ -37,4 +33,10 @@ export const AUTH_ROUTES: Route[] = [
     // canActivate: [authGuard],
     loadComponent: () => import('./profile/profile.component'),
   },
+  {
+    path: '',
+    redirectTo: 'login',
+    pathMatch: 'full',
+  },
+
 ];

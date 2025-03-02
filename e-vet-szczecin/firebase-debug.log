@@ -1,43 +1,32 @@
-[debug] [2025-02-24T00:20:28.124Z] ----------------------------------------------------------------------
-[debug] [2025-02-24T00:20:28.127Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\grzeg\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js emulators:exec --project=demo-e-vet-szczecin --ui ng serve
-[debug] [2025-02-24T00:20:28.128Z] CLI Version:   13.29.3
-[debug] [2025-02-24T00:20:28.128Z] Platform:      win32
-[debug] [2025-02-24T00:20:28.128Z] Node Version:  v22.13.1
-[debug] [2025-02-24T00:20:28.129Z] Time:          Mon Feb 24 2025 01:20:28 GMT+0100 (czas środkowoeuropejski standardowy)
-[debug] [2025-02-24T00:20:28.129Z] ----------------------------------------------------------------------
+[debug] [2025-03-01T23:24:24.568Z] ----------------------------------------------------------------------
+[debug] [2025-03-01T23:24:24.572Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\grzeg\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js emulators:exec --project=demo-e-vet-szczecin --ui ng serve
+[debug] [2025-03-01T23:24:24.572Z] CLI Version:   13.29.3
+[debug] [2025-03-01T23:24:24.572Z] Platform:      win32
+[debug] [2025-03-01T23:24:24.572Z] Node Version:  v22.13.1
+[debug] [2025-03-01T23:24:24.573Z] Time:          Sun Mar 02 2025 00:24:24 GMT+0100 (czas środkowoeuropejski standardowy)
+[debug] [2025-03-01T23:24:24.573Z] ----------------------------------------------------------------------
 [debug] 
-[debug] [2025-02-24T00:20:28.443Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
-[debug] [2025-02-24T00:20:28.444Z] > authorizing via signed-in user (grzegorzkolaty@gmail.com)
-[debug] [2025-02-24T00:20:28.578Z] java version "23.0.2" 2025-01-21
+[debug] [2025-03-01T23:24:24.875Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-03-01T23:24:24.876Z] > authorizing via signed-in user (grzegorzkolaty@gmail.com)
+[debug] [2025-03-01T23:24:25.094Z] java version "23.0.2" 2025-01-21
 
-[debug] [2025-02-24T00:20:28.578Z] Java(TM) SE Runtime Environment (build 23.0.2+7-58)
+[debug] [2025-03-01T23:24:25.095Z] Java(TM) SE Runtime Environment (build 23.0.2+7-58)
 Java HotSpot(TM) 64-Bit Server VM (build 23.0.2+7-58, mixed mode, sharing)
 
-[debug] [2025-02-24T00:20:28.603Z] Parsed Java major version: 23
+[debug] [2025-03-01T23:24:25.123Z] Parsed Java major version: 23
 [info] i  emulators: Starting emulators: auth, functions, firestore, hosting, storage, extensions {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: auth, functions, firestore, hosting, storage, extensions"}}
 [info] i  emulators: Detected demo project ID "demo-e-vet-szczecin", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail. {"metadata":{"emulator":{"name":"hub"},"message":"Detected demo project ID \"demo-e-vet-szczecin\", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail."}}
-[debug] [2025-02-24T00:20:28.625Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-02-24T00:20:28.625Z] [auth] Authentication Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-02-24T00:20:28.625Z] [firestore] Firestore Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-02-24T00:20:28.625Z] [firestore.websocket] websocket server for firestore only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-02-24T00:20:28.626Z] [hosting] Hosting Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-02-24T00:20:28.626Z] [storage] Storage Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-02-24T00:20:28.626Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"auth":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}],"hosting":[{"address":"127.0.0.1","family":"IPv4","port":5000}],"storage":[{"address":"127.0.0.1","family":"IPv4","port":9199}]},"metadata":{"message":"assigned listening specs for emulators"}}
-[debug] [2025-02-24T00:20:28.634Z] [hub] writing locator at C:\Users\grzeg\AppData\Local\Temp\hub-demo-e-vet-szczecin.json
-[debug] [2025-02-24T00:20:28.644Z] Checked if tokens are valid: true, expires at: 1740359737827
-[debug] [2025-02-24T00:20:28.645Z] Checked if tokens are valid: true, expires at: 1740359737827
-[debug] [2025-02-24T00:20:28.647Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/demo-e-vet-szczecin [none]
-[debug] [2025-02-24T00:20:29.138Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/demo-e-vet-szczecin 403
-[debug] [2025-02-24T00:20:29.138Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/demo-e-vet-szczecin {"error":{"code":403,"message":"The caller does not have permission","status":"PERMISSION_DENIED"}}
-[debug] [2025-02-24T00:20:29.139Z] Request to https://firebase.googleapis.com/v1beta1/projects/demo-e-vet-szczecin had HTTP Error: 403, The caller does not have permission
-[info] 
-   Thank you for trying our early preview of Angular support on Firebase Hosting.
-   During the preview, support is best-effort and breaking changes can be expected. Proceed with caution.
-   The integration is known to work with Angular version 16 - 18. You may encounter errors.
-
-   Documentation: https://firebase.google.com/docs/hosting/frameworks/angular
-   File a bug: https://github.com/firebase/firebase-tools/issues/new?template=bug_report.md
-   Submit a feature request: https://github.com/firebase/firebase-tools/issues/new?template=feature_request.md
-
-   We'd love to learn from you. Express your interest in helping us shape the future of Firebase Hosting: https://goo.gle/41enW5X
-
+[debug] [2025-03-01T23:24:25.146Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-03-01T23:24:25.146Z] [auth] Authentication Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-03-01T23:24:25.146Z] [firestore] Firestore Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-03-01T23:24:25.146Z] [firestore.websocket] websocket server for firestore only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-03-01T23:24:25.147Z] [hosting] Hosting Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-03-01T23:24:25.147Z] [storage] Storage Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-03-01T23:24:25.147Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"auth":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}],"hosting":[{"address":"127.0.0.1","family":"IPv4","port":5000}],"storage":[{"address":"127.0.0.1","family":"IPv4","port":9199}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[debug] [2025-03-01T23:24:25.155Z] [hub] writing locator at C:\Users\grzeg\AppData\Local\Temp\hub-demo-e-vet-szczecin.json
+[debug] [2025-03-01T23:24:25.170Z] Checked if tokens are valid: true, expires at: 1740874991529
+[debug] [2025-03-01T23:24:25.170Z] Checked if tokens are valid: true, expires at: 1740874991529
+[debug] [2025-03-01T23:24:25.171Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/demo-e-vet-szczecin [none]
+[debug] [2025-03-01T23:24:25.671Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/demo-e-vet-szczecin 403
+[debug] [2025-03-01T23:24:25.672Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/demo-e-vet-szczecin {"error":{"code":403,"message":"The caller does not have permission","status":"PERMISSION_DENIED"}}
+[debug] [2025-03-01T23:24:25.673Z] Request to https://firebase.googleapis.com/v1beta1/projects/demo-e-vet-szczecin had HTTP Error: 403, The caller does not have permission

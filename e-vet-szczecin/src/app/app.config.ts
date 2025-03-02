@@ -5,8 +5,6 @@ import {initializeApp} from 'firebase/app';
 import {routes} from './app.routes';
 import {environment} from '../environments/environment';
 
-const app = initializeApp(environment.firebase);
-
 import {
   Firestore,
   initializeFirestore,
@@ -25,6 +23,8 @@ import {
   Functions,
 } from 'firebase/functions';
 
+const app = initializeApp(environment.firebase);
+
 export const AUTH = new InjectionToken('Firebase auth', {
   providedIn: 'root',
   factory: () => {
@@ -37,6 +37,7 @@ export const AUTH = new InjectionToken('Firebase auth', {
     return auth;
   },
 });
+
 
 export const FIRESTORE = new InjectionToken('Firebase firestore', {
   providedIn: 'root',

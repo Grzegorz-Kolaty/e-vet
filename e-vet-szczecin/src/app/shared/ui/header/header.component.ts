@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, inject, ViewEncapsulation} from '@angular/core';
-import {RouterLink, RouterLinkActive} from '@angular/router';
+import {Router, RouterLink, RouterLinkActive} from '@angular/router';
 import {AuthService} from '../../data-access/auth.service';
 import {Role} from '../../interfaces/user.interface';
 import {FaIconComponent} from "@fortawesome/angular-fontawesome";
@@ -20,7 +20,7 @@ import {NgbPopover} from '@ng-bootstrap/ng-bootstrap';
     @let role = userRole();
 
     <nav class="navbar navbar-expand-sm shadow-lg bg-dark py-3 text-light">
-      <div class="container-fluid justify-content-center justify-content-sm-between">
+      <div class="container-md justify-content-center justify-content-sm-between">
 
         <a class="navbar-brand"
            [routerLink]="user ? 'dashboard' : 'home'">
@@ -43,12 +43,21 @@ import {NgbPopover} from '@ng-bootstrap/ng-bootstrap';
               routerLink="/home">
               Home
             </button>
+
             <button
               class="btn btn-outline-light border-0"
               routerLinkActive="active"
-              routerLink="/auth/register">
-              Register
+              [routerLink]="['auth', 'register', Role.User]">
+              Rejestracja
             </button>
+
+            <button
+              class="btn btn-outline-light border-0"
+              routerLinkActive="active"
+              [routerLink]="['auth', 'register', Role.Vet]">
+              Rejestracja weterynarzy
+            </button>
+
             <button
               class="btn btn-outline-light border-0"
               routerLinkActive="active"
@@ -122,6 +131,7 @@ import {NgbPopover} from '@ng-bootstrap/ng-bootstrap';
 export class HeaderComponent {
   authService = inject(AuthService);
   appTitle = 'PetCare';
+  router = inject(Router);
 
   userProfile = this.authService.verifiedEmailedUser;
   userRole = this.authService.userRole

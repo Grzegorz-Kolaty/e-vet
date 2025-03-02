@@ -1,9 +1,17 @@
+import {User} from 'firebase/auth';
+
 export interface RegisterCredentials {
   email: string;
   password: string;
   displayName: string;
+  role: Role
 }
 
+/**
+ * @param email - Hello brother, it is login form credential
+ * @param password - Hello brother, it is login form credential
+ *
+ */
 export interface Credentials {
   email: string;
   password: string;

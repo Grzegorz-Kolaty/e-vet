@@ -16,7 +16,7 @@ import {Router} from "@angular/router";
   imports: [ReactiveFormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="catbackground p-5">
+    <section class="catbackground h-100 p-5">
       <form
         [formGroup]="loginForm"
         (ngSubmit)="onSubmit()"

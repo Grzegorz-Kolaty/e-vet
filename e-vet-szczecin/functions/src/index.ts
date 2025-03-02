@@ -11,6 +11,7 @@ import {HttpsError, onCall, onRequest} from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 import {getAuth} from "firebase-admin/auth";
 import {initializeApp} from 'firebase-admin/app';
+import {sendEmailVerification} from 'firebase/auth';
 
 initializeApp();
 
@@ -52,20 +53,46 @@ export const setCustomClaims = onRequest(
     }
   });
 
-export const onRoleSelect = onCall(async (request, response) => {
 
 
-  if (!request) {
-    throw new HttpsError("failed-precondition", "The function must be called while authenticated.");
-  }
+export const setCustomClaimsRole = onCall(
+  async (request) => {
+    const {uid, role} = request.data
 
-  if (!request.rawRequest) {
-    throw new HttpsError("failed-precondition", "The function must be called while authenticated.");
-  }
+    try {
+      return await getAuth().setCustomUserClaims(uid, {role});
+    } catch (error) {
+      throw new HttpsError("internal", "Error creating user", error);
+    }
 
-  return response
-})
-
+    // const {email, displayName, password, role} = request.data;
+    //
+    // if (!email || !password || !role) {
+    //   throw new HttpsError("invalid-argument", "Missing required fields");
+    // }
+    //
+    // try {
+    //   const userRecord = await getAuth().createUser({
+    //     email,
+    //     password,
+    //     displayName
+    //   });
+    //
+    //   await getAuth().setCustomUserClaims(userRecord.uid, {role});
+    //
+    //   // await sendEmailVerification(user)
+    //
+    //
+    //   // const user = getAuth().getUserByEmail(email)
+    //
+    //   const token = await getAuth().createCustomToken(userRecord.uid)
+    //
+    //   // return {success: true, message: "User created", uid: userRecord.uid, confEmail: email, token: token};
+    //   return token
+    // } catch (error) {
+    //   throw new HttpsError("internal", "Error creating user", error);
+    // }
+  });
 
 
 // export const sendCustomVerificationEmail = functions.https.onCall(async (data) => {
@@ -105,43 +132,43 @@ export const onRoleSelect = onCall(async (request, response) => {
 
 // const token = authorizationHeader.replace("Bearer ", "").trim();
 // await getAuth().verifyIdToken(token)
-  // const name = request.auth.token.name || null;
-  // const picture = request.auth.token.picture || null;
-  // const email = request.auth.token.email || null;
-  //
-  // try {
-  //   const token = request.app.token.toString()
-  //
-  //   if (!token) {
-  //     return new HttpsError("failed-precondition", "notoken", token);
-  //   }
-  //   return await getAuth().verifyIdToken(token)
-  // } catch (error) {
-  //    logger.error('Error setting custom claims', error);
-  //    return  error
-  // }
+// const name = request.auth.token.name || null;
+// const picture = request.auth.token.picture || null;
+// const email = request.auth.token.email || null;
+//
+// try {
+//   const token = request.app.token.toString()
+//
+//   if (!token) {
+//     return new HttpsError("failed-precondition", "notoken", token);
+//   }
+//   return await getAuth().verifyIdToken(token)
+// } catch (error) {
+//    logger.error('Error setting custom claims', error);
+//    return  error
+// }
 
-  // try {
-  //
-  //   // if (request.method === 'OPTIONS') {
-  //   //   response.status(204).send('');
-  //   //   return;
-  //   // }
-  //
-  //   const {idToken, role} = request.data;
-  //
-  //   if (!idToken || !role) {
-  //     return false
-  //     // return response = "error"
-  //     // response.send({error: 'Missing idToken or role'});
-  //     // return;
-  //   }
-  //
-  //   return true
-  //   // response.status(204).send("");
-  //
-  // } catch (error) {
-  //   logger.error('Error setting custom claims', error);
-  //   return false
-  //   // response.status(500).send({error: 'Internal server error', details: error});
-  // }
+// try {
+//
+//   // if (request.method === 'OPTIONS') {
+//   //   response.status(204).send('');
+//   //   return;
+//   // }
+//
+//   const {idToken, role} = request.data;
+//
+//   if (!idToken || !role) {
+//     return false
+//     // return response = "error"
+//     // response.send({error: 'Missing idToken or role'});
+//     // return;
+//   }
+//
+//   return true
+//   // response.status(204).send("");
+//
+// } catch (error) {
+//   logger.error('Error setting custom claims', error);
+//   return false
+//   // response.status(500).send({error: 'Internal server error', details: error});
+// }

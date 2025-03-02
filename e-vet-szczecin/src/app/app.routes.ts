@@ -5,7 +5,7 @@ import {authGuard} from './shared/guards/auth.guard';
 
 export const routes: Routes = [
   {
-    path: '',
+    path: 'home',
     component: HomeComponent,
   },
   {
@@ -27,6 +27,11 @@ export const routes: Routes = [
       import('./appointments/appointments.routes').then(
         m => m.APPOINTMENTS_ROUTES
       ),
+  },
+  {
+    path: '',
+    redirectTo: 'home',
+    pathMatch: "full"
   },
   {
     path: '**',
