@@ -1,10 +1,13 @@
-import {ChangeDetectionStrategy, Component, effect, inject} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, Component, effect, inject} from '@angular/core';
 import {ActivatedRoute, RouterOutlet} from '@angular/router';
 import {HeaderComponent} from './shared/ui/header/header.component';
 import {FaIconLibrary} from '@fortawesome/angular-fontawesome';
 import {faCalendarDays, faNotesMedical, faPaw, faStore, faUser} from '@fortawesome/free-solid-svg-icons';
 import {AuthService} from './shared/data-access/auth.service';
 import {SidebarComponent} from './shared/ui/sidebar/sidebar.component';
+import {environment} from '../environments/environment';
+import {initializeAppCheck, ReCaptchaV3Provider, getToken} from 'firebase/app-check';
+import {app} from './app.config';
 
 
 @Component({
@@ -28,11 +31,23 @@ import {SidebarComponent} from './shared/ui/sidebar/sidebar.component';
   `,
   styles: ``
 })
-export class AppComponent {
+export class AppComponent implements AfterViewInit {
   public authService = inject(AuthService);
   public library = inject(FaIconLibrary);
 
   constructor() {
-    this.library.addIcons(faPaw, faStore, faUser, faNotesMedical, faCalendarDays);
+    this.library.addIcons(faPaw, faStore, faUser, faNotesMedical, faCalendarDays)
+  }
+
+  async ngAfterViewInit() {
+    console.log('production: ', environment.production, 'captchakey: ', environment.firebase.recaptchaToken);
+    (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN = environment.production ? false : environment.firebase.recaptchaToken
+    console.log(app)
+    const check = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(environment.firebase.recaptchaToken),
+        isTokenAutoRefreshEnabled: true
+      }
+    )
+    await getToken(check, true).then(r => console.log(r))
   }
 }

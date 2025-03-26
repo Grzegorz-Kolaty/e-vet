@@ -1,8 +1,7 @@
 import {inject, Injectable} from '@angular/core';
-import {getFunctions, httpsCallable, HttpsCallableResult} from 'firebase/functions';
+import {httpsCallable} from 'firebase/functions';
 import {FUNCTIONS} from '../../app.config';
-import {RegisterCredentials, Role} from '../interfaces/user.interface';
-import {from, map} from 'rxjs';
+import {Role} from '../interfaces/user.interface';
 
 
 @Injectable({
@@ -10,18 +9,16 @@ import {from, map} from 'rxjs';
 })
 export class FunctionsService {
   functions = inject(FUNCTIONS);
-  functionsRegion = this.functions
 
-  setRoleClaims(role: Role) {
-    const functionsWithRegion = getFunctions(this.functions.app);
-    const callable = httpsCallable(functionsWithRegion, 'setCustomClaims');
-    return from(callable({idToken: "this.authService.onGetToken.value()?.token", role: role}));
+  setCustomClaimsRole(role: Role) {
+    const callable = httpsCallable(this.functions, 'setCustomClaimsRole');
+    console.log(role)
+    return callable(role);
   }
 
-  setCustomClaimsRole(data: { role: Role, uid: string }) {
-    console.log(data)
-    const callable = httpsCallable(this.functionsRegion, 'setCustomClaimsRole');
-    return from(callable(data))
+  updateProfile(address: string) {
+    const callable = httpsCallable(this.functions, 'updateProfile');
+    return callable({address: address});
   }
 
 }

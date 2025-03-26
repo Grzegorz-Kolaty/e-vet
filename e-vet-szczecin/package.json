@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "firebase emulators:exec --project=demo-e-vet-szczecin --ui \"ng serve\"",
+    "start": "firebase emulators:exec --project=e-vet-szczecin --ui \"ng serve\"",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"

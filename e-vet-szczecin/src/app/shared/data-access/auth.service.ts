@@ -4,7 +4,7 @@ import {
   inject,
   Injectable, linkedSignal, signal,
 } from '@angular/core';
-import {forkJoin, from, map, switchMap, tap} from 'rxjs';
+import {from} from 'rxjs';
 import {Credentials, RegisterCredentials, Role} from '../interfaces/user.interface';
 import {
   createUserWithEmailAndPassword,
@@ -17,7 +17,6 @@ import {
   sendPasswordResetEmail,
   confirmPasswordReset,
   getIdTokenResult,
-  signInWithCustomToken,
 } from 'firebase/auth';
 import {authState} from 'rxfire/auth';
 import {AUTH} from '../../app.config';
@@ -54,6 +53,7 @@ export class AuthService {
         // console.log('emailVerified from token:', tokenResult.claims['email_verified'])
         this.verifiedEmailedUser.set((tokenResult.claims['email_verified'] ? this.user() : null))
         this.userRole.set((tokenResult.claims['role'] as Role) ?? null);
+        console.log(tokenResult.claims['role'], tokenResult.claims['displayName'])
       }
     });
   }
@@ -62,21 +62,45 @@ export class AuthService {
     this.onGetToken.reload()
   }
 
-  register(credential: RegisterCredentials) {
-    return from(createUserWithEmailAndPassword(
-      this.auth,
-      credential.email,
-      credential.password
-    )).pipe(
-      switchMap(credentials =>
-        forkJoin([
-          this.updateProfileData({ displayName: credential.displayName }, credentials.user),
-          this.initiateEmail(credentials.user),
-          this.functionsService.setCustomClaimsRole({ role: Role.User, uid: credentials.user.uid })
-        ])
-      )
-    );
+  async register(registerForm: RegisterCredentials) {
+    try {
+      const credential = await createUserWithEmailAndPassword(this.auth, registerForm.email, registerForm.password);
+      await updateProfile(credential.user, {displayName: registerForm.displayName});
+      await this.functionsService.setCustomClaimsRole(registerForm.role);
+      await sendEmailVerification(credential.user);
+    } catch (error) {
+      console.error('Błąd podczas rejestracji:', error);
+      throw error;
+    }
   }
+
+  // register(credential: RegisterCredentials) {
+  //   return from(createUserWithEmailAndPassword(
+  //     this.auth,
+  //     credential.email,
+  //     credential.password
+  //   )).pipe(
+  //     switchMap(credentials =>
+  //       this.updateProfileData({displayName: credential.displayName}, credentials.user).pipe(
+  //         switchMap(() => this.initiateEmail(credentials.user)),
+  //         switchMap(() => this.functionsService.setCustomClaimsRole(credential.role))
+  //       )
+  //     )
+  //   );
+  // }
+
+  // register(credential: RegisterCredentials) {
+  //   return from(createUserWithEmailAndPassword(
+  //     this.auth,
+  //     credential.email,
+  //     credential.password
+  //   )).pipe(forkJoin(credentials =>
+  //      this.updateProfileData({displayName: credential.displayName}, credentials.user))
+  //       this.initiateEmail(credentials.user));
+  //       this.functionsService.setCustomClaimsRole(credential.role))
+  //     )
+  //   )
+  // }
 
 
   login(credentials: Credentials) {
@@ -86,12 +110,6 @@ export class AuthService {
         credentials.email,
         credentials.password
       ).then(() => {
-      })
-    );
-  }
-
-  login2(token: string) {
-    return from(signInWithCustomToken(this.auth, token).then(() => {
       })
     );
   }
@@ -108,10 +126,16 @@ export class AuthService {
     return from(updateProfile(user, profileData));
   }
 
+  async updateProfiles(username: string) {
+    const user = this.user();
+    if (!user) {
+      throw new Error('User not found');
+    }
+    await updateProfile(user, {displayName: username});
+  }
+
   initiateEmail(user: User) {
     return from(sendEmailVerification(user));
-    // return new Error();
-
   }
 
   resetPassword(email: string) {

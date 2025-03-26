@@ -1,4 +1,4 @@
-import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import {AbstractControl, ValidationErrors, ValidatorFn} from '@angular/forms';
 
 export const passwordMatchesValidator: ValidatorFn = (
   control: AbstractControl
@@ -8,5 +8,18 @@ export const passwordMatchesValidator: ValidatorFn = (
 
   return password && confirmPassword && password === confirmPassword
     ? null
-    : { passwordMatch: true };
+    : {passwordMatch: true};
 };
+
+
+// export const emailValidator: ValidatorFn = (
+//   control: AbstractControl
+// ): ValidationErrors | null => {
+//   const email = control.value
+//
+//   const emailRegex = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/g
+//
+//   console.log(email)
+//   console.log(emailRegex.test(email))
+//   return emailRegex.test(email) ? null : {invalidEmail: true};
+// }

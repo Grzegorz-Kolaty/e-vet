@@ -22,8 +22,17 @@ import {
   getFunctions,
   Functions,
 } from 'firebase/functions';
+import {initializeAppCheck, ReCaptchaV3Provider, } from 'firebase/app-check';
 
-const app = initializeApp(environment.firebase);
+
+export const app = initializeApp(environment.firebase);
+
+// (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN = environment.production ? false : environment.firebase.recaptchaToken
+// initializeAppCheck(app, {
+//     provider: new ReCaptchaV3Provider(environment.firebase.recaptchaToken),
+//     isTokenAutoRefreshEnabled: true
+//   }
+// )
 
 export const AUTH = new InjectionToken('Firebase auth', {
   providedIn: 'root',
@@ -72,7 +81,7 @@ export const FUNCTIONS = new InjectionToken('Firebase functions', {
   factory: () => {
     let functions: Functions;
     if (environment.useEmulators) {
-      functions = getFunctions(app);
+      functions = getFunctions();
       connectFunctionsEmulator(functions, 'localhost', 5001);
     } else {
       functions = getFunctions(app);

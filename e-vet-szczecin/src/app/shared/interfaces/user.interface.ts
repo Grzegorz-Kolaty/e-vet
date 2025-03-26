@@ -1,5 +1,3 @@
-import {User} from 'firebase/auth';
-
 export interface RegisterCredentials {
   email: string;
   password: string;
