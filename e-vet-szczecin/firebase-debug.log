@@ -1,0 +1,197 @@
+[debug] [2025-05-01T11:59:41.935Z] ----------------------------------------------------------------------
+[debug] [2025-05-01T11:59:41.938Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\grzeg\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js emulators:exec --project=e-vet-szczecin --ui ng serve
+[debug] [2025-05-01T11:59:41.939Z] CLI Version:   13.29.3
+[debug] [2025-05-01T11:59:41.939Z] Platform:      win32
+[debug] [2025-05-01T11:59:41.939Z] Node Version:  v22.13.1
+[debug] [2025-05-01T11:59:41.939Z] Time:          Thu May 01 2025 13:59:41 GMT+0200 (czas środkowoeuropejski letni)
+[debug] [2025-05-01T11:59:41.940Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-05-01T11:59:41.944Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2025-05-01T11:59:42.271Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-05-01T11:59:42.271Z] > authorizing via signed-in user (grzegorzkolaty@gmail.com)
+[debug] [2025-05-01T11:59:42.545Z] java version "23.0.2" 2025-01-21
+Java(TM) SE Runtime Environment (build 23.0.2+7-58)
+
+[debug] [2025-05-01T11:59:42.545Z] Java HotSpot(TM) 64-Bit Server VM (build 23.0.2+7-58, mixed mode, sharing)
+
+[debug] [2025-05-01T11:59:42.575Z] Parsed Java major version: 23
+[info] i  emulators: Starting emulators: auth, functions, firestore, hosting, storage, extensions {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: auth, functions, firestore, hosting, storage, extensions"}}
+[debug] [2025-05-01T11:59:42.577Z] Checked if tokens are valid: false, expires at: 1746019090769
+[debug] [2025-05-01T11:59:42.578Z] Checked if tokens are valid: false, expires at: 1746019090769
+[debug] [2025-05-01T11:59:42.578Z] > refreshing access token with scopes: []
+[debug] [2025-05-01T11:59:42.579Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-05-01T11:59:42.579Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-05-01T11:59:42.588Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2025-05-01T11:59:42.588Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2025-05-01T11:59:42.717Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-05-01T11:59:42.717Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-05-01T11:59:42.727Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/e-vet-szczecin [none]
+[debug] [2025-05-01T11:59:43.583Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/e-vet-szczecin 200
+[debug] [2025-05-01T11:59:43.584Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/e-vet-szczecin {"projectNumber":"36520869364","projectId":"e-vet-szczecin","lifecycleState":"ACTIVE","name":"e-vet-szczecin","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-02-14T10:11:19.141700Z"}
+[debug] [2025-05-01T11:59:43.600Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-05-01T11:59:43.600Z] [auth] Authentication Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-05-01T11:59:43.600Z] [firestore] Firestore Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-05-01T11:59:43.600Z] [firestore.websocket] websocket server for firestore only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-05-01T11:59:43.600Z] [hosting] Hosting Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-05-01T11:59:43.601Z] [storage] Storage Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-05-01T11:59:43.601Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"auth":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}],"hosting":[{"address":"127.0.0.1","family":"IPv4","port":5000}],"storage":[{"address":"127.0.0.1","family":"IPv4","port":9199}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[debug] [2025-05-01T11:59:43.606Z] [hub] writing locator at C:\Users\grzeg\AppData\Local\Temp\hub-e-vet-szczecin.json
+[debug] [2025-05-01T11:59:43.614Z] Checked if tokens are valid: true, expires at: 1746104381717
+[debug] [2025-05-01T11:59:43.614Z] Checked if tokens are valid: true, expires at: 1746104381717
+[debug] [2025-05-01T11:59:43.614Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/e-vet-szczecin [none]
+[debug] [2025-05-01T11:59:43.966Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/e-vet-szczecin 200
+[debug] [2025-05-01T11:59:43.966Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/e-vet-szczecin {"projectId":"e-vet-szczecin","projectNumber":"36520869364","displayName":"e-vet-szczecin","name":"projects/e-vet-szczecin","resources":{"hostingSite":"e-vet-szczecin"},"state":"ACTIVE","etag":"1_c5e4d5c1-2209-4ee0-a4c3-33a60b496065"}
+[debug] [2025-05-01T11:59:48.575Z] Checked if tokens are valid: true, expires at: 1746104381717
+[debug] [2025-05-01T11:59:48.575Z] Checked if tokens are valid: true, expires at: 1746104381717
+[debug] [2025-05-01T11:59:48.576Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/e-vet-szczecin/sites pageToken=&pageSize=10
+[debug] [2025-05-01T11:59:49.617Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/e-vet-szczecin/sites 200
+[debug] [2025-05-01T11:59:49.617Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/e-vet-szczecin/sites {"sites":[{"name":"projects/e-vet-szczecin/sites/e-vet-szczecin","defaultUrl":"https://e-vet-szczecin.web.app","appId":"1:36520869364:web:5fe370b10529f6a5340da1","type":"DEFAULT_SITE"},{"name":"projects/e-vet-szczecin/sites/e-vet-szczecin-e3452","defaultUrl":"https://e-vet-szczecin-e3452.web.app","type":"USER_SITE"}]}
+[debug] [2025-05-01T11:59:49.617Z] Checked if tokens are valid: true, expires at: 1746104381717
+[debug] [2025-05-01T11:59:49.617Z] Checked if tokens are valid: true, expires at: 1746104381717
+[debug] [2025-05-01T11:59:49.617Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:36520869364:web:5fe370b10529f6a5340da1/config [none]
+[debug] [2025-05-01T11:59:50.436Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:36520869364:web:5fe370b10529f6a5340da1/config 200
+[debug] [2025-05-01T11:59:50.436Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:36520869364:web:5fe370b10529f6a5340da1/config {"projectId":"e-vet-szczecin","appId":"1:36520869364:web:5fe370b10529f6a5340da1","storageBucket":"e-vet-szczecin.firebasestorage.app","apiKey":"AIzaSyCOpC8X9SUxGIyGzMCifCmzdEV9scOayEw","authDomain":"e-vet-szczecin.firebaseapp.com","messagingSenderId":"36520869364","measurementId":"G-J290P2C8WY"}
+[info] 
+   Thank you for trying our early preview of Angular support on Firebase Hosting.
+   During the preview, support is best-effort and breaking changes can be expected. Proceed with caution.
+   The integration is known to work with Angular version 16 - 18. You may encounter errors.
+
+   Documentation: https://firebase.google.com/docs/hosting/frameworks/angular
+   File a bug: https://github.com/firebase/firebase-tools/issues/new?template=bug_report.md
+   Submit a feature request: https://github.com/firebase/firebase-tools/issues/new?template=feature_request.md
+
+   We'd love to learn from you. Express your interest in helping us shape the future of Firebase Hosting: https://goo.gle/41enW5X
+
+[debug] [2025-05-01T12:00:23.338Z] [web frameworks] effective firebase.json:  {
+  "hosting": [
+    {
+      "source": ".",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "frameworksBackend": {
+        "region": "us-central1"
+      },
+      "site": "e-vet-szczecin",
+      "rewrites": [
+        {
+          "source": "/**",
+          "destination": "/index.html"
+        }
+      ],
+      "redirects": [],
+      "headers": [
+        {
+          "source": "/**/*.[jt]s",
+          "headers": [
+            {
+              "key": "Set-Cookie",
+              "value": "__FIREBASE_DEFAULTS__=eyJlbXVsYXRvckhvc3RzIjp7ImF1dGgiOiIxMjcuMC4wLjE6OTA5OSIsImZpcmVzdG9yZSI6IjEyNy4wLjAuMTo4MDgwIiwic3RvcmFnZSI6IjEyNy4wLjAuMTo5MTk5In0sImNvbmZpZyI6eyJwcm9qZWN0SWQiOiJlLXZldC1zemN6ZWNpbiIsImFwcElkIjoiMTozNjUyMDg2OTM2NDp3ZWI6NWZlMzcwYjEwNTI5ZjZhNTM0MGRhMSIsInN0b3JhZ2VCdWNrZXQiOiJlLXZldC1zemN6ZWNpbi5maXJlYmFzZXN0b3JhZ2UuYXBwIiwiYXBpS2V5IjoiQUl6YVN5Q09wQzhYOVNVeEdJeUd6TUNpZkNtemRFVjlzY09heUV3IiwiYXV0aERvbWFpbiI6ImUtdmV0LXN6Y3plY2luLmZpcmViYXNlYXBwLmNvbSIsIm1lc3NhZ2luZ1NlbmRlcklkIjoiMzY1MjA4NjkzNjQiLCJtZWFzdXJlbWVudElkIjoiRy1KMjkwUDJDOFdZIn19; SameSite=Strict; Expires=2027-03-26T22:40:23.338Z; Path=/;"
+            }
+          ]
+        }
+      ],
+      "cleanUrls": true,
+      "i18n": {
+        "root": "/"
+      },
+      "public": ".firebase\\e-vet-szczecin\\hosting",
+      "webFramework": "angular"
+    }
+  ],
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
+    }
+  ]
+}
+[debug] [2025-05-01T12:00:23.342Z] [Extensions] Started Extensions emulator, this is a noop.
+[debug] [2025-05-01T12:00:23.347Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-05-01T12:00:23.347Z] [eventarc] Eventarc Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-05-01T12:00:23.347Z] [tasks] Cloud Tasks Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-05-01T12:00:23.347Z] late-assigned ports for functions and eventarc emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"auth":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}],"hosting":[{"address":"127.0.0.1","family":"IPv4","port":5000}],"storage":[{"address":"127.0.0.1","family":"IPv4","port":9199}],"functions":[{"address":"127.0.0.1","family":"IPv4","port":5001}],"eventarc":[{"address":"127.0.0.1","family":"IPv4","port":9299}],"tasks":[{"address":"127.0.0.1","family":"IPv4","port":9499}]},"metadata":{"message":"late-assigned ports for functions and eventarc emulators"}}
+[warn] !  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: apphosting, database, pubsub, dataconnect {"metadata":{"emulator":{"name":"functions"},"message":"The following emulators are not running, calls to these services from the Functions emulator will affect production: \u001b[1mapphosting, database, pubsub, dataconnect\u001b[22m"}}
+[debug] [2025-05-01T12:00:23.353Z] defaultcredentials: writing to file C:\Users\grzeg\AppData\Roaming\firebase\grzegorzkolaty_gmail_com_application_default_credentials.json
+[debug] [2025-05-01T12:00:23.354Z] Setting GAC to C:\Users\grzeg\AppData\Roaming\firebase\grzegorzkolaty_gmail_com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to C:\\Users\\grzeg\\AppData\\Roaming\\firebase\\grzegorzkolaty_gmail_com_application_default_credentials.json"}}
+[debug] [2025-05-01T12:00:23.355Z] Checked if tokens are valid: true, expires at: 1746104381717
+[debug] [2025-05-01T12:00:23.355Z] Checked if tokens are valid: true, expires at: 1746104381717
+[debug] [2025-05-01T12:00:23.355Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/e-vet-szczecin/adminSdkConfig [none]
+[debug] [2025-05-01T12:00:23.848Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/e-vet-szczecin/adminSdkConfig 200
+[debug] [2025-05-01T12:00:23.848Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/e-vet-szczecin/adminSdkConfig {"projectId":"e-vet-szczecin","storageBucket":"e-vet-szczecin.firebasestorage.app"}
+[debug] [2025-05-01T12:00:23.874Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"firestore"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2025-05-01T12:00:23.874Z] Ignoring unsupported arg: single_project_mode_error {"metadata":{"emulator":{"name":"firestore"},"message":"Ignoring unsupported arg: single_project_mode_error"}}
+[debug] [2025-05-01T12:00:23.875Z] Starting Firestore Emulator with command {"binary":"java","args":["-Dgoogle.cloud_firestore.debug_log_level=FINE","-Duser.language=en","-jar","C:\\Users\\grzeg\\.cache\\firebase\\emulators\\cloud-firestore-emulator-v1.19.8.jar","--host","127.0.0.1","--port",8080,"--websocket_port",9150,"--project_id","e-vet-szczecin","--rules","C:\\Users\\grzeg\\WebstormProjects\\e-vet-szczecin\\firestore.rules","--single_project_mode",true,"--functions_emulator","127.0.0.1:5001"],"optionalArgs":["port","webchannel_port","host","rules","websocket_port","functions_emulator","seed_from_export","project_id","single_project_mode"],"joinArgs":false,"shell":false,"port":8080} {"metadata":{"emulator":{"name":"firestore"},"message":"Starting Firestore Emulator with command {\"binary\":\"java\",\"args\":[\"-Dgoogle.cloud_firestore.debug_log_level=FINE\",\"-Duser.language=en\",\"-jar\",\"C:\\\\Users\\\\grzeg\\\\.cache\\\\firebase\\\\emulators\\\\cloud-firestore-emulator-v1.19.8.jar\",\"--host\",\"127.0.0.1\",\"--port\",8080,\"--websocket_port\",9150,\"--project_id\",\"e-vet-szczecin\",\"--rules\",\"C:\\\\Users\\\\grzeg\\\\WebstormProjects\\\\e-vet-szczecin\\\\firestore.rules\",\"--single_project_mode\",true,\"--functions_emulator\",\"127.0.0.1:5001\"],\"optionalArgs\":[\"port\",\"webchannel_port\",\"host\",\"rules\",\"websocket_port\",\"functions_emulator\",\"seed_from_export\",\"project_id\",\"single_project_mode\"],\"joinArgs\":false,\"shell\":false,\"port\":8080}"}}
+[info] i  firestore: Firestore Emulator logging to firestore-debug.log {"metadata":{"emulator":{"name":"firestore"},"message":"Firestore Emulator logging to \u001b[1mfirestore-debug.log\u001b[22m"}}
+[info] +  firestore: Firestore Emulator UI websocket is running on 9150. {"metadata":{"emulator":{"name":"firestore"},"message":"Firestore Emulator UI websocket is running on 9150."}}
+[debug] [2025-05-01T12:00:35.028Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"storage"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2025-05-01T12:00:36.079Z] Temp file directory for storage emulator: C:\Users\grzeg\AppData\Local\Temp/firebase/storage/blobs {"metadata":{"emulator":{"name":"storage"},"message":"Temp file directory for storage emulator: C:\\Users\\grzeg\\AppData\\Local\\Temp/firebase/storage/blobs"}}
+[debug] [2025-05-01T12:00:36.083Z] Checked if tokens are valid: true, expires at: 1746104381717
+[debug] [2025-05-01T12:00:36.083Z] Checked if tokens are valid: true, expires at: 1746104381717
+[debug] [2025-05-01T12:00:36.084Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/e-vet-szczecin/sites 
+[debug] [2025-05-01T12:00:37.040Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/e-vet-szczecin/sites 200
+[debug] [2025-05-01T12:00:37.040Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/e-vet-szczecin/sites {"sites":[{"name":"projects/e-vet-szczecin/sites/e-vet-szczecin","defaultUrl":"https://e-vet-szczecin.web.app","appId":"1:36520869364:web:5fe370b10529f6a5340da1","type":"DEFAULT_SITE"},{"name":"projects/e-vet-szczecin/sites/e-vet-szczecin-e3452","defaultUrl":"https://e-vet-szczecin-e3452.web.app","type":"USER_SITE"}]}
+[debug] [2025-05-01T12:00:37.040Z] Checked if tokens are valid: true, expires at: 1746104381717
+[debug] [2025-05-01T12:00:37.040Z] Checked if tokens are valid: true, expires at: 1746104381717
+[debug] [2025-05-01T12:00:37.040Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/e-vet-szczecin/webApps/1:36520869364:web:5fe370b10529f6a5340da1/config [none]
+[debug] [2025-05-01T12:00:37.696Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/e-vet-szczecin/webApps/1:36520869364:web:5fe370b10529f6a5340da1/config 200
+[debug] [2025-05-01T12:00:37.697Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/e-vet-szczecin/webApps/1:36520869364:web:5fe370b10529f6a5340da1/config {"projectId":"e-vet-szczecin","appId":"1:36520869364:web:5fe370b10529f6a5340da1","storageBucket":"e-vet-szczecin.firebasestorage.app","apiKey":"AIzaSyCOpC8X9SUxGIyGzMCifCmzdEV9scOayEw","authDomain":"e-vet-szczecin.firebaseapp.com","messagingSenderId":"36520869364","measurementId":"G-J290P2C8WY"}
+[info] i  hosting[e-vet-szczecin]: Serving hosting files from: .firebase\e-vet-szczecin\hosting {"metadata":{"emulator":{"name":"hosting"},"message":"Serving hosting files from: \u001b[1m.firebase\\e-vet-szczecin\\hosting\u001b[22m"}}
+[info] +  hosting[e-vet-szczecin]: Local server: http://127.0.0.1:5000 {"metadata":{"emulator":{"name":"hosting"},"message":"Local server: \u001b[4m\u001b[1mhttp://127.0.0.1:5000\u001b[22m\u001b[24m"}}
+[debug] [2025-05-01T12:00:37.733Z] [Extensions] Connecting Extensions emulator, this is a noop.
+[info] i  functions: Watching "C:\Users\grzeg\WebstormProjects\e-vet-szczecin\functions" for Cloud Functions... {"metadata":{"emulator":{"name":"functions"},"message":"Watching \"C:\\Users\\grzeg\\WebstormProjects\\e-vet-szczecin\\functions\" for Cloud Functions..."}}
+[debug] [2025-05-01T12:00:37.742Z] Validating nodejs source
+[debug] [2025-05-01T12:00:38.688Z] > [functions] package.json contents: {
+  "name": "functions",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "firebase-admin": "^12.6.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^4.9.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2025-05-01T12:00:38.688Z] Building nodejs source
+[debug] [2025-05-01T12:00:38.688Z] Failed to find version of module node: reached end of search path C:\Users\grzeg\WebstormProjects\e-vet-szczecin\functions\node_modules
+[info] +  functions: Using node@22 from host. 
+[debug] [2025-05-01T12:00:38.691Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-01T12:00:38.697Z] Found firebase-functions binary at 'C:\Users\grzeg\WebstormProjects\e-vet-szczecin\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8617
+
+[debug] [2025-05-01T12:00:39.340Z] Got response from /__/functions.yaml {"endpoints":{"setCustomClaimsRole":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"setCustomClaimsRole"},"updateProfile":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"updateProfile"},"createUser":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"createUser"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[debug] [2025-05-01T12:00:43.372Z] defaultcredentials: writing to file C:\Users\grzeg\AppData\Roaming\firebase\grzegorzkolaty_gmail_com_application_default_credentials.json
+[debug] [2025-05-01T12:00:43.373Z] Setting GAC to C:\Users\grzeg\AppData\Roaming\firebase\grzegorzkolaty_gmail_com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to C:\\Users\\grzeg\\AppData\\Roaming\\firebase\\grzegorzkolaty_gmail_com_application_default_credentials.json"}}
+[info] +  functions: Loaded functions definitions from source: setCustomClaimsRole, updateProfile, createUser. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: setCustomClaimsRole, updateProfile, createUser."}}
+[info] +  functions[us-central1-setCustomClaimsRole]: http function initialized (http://127.0.0.1:5001/e-vet-szczecin/us-central1/setCustomClaimsRole). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/e-vet-szczecin/us-central1/setCustomClaimsRole)."}}
+[info] +  functions[us-central1-updateProfile]: http function initialized (http://127.0.0.1:5001/e-vet-szczecin/us-central1/updateProfile). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/e-vet-szczecin/us-central1/updateProfile)."}}
+[info] +  functions[us-central1-createUser]: http function initialized (http://127.0.0.1:5001/e-vet-szczecin/us-central1/createUser). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/e-vet-szczecin/us-central1/createUser)."}}
+[debug] [2025-05-01T12:00:43.383Z] Could not find VSCode notification endpoint: FetchError: request to http://localhost:40001/vscode/notify failed, reason: . If you are not running the Firebase Data Connect VSCode extension, this is expected and not an issue.
+[info] i  Running script: ng serve 
+[debug] [2025-05-01T12:00:43.394Z] Running ng serve with environment {"ALLUSERSPROFILE":"C:\\ProgramData","APPDATA":"C:\\Users\\grzeg\\AppData\\Roaming","BERRY_BIN_FOLDER":"C:\\Users\\grzeg\\AppData\\Local\\Temp\\xfs-c3e50882","CommonProgramFiles":"C:\\Program Files\\Common Files","CommonProgramFiles(x86)":"C:\\Program Files (x86)\\Common Files","CommonProgramW6432":"C:\\Program Files\\Common Files","COMPUTERNAME":"DESKTOP-9HF8EMJ","ComSpec":"C:\\WINDOWS\\system32\\cmd.exe","COREPACK_ENABLE_DOWNLOAD_PROMPT":"1","COREPACK_ROOT":"C:\\Program Files\\nodejs\\node_modules\\corepack","DriverData":"C:\\Windows\\System32\\Drivers\\DriverData","HOME":"C:\\Users\\grzeg","HOMEDRIVE":"C:","HOMEPATH":"\\Users\\grzeg","INIT_CWD":"C:\\Users\\grzeg\\WebstormProjects\\e-vet-szczecin","IS_FIREBASE_CLI":"true","LOCALAPPDATA":"C:\\Users\\grzeg\\AppData\\Local","LOGONSERVER":"\\\\DESKTOP-9HF8EMJ","NODE_ENV":"development","npm_config_user_agent":"yarn/4.9.1 npm/? node/v22.13.1 win32 x64","npm_execpath":"C:\\Users\\grzeg\\AppData\\Local\\Temp\\xfs-c3e50882\\yarn","npm_lifecycle_event":"start","npm_node_execpath":"C:\\Users\\grzeg\\AppData\\Local\\Temp\\xfs-c3e50882\\node","npm_package_json":"C:\\Users\\grzeg\\WebstormProjects\\e-vet-szczecin\\package.json","npm_package_name":"e-vet-szczecin","npm_package_version":"0.0.0","NUMBER_OF_PROCESSORS":"4","OneDrive":"C:\\Users\\grzeg\\OneDrive","OS":"Windows_NT","PATH":"C:\\Users\\grzeg\\AppData\\Local\\Temp\\xfs-c3e50882;C:\\Program Files\\Common Files\\Oracle\\Java\\javapath;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Program Files\\Git\\cmd;C:\\Program Files\\nodejs\\;C:\\Users\\grzeg\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Program Files\\JetBrains\\WebStorm 2024.3.2.1\\bin;C:\\Users\\grzeg\\AppData\\Roaming\\npm","PATHEXT":".COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC","PROCESSOR_ARCHITECTURE":"AMD64","PROCESSOR_IDENTIFIER":"Intel64 Family 6 Model 158 Stepping 9, GenuineIntel","PROCESSOR_LEVEL":"6","PROCESSOR_REVISION":"9e09","ProgramData":"C:\\ProgramData","ProgramFiles":"C:\\Program Files","ProgramFiles(x86)":"C:\\Program Files (x86)","ProgramW6432":"C:\\Program Files","PROJECT_CWD":"C:\\Users\\grzeg\\WebstormProjects\\e-vet-szczecin","PROMPT":"$P$G","PSModulePath":"C:\\Program Files\\WindowsPowerShell\\Modules;C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\Modules","PUBLIC":"C:\\Users\\Public","SystemDrive":"C:","SystemRoot":"C:\\WINDOWS","TEMP":"C:\\Users\\grzeg\\AppData\\Local\\Temp","TMP":"C:\\Users\\grzeg\\AppData\\Local\\Temp","USERDOMAIN":"DESKTOP-9HF8EMJ","USERDOMAIN_ROAMINGPROFILE":"DESKTOP-9HF8EMJ","USERNAME":"grzeg","USERPROFILE":"C:\\Users\\grzeg","WebStorm":"C:\\Program Files\\JetBrains\\WebStorm 2024.3.2.1\\bin;","windir":"C:\\WINDOWS","Yarn":"C:\\Users\\grzeg\\AppData\\Local\\Yarn\\bin","ZES_ENABLE_SYSMAN":"1","__COMPAT_LAYER":"RunAsAdmin DetectorsAppHealth","GCLOUD_PROJECT":"e-vet-szczecin","FIREBASE_CONFIG":"{\"projectId\":\"e-vet-szczecin\",\"storageBucket\":\"e-vet-szczecin.appspot.com\",\"databaseURL\":\"https://e-vet-szczecin.firebaseio.com\"}","FIREBASE_EMULATOR_HUB":"127.0.0.1:4400","FIREBASE_AUTH_EMULATOR_HOST":"127.0.0.1:9099","FIRESTORE_EMULATOR_HOST":"127.0.0.1:8080","FIREBASE_FIRESTORE_EMULATOR_ADDRESS":"127.0.0.1:8080","FIREBASE_STORAGE_EMULATOR_HOST":"127.0.0.1:9199","STORAGE_EMULATOR_HOST":"http://127.0.0.1:9199","CLOUD_EVENTARC_EMULATOR_HOST":"http://127.0.0.1:9299","CLOUD_TASKS_EMULATOR_HOST":"127.0.0.1:9499"}

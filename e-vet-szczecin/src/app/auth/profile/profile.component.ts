@@ -19,20 +19,19 @@ import {FunctionsService} from '../../shared/data-access/functions.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section>
-
-      @if (user() && userRole()) {
-        <app-profile-pic [user]="user()"></app-profile-pic>
+        <app-profile-pic [user]="authService.user()"></app-profile-pic>
 
         <div class="mt-5 p-3 text-center">
-          <h4>{{ userRole() === Role.Vet ? Role.Vet + '.' : '' }}{{ user()?.displayName }}</h4>
+<!--          <h4>{{ userRole() === Role.Vet ? Role.Vet + '.' : '' }}{{ user()?.displayName }}</h4>-->
           <!--          <div class="d-inline-flex">-->
           <!--            <button class="btn btn-lg btn-outline-primary mx-3" type="submit">Kliniki</button>-->
           <!--            <button class="btn btn-lg btn-primary mx-2" type="submit">Pacjenci</button>-->
           <!--          </div>-->
         </div>
 
-        <app-profile-form [user]="user()" [role]="userRole()" (userName)="displayNameSig.set($event)" [status]="displayNameChangeStatus()"></app-profile-form>
-      }
+        <app-profile-form [user]="authService.user()" [role]="Role.User" (userName)="displayNameSig.set($event)"
+                          [status]="displayNameChangeStatus()"></app-profile-form>
+
 
     </section>
   `,
@@ -46,8 +45,10 @@ export default class ProfileComponent {
   protected readonly Role = Role;
 
 
-  user = this.authService.verifiedEmailedUser;
-  userRole = this.authService.userRole
+
+  // user = this.authService.verifiedEmailedUser;
+  //
+  // userRole = this.authService.userRole
 
   displayNameSig = signal<string | undefined>(undefined);
   onDisplayNameChange = resource({
@@ -56,17 +57,17 @@ export default class ProfileComponent {
   })
   displayNameChangeStatus = computed(() => this.onDisplayNameChange.status())
 
-  constructor() {
-    effect(() => {
-      if (!this.user()) {
-        this.router.navigate(['auth', 'login']);
-      }
-    });
-
-    effect(() => {
-      console.log(this.displayNameChangeStatus());
-    });
-  }
+  // constructor() {
+  //   effect(() => {
+  //     if (!this.authService.user()) {
+  //       this.router.navigate(['auth', 'login']);
+  //     }
+  //   });
+  //
+  //   // effect(() => {
+  //   //   console.log(this.displayNameChangeStatus());
+  //   // });
+  // }
 
   // updateAuthDisplayName(name: string, user: User) {
   //   this.isLoading.set(true);

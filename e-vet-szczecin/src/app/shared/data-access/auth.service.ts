@@ -32,75 +32,32 @@ export class AuthService {
   router = inject(Router);
   functionsService = inject(FunctionsService)
 
-  user = toSignal(authState(this.auth), {initialValue: null});
-  verifiedEmailedUser = linkedSignal(() => {
-    return this.user()?.emailVerified ? this.user() : null
-  })
-  userRole = signal<Role | null>(null);
+  user$ = authState(this.auth);
+  user = toSignal(this.user$, {initialValue: null});
+  // verifiedEmailedUser = linkedSignal(() => {
+  //   return this.user()?.emailVerified ? this.user() : null
+  // })
+  // userRole = signal<Role | null>(null);
 
-  onGetToken = rxResource({
-    request: () => this.user(),
-    loader: obj => from(getIdTokenResult(obj.request!, true)),
-  });
-
-  isLoadingToken = computed(() => this.onGetToken.isLoading());
-
-  constructor() {
-    effect(() => {
-      const tokenResult = this.onGetToken.value();
-      if (tokenResult) {
-        // console.log('Role from token:', tokenResult.claims['role'], tokenResult);
-        // console.log('emailVerified from token:', tokenResult.claims['email_verified'])
-        this.verifiedEmailedUser.set((tokenResult.claims['email_verified'] ? this.user() : null))
-        this.userRole.set((tokenResult.claims['role'] as Role) ?? null);
-        console.log(tokenResult.claims['role'], tokenResult.claims['displayName'])
-      }
-    });
-  }
+  // onGetToken = rxResource({
+  //   request: () => this.user(),
+  //   loader: obj => from(getIdTokenResult(obj.request!, true)),
+  // });
 
   refreshToken() {
-    this.onGetToken.reload()
+    console.log('refresh token auth service');
+    // this.onGetToken.reload()
   }
 
   async register(registerForm: RegisterCredentials) {
     try {
-      const credential = await createUserWithEmailAndPassword(this.auth, registerForm.email, registerForm.password);
-      await updateProfile(credential.user, {displayName: registerForm.displayName});
-      await this.functionsService.setCustomClaimsRole(registerForm.role);
-      await sendEmailVerification(credential.user);
+      const userCredential = await createUserWithEmailAndPassword(this.auth, registerForm.email, registerForm.password);
+      return await sendEmailVerification(userCredential.user)
     } catch (error) {
       console.error('Błąd podczas rejestracji:', error);
       throw error;
     }
   }
-
-  // register(credential: RegisterCredentials) {
-  //   return from(createUserWithEmailAndPassword(
-  //     this.auth,
-  //     credential.email,
-  //     credential.password
-  //   )).pipe(
-  //     switchMap(credentials =>
-  //       this.updateProfileData({displayName: credential.displayName}, credentials.user).pipe(
-  //         switchMap(() => this.initiateEmail(credentials.user)),
-  //         switchMap(() => this.functionsService.setCustomClaimsRole(credential.role))
-  //       )
-  //     )
-  //   );
-  // }
-
-  // register(credential: RegisterCredentials) {
-  //   return from(createUserWithEmailAndPassword(
-  //     this.auth,
-  //     credential.email,
-  //     credential.password
-  //   )).pipe(forkJoin(credentials =>
-  //      this.updateProfileData({displayName: credential.displayName}, credentials.user))
-  //       this.initiateEmail(credentials.user));
-  //       this.functionsService.setCustomClaimsRole(credential.role))
-  //     )
-  //   )
-  // }
 
 
   login(credentials: Credentials) {
@@ -115,8 +72,9 @@ export class AuthService {
   }
 
 
-  logout() {
-    return signOut(this.auth).then(() => this.router.navigate(['auth', 'login']));
+  async logout() {
+    return await signOut(this.auth);
+    // return await this.router.navigate(['auth', 'login']);
   }
 
   updateProfileData(
@@ -128,10 +86,12 @@ export class AuthService {
 
   async updateProfiles(username: string) {
     const user = this.user();
-    if (!user) {
-      throw new Error('User not found');
+    // if (!user) {
+    //   throw new Error('User not logged in');
+    // }
+    if (user) {
+      await updateProfile(user, {displayName: username});
     }
-    await updateProfile(user, {displayName: username});
   }
 
   initiateEmail(user: User) {

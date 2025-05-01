@@ -24,13 +24,13 @@ export const noAuthGuard: CanActivateFn = () => {
   return false;
 };
 
-export const profileCompletedGuard: CanActivateFn = () => {
-  const authService = inject(AuthService);
-  const router = inject(Router);
-
-  if (authService.userRole()) {
-    return true;
-  }
-  router.navigate(['auth', 'profile']);
-  return false;
-};
+// export const profileCompletedGuard: CanActivateFn = () => {
+//   const authService = inject(AuthService);
+//   const router = inject(Router);
+//
+//   if (authService.userRole()) {
+//     return true;
+//   }
+//   router.navigate(['auth', 'profile']);
+//   return false;
+// };

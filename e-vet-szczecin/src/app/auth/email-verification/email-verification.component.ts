@@ -15,7 +15,7 @@ import {Router} from '@angular/router';
   template: `
     <h4 class="mb-3">Kod weryfikacyjny</h4>
 
-    <input type="text" disabled [value]="oobCode()" #codeInput class="form-control mb-3" />
+    <input type="text" disabled [value]="oobCode()" #codeInput class="form-control mb-3"/>
 
     @if (onEmailVerification.isLoading()) {
       <div class="d-flex justify-content-center my-3">
@@ -56,17 +56,4 @@ export class EmailVerificationComponent {
 
   onErrorVerification = computed(() => this.onEmailVerification.error());
   onSuccessVerification = computed(() => this.onEmailVerification.status() === 4)
-
-  constructor() {
-    effect(() => {
-      if (this.onSuccessVerification()) {
-        this.authService.refreshToken()
-      }
-    });
-    effect(() => {
-      if (this.authService.verifiedEmailedUser()) {
-        this.router.navigate(['auth', 'profile']);
-      }
-    });
-  }
 }

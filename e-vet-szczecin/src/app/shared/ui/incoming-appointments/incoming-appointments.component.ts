@@ -12,36 +12,34 @@ import {DatePipe} from '@angular/common';
       <h4 class="mb-4">Nadchodzące wizyty</h4>
 
       @defer (when appointments()) {
-      <div class="row row-cols-1 row-cols-md-2 g-4">
-        @for (appointment of appointments(); track appointment.id) {
-          <div class="col">
-            <div class="card bg-secondary-subtle border-0">
-              <div class="card-body">
-                <p class="mb-1">Data: {{ appointment.date }}</p>
-                <p class="mb-1">Godzina: {{ appointment.dateTimeFrom | date: 'HH:mm' }}</p>
-                <p class="mb-1">Miasto: {{ appointment.city }}</p>
-                <p class="mb-1">Zwierzak: {{ appointment.patientName }}</p>
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+          @for (appointment of appointments(); track appointment.id) {
+            <div class="col">
+              <div class="card bg-secondary-subtle border-0">
+                <div class="card-body">
+                  <p class="mb-1">Data: {{ appointment.date }}</p>
+                  <p class="mb-1">Godzina: {{ appointment.dateTimeFrom | date: 'HH:mm' }}</p>
+                  <p class="mb-1">Miasto: {{ appointment.city }}</p>
+                  <p class="mb-1">Zwierzak: {{ appointment.patientName }}</p>
+                </div>
               </div>
             </div>
-          </div>
-        } @empty {
-          <h6 class="bold">Brak nadchodzących wizyt!</h6>
-        }
-      </div>
+          } @empty {
+            <h6 class="bold">Brak nadchodzących wizyt!</h6>
+          }
+        </div>
       }
     </section>
   `,
   styles: ``,
-  imports: [
-    DatePipe
-  ]
+  imports: [DatePipe]
 })
 export class IncomingAppointmentsComponent {
   appointmentService = inject(AppointmentsService);
   authService = inject(AuthService)
 
   onGetAppointmentsForVet = rxResource({
-    request: () => this.authService.verifiedEmailedUser()?.uid,
+    request: () => this.authService.user()?.uid,
     loader: uid => this.appointmentService.getReservedAppointmentsForVet(uid.request)
   })
 

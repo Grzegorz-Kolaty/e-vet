@@ -2,6 +2,14 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner() {
+      return request.resource.data.vetId == request.auth.uid;
+    }
+
     match /appointments/{appointment} {
       allow read: if isAuthenticated();
       allow create: if isOwner();
@@ -15,16 +23,4 @@ service cloud.firestore {
 
   }
 
-  function isAuthenticated() {
-    return request.auth != null;
-  }
-
-  function isValidAppointment() {
-    // email of incoming doc should match the authenticated user
-    return request.resource.data.vet.email == request.auth.token.email;
-  }
-
-  function isOwner() {
-    return request.resource.data.vetId == request.auth.uid;
-  }
 }

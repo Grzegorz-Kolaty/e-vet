@@ -58,7 +58,7 @@ import {Router} from "@angular/router";
           <span class="visually-hidden">Nothing</span>
         }
 
-        @if (logger.status() === 4 && this.authService.user() && !this.authService.verifiedEmailedUser()) {
+        @if (logger.status() === 4 && authService.user() && !authService.user()?.emailVerified) {
           <h5 class="mb-4">Na adres mailowy został wysłany mail z kodem
             autoryzującym.
           </h5>
@@ -91,14 +91,6 @@ export default class LoginComponent {
     email: ['grzegorzkolaty@gmail.com', [Validators.required, Validators.email]],
     password: ['Poszkole1', Validators.required],
   });
-
-  constructor() {
-    effect(() => {
-      if (this.authService.verifiedEmailedUser()) {
-        this.router.navigate(['auth', 'profile']);
-      }
-    });
-  }
 
   onSubmit() {
     const form = this.loginForm.getRawValue();

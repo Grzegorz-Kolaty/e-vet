@@ -23,9 +23,6 @@ export class AppointmentsService {
   private firestore = inject(FIRESTORE);
   authService = inject(AuthService);
 
-  userId = this.authService.verifiedEmailedUser
-
-
   addAppointment(appointment: Appointment) {
     const docId = `${appointment.vetId}_${appointment.dateTimeFrom}`;
     const appointmentDocRef = doc(this.firestore, 'appointments', docId);

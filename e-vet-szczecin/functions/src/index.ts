@@ -11,11 +11,11 @@ import {HttpsError, onCall} from "firebase-functions/v2/https";
 import {getAuth} from "firebase-admin/auth";
 import {initializeApp} from 'firebase-admin/app';
 
+// Start writing functions
+// https://firebase.google.com/docs/functions/typescript
 
 initializeApp();
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
 
 export const setCustomClaimsRole = onCall(
   {
@@ -70,5 +70,32 @@ export const updateProfile = onCall(
       }
     } catch (error) {
       throw new HttpsError("internal", "Error creating user", error);
+    }
+  });
+
+export const createUser = onCall({
+    enforceAppCheck: true,
+  },
+  async (request) => {
+    if (!request.auth || !request.auth.token || !request.auth.token.email) {
+      throw new HttpsError("failed-precondition", "The function must be called while authenticated.");
+    }
+
+    const auth = getAuth()
+
+    // auth.createCustomToken()
+
+    if (!auth) {
+      throw new HttpsError("failed-precondition", "Server Error, no auth on firebase backend");
+    }
+
+    const requestedRole = request.data
+
+    try {
+      // const createUser = await auth.createUser({})
+      // await createUser.
+      await auth.setCustomUserClaims(request.auth.uid, {role: requestedRole})
+    } catch (error) {
+      throw new HttpsError("internal", `Error creating user ${requestedRole}`, error);
     }
   });

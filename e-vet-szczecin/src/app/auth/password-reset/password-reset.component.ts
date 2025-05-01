@@ -44,7 +44,8 @@ import {rxResource} from '@angular/core/rxjs-interop';
         <span class="invisible">Nothing</span>
       }
 
-    </div>`,
+    </div>
+  `,
   styles: ``,
 })
 export class PasswordResetComponent {
@@ -61,17 +62,4 @@ export class PasswordResetComponent {
 
   onErrorPasswordReset = computed(() => this.onPasswordReset.error());
   onSuccessPasswordReset = computed(() => this.onPasswordReset.status() === 4)
-
-  constructor() {
-    effect(() => {
-      if (this.onSuccessPasswordReset()) {
-        this.authService.refreshToken()
-      }
-    });
-    effect(() => {
-      if (this.authService.verifiedEmailedUser()) {
-        this.router.navigate(['auth', 'profile']);
-      }
-    });
-  }
 }
