@@ -1,8 +1,6 @@
 import {
-  computed,
-  effect,
   inject,
-  Injectable, linkedSignal, signal,
+  Injectable,
 } from '@angular/core';
 import {from} from 'rxjs';
 import {Credentials, RegisterCredentials, Role} from '../interfaces/user.interface';
@@ -16,13 +14,12 @@ import {
   User,
   sendPasswordResetEmail,
   confirmPasswordReset,
-  getIdTokenResult,
 } from 'firebase/auth';
 import {authState} from 'rxfire/auth';
-import {AUTH} from '../../app.config';
-import {rxResource, toSignal} from '@angular/core/rxjs-interop';
+import {toSignal} from '@angular/core/rxjs-interop';
 import {Router} from '@angular/router';
 import {FunctionsService} from './functions.service';
+import {AUTH} from "../../firebase.providers";
 
 @Injectable({
   providedIn: 'root',
@@ -52,6 +49,7 @@ export class AuthService {
   async register(registerForm: RegisterCredentials) {
     try {
       const userCredential = await createUserWithEmailAndPassword(this.auth, registerForm.email, registerForm.password);
+      await this.functionsService.setCustomClaimsRole(Role.User)
       return await sendEmailVerification(userCredential.user)
     } catch (error) {
       console.error('Błąd podczas rejestracji:', error);

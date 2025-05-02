@@ -6,7 +6,7 @@ import {
   uploadBytes,
   StorageReference,
 } from 'firebase/storage';
-import { STORAGE } from '../../app.config';
+import {STORAGE} from "../../firebase.providers";
 
 export interface UploadFile {
   file: File;

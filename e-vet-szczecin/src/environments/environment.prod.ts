@@ -1,6 +1,5 @@
 export const environment = {
   production: true,
-  useEmulators: false,
   firebase: {
     apiKey: "AIzaSyCOpC8X9SUxGIyGzMCifCmzdEV9scOayEw",
     authDomain: "e-vet-szczecin.firebaseapp.com",

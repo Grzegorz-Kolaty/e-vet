@@ -1,7 +1,7 @@
 import {inject, Injectable} from '@angular/core';
 import {httpsCallable} from 'firebase/functions';
-import {FUNCTIONS} from '../../app.config';
 import {Role} from '../interfaces/user.interface';
+import {FUNCTIONS} from "../../firebase.providers";
 
 
 @Injectable({

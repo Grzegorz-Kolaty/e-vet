@@ -9,7 +9,6 @@ import {Role} from '../../interfaces/user.interface';
 import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 import {NgbPopover} from '@ng-bootstrap/ng-bootstrap';
 import {User} from 'firebase/auth';
-import {JsonPipe} from '@angular/common';
 
 @Component({
   selector: 'app-header',
@@ -17,112 +16,97 @@ import {JsonPipe} from '@angular/common';
     RouterLink,
     RouterLinkActive,
     FaIconComponent,
-    NgbPopover,
-    JsonPipe,
-  ],
+    NgbPopover],
   encapsulation: ViewEncapsulation.None,
   template: `
+    <nav class="navbar navbar-expand-sm shadow-lg bg-dark py-3 text-light">
+      <div class="container-md justify-content-center justify-content-sm-between">
+        <a class="navbar-brand"
+           [routerLink]="userinfo() ? 'dashboard' : 'home'">
+          <fa-icon [icon]="['fas', 'paw']" size="2xl"/>
 
-      <nav class="navbar navbar-expand-sm shadow-lg bg-dark py-3 text-light">
-          <div class="container-md justify-content-center justify-content-sm-between">
-              <a class="navbar-brand"
-                 [routerLink]="userinfo() ? 'dashboard' : 'home'">
-                  <fa-icon [icon]="['fas', 'paw']" size="2xl"/>
+          <span class="fw-bolder mx-3">{{ appTitle }}</span>
+        </a>
 
-                  <span class="fw-bolder mx-3">{{ appTitle }}</span>
+        @if (!userinfo()) {
+          <div class="d-inline-flex gap-3">
+            <button
+              class="btn btn-outline-light border-0"
+              routerLinkActive="active"
+              routerLink="/home">
+              Home
+            </button>
 
-                  <!--          @if (userinfo() && !!role) {-->
-                  <!--            <span class="text-light lead">-->
-                  <!--                Panel {{ role === Role.User ? 'użytkownika' : 'weterynarza' }}-->
-                  <!--              </span>-->
-                  <!--          }-->
+            <button
+              class="btn btn-outline-light border-0"
+              routerLinkActive="active"
+              [routerLink]="['auth', 'register', Role.User]">
+              Rejestracja
+            </button>
 
+            <button
+              class="btn btn-outline-light border-0"
+              routerLinkActive="active"
+              [routerLink]="['auth', 'register', Role.Vet]">
+              Rejestracja weterynarzy
+            </button>
 
-              </a>
+            <button
+              class="btn btn-outline-light border-0"
+              routerLinkActive="active"
+              routerLink="/auth/login">
+              Login
+            </button>
+          </div>
+        } @else {
+          <div class="d-inline-flex align-items-center gap-3 px-3"
+               [ngbPopover]="popoverContent"
+               placement="bottom"
+               triggers="click"
+               container="body"
+               popoverClass="custom-popover">
 
-              @if (!userinfo()) {
-                  <div class="d-inline-flex gap-3">
-                      <button
-                              class="btn btn-outline-light border-0"
-                              routerLinkActive="active"
-                              routerLink="/home">
-                          Home
-                      </button>
+            @if (userinfo()?.photoURL) {
+              <img
+                [src]="userinfo()?.photoURL"
+                class="rounded-3"
+                width="48"
+                height="48"
+                alt="profilePic"/>
+            } @else {
+              <fa-icon [icon]="['fas', 'user']" size="xl"></fa-icon>
+            }
 
-                      <button
-                              class="btn btn-outline-light border-0"
-                              routerLinkActive="active"
-                              [routerLink]="['auth', 'register', Role.User]">
-                          Rejestracja
-                      </button>
-
-                      <button
-                              class="btn btn-outline-light border-0"
-                              routerLinkActive="active"
-                              [routerLink]="['auth', 'register', Role.Vet]">
-                          Rejestracja weterynarzy
-                      </button>
-
-                      <button
-                              class="btn btn-outline-light border-0"
-                              routerLinkActive="active"
-                              routerLink="/auth/login">
-                          Login
-                      </button>
-                  </div>
-              } @else {
-                  <div class="d-inline-flex align-items-center gap-3 px-3"
-                       [ngbPopover]="popoverContent"
-                       placement="bottom"
-                       triggers="click"
-                       container="body"
-                       popoverClass="custom-popover">
-
-                      @if (userinfo()?.photoURL) {
-                          <img
-                                  [src]="userinfo()?.photoURL"
-                                  class="rounded-3"
-                                  width="48"
-                                  height="48"
-                                  alt="profilePic"/>
-                      } @else {
-                          <fa-icon [icon]="['fas', 'user']" size="xl"></fa-icon>
-                      }
-
-                      <!--            <pre class="fw-semibold">-->
-                      <!--                {{ (userinfo() | json) ?? 'uzupełnij profil' }}-->
-                      <!--              </pre>-->
-
-                      <div class="d-inline-flex flex-column flex-nowrap text-start">
+            <div class="d-inline-flex flex-column flex-nowrap text-start">
 
               <span class="fw-semibold">
                 {{ userinfo()?.displayName ?? 'uzupełnij profil' }}
               </span>
 
-                          <span>{{ userinfo()?.email }}</span>
-                      </div>
+              <span>{{ userinfo()?.email }}</span>
+            </div>
 
-                      <ng-template #popoverContent>
-                          <button
-                                  class="btn btn-outline-dark border-0"
-                                  routerLinkActive="active"
-                                  routerLink="/auth/profile">
-                              Profile
-                          </button>
+            <ng-template #popoverContent>
+              <button
+                class="btn btn-outline-dark border-0"
+                routerLinkActive="active"
+                routerLink="/auth/profile">
+                Profile
+              </button>
 
-                          <button
-                                  type="button"
-                                  class="btn btn-outline-dark border-0"
-                                  (click)="logoutUser.emit()">
-                              Wyloguj
-                          </button>
-                      </ng-template>
-
-                  </div>
-              }
+              <button
+                type="button"
+                class="btn btn-outline-dark border-0"
+                (click)="logoutUser.emit()">
+                Wyloguj
+              </button>
+            </ng-template>
 
           </div>
-      </nav>
+        }
+
+      </div>
+    </nav>
   `,
   styles: `
     .custom-popover {

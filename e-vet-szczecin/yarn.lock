@@ -25,7 +25,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular-devkit/build-angular@npm:^19.1.7":
+"@angular-devkit/build-angular@npm:^19.2.10":
   version: 19.2.10
   resolution: "@angular-devkit/build-angular@npm:19.2.10"
   dependencies:
@@ -177,7 +177,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/animations@npm:^19.1.0":
+"@angular/animations@npm:^19.2.9":
   version: 19.2.9
   resolution: "@angular/animations@npm:19.2.9"
   dependencies:
@@ -259,7 +259,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/cli@npm:^19.1.7":
+"@angular/cli@npm:^19.2.10":
   version: 19.2.10
   resolution: "@angular/cli@npm:19.2.10"
   dependencies:
@@ -286,7 +286,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/common@npm:^19.1.0":
+"@angular/common@npm:^19.2.9":
   version: 19.2.9
   resolution: "@angular/common@npm:19.2.9"
   dependencies:
@@ -298,7 +298,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/compiler-cli@npm:^19.1.0":
+"@angular/compiler-cli@npm:^19.2.9":
   version: 19.2.9
   resolution: "@angular/compiler-cli@npm:19.2.9"
   dependencies:
@@ -321,7 +321,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/compiler@npm:^19.1.0":
+"@angular/compiler@npm:^19.2.9":
   version: 19.2.9
   resolution: "@angular/compiler@npm:19.2.9"
   dependencies:
@@ -342,7 +342,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/forms@npm:^19.1.0":
+"@angular/forms@npm:^19.2.9":
   version: 19.2.9
   resolution: "@angular/forms@npm:19.2.9"
   dependencies:
@@ -356,7 +356,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/localize@npm:^19.1.0":
+"@angular/localize@npm:^19.2.9":
   version: 19.2.9
   resolution: "@angular/localize@npm:19.2.9"
   dependencies:
@@ -375,7 +375,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/platform-browser-dynamic@npm:^19.1.0":
+"@angular/platform-browser-dynamic@npm:^19.2.9":
   version: 19.2.9
   resolution: "@angular/platform-browser-dynamic@npm:19.2.9"
   dependencies:
@@ -389,7 +389,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/platform-browser@npm:^19.1.0":
+"@angular/platform-browser@npm:^19.2.9":
   version: 19.2.9
   resolution: "@angular/platform-browser@npm:19.2.9"
   dependencies:
@@ -405,7 +405,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/router@npm:^19.1.0":
+"@angular/router@npm:^19.2.9":
   version: 19.2.9
   resolution: "@angular/router@npm:19.2.9"
   dependencies:
@@ -3231,7 +3231,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ng-bootstrap/ng-bootstrap@npm:18.0.0":
+"@ng-bootstrap/ng-bootstrap@npm:^18.0.0":
   version: 18.0.0
   resolution: "@ng-bootstrap/ng-bootstrap@npm:18.0.0"
   dependencies:
@@ -4176,7 +4176,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jasmine@npm:~5.1.0":
+"@types/jasmine@npm:^5.1.7":
   version: 5.1.7
   resolution: "@types/jasmine@npm:5.1.7"
   checksum: 10c0/f8df11fb8c8dce20088bfbaf5f805878b1228b4522f6ef100ea539e2f363537304095200ea8e856a0795e45d18803970d12683bc5afa35ccb475cc8ec5ea6d54
@@ -4820,7 +4820,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bootstrap@npm:^5.3.3":
+"bootstrap@npm:^5.3.5":
   version: 5.3.5
   resolution: "bootstrap@npm:5.3.5"
   peerDependencies:
@@ -5581,36 +5581,36 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "e-vet-szczecin@workspace:."
   dependencies:
-    "@angular-devkit/build-angular": "npm:^19.1.7"
-    "@angular/animations": "npm:^19.1.0"
-    "@angular/cli": "npm:^19.1.7"
-    "@angular/common": "npm:^19.1.0"
-    "@angular/compiler": "npm:^19.1.0"
-    "@angular/compiler-cli": "npm:^19.1.0"
+    "@angular-devkit/build-angular": "npm:^19.2.10"
+    "@angular/animations": "npm:^19.2.9"
+    "@angular/cli": "npm:^19.2.10"
+    "@angular/common": "npm:^19.2.9"
+    "@angular/compiler": "npm:^19.2.9"
+    "@angular/compiler-cli": "npm:^19.2.9"
     "@angular/core": "npm:^19.2.9"
-    "@angular/forms": "npm:^19.1.0"
-    "@angular/localize": "npm:^19.1.0"
-    "@angular/platform-browser": "npm:^19.1.0"
-    "@angular/platform-browser-dynamic": "npm:^19.1.0"
-    "@angular/router": "npm:^19.1.0"
+    "@angular/forms": "npm:^19.2.9"
+    "@angular/localize": "npm:^19.2.9"
+    "@angular/platform-browser": "npm:^19.2.9"
+    "@angular/platform-browser-dynamic": "npm:^19.2.9"
+    "@angular/router": "npm:^19.2.9"
     "@fortawesome/angular-fontawesome": "npm:^1.0.0"
     "@fortawesome/free-solid-svg-icons": "npm:^6.7.2"
-    "@ng-bootstrap/ng-bootstrap": "npm:18.0.0"
+    "@ng-bootstrap/ng-bootstrap": "npm:^18.0.0"
     "@popperjs/core": "npm:^2.11.8"
-    "@types/jasmine": "npm:~5.1.0"
-    bootstrap: "npm:^5.3.3"
-    firebase: "npm:^11.3.1"
-    jasmine-core: "npm:~5.5.0"
-    karma: "npm:~6.4.0"
-    karma-chrome-launcher: "npm:~3.2.0"
-    karma-coverage: "npm:~2.2.0"
-    karma-jasmine: "npm:~5.1.0"
-    karma-jasmine-html-reporter: "npm:~2.1.0"
+    "@types/jasmine": "npm:^5.1.7"
+    bootstrap: "npm:^5.3.5"
+    firebase: "npm:^11.6.1"
+    jasmine-core: "npm:^5.7.0"
+    karma: "npm:^6.4.4"
+    karma-chrome-launcher: "npm:^3.2.0"
+    karma-coverage: "npm:^2.2.1"
+    karma-jasmine: "npm:^5.1.0"
+    karma-jasmine-html-reporter: "npm:^2.1.0"
     rxfire: "npm:^6.1.0"
-    rxjs: "npm:~7.8.0"
-    tslib: "npm:^2.3.0"
-    typescript: "npm:~5.7.2"
-    zone.js: "npm:~0.15.0"
+    rxjs: "npm:^7.8.2"
+    tslib: "npm:^2.8.1"
+    typescript: "npm:^5.8.3"
+    zone.js: "npm:^0.15.0"
   languageName: unknown
   linkType: soft
 
@@ -6260,7 +6260,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"firebase@npm:^11.3.1":
+"firebase@npm:^11.6.1":
   version: 11.6.1
   resolution: "firebase@npm:11.6.1"
   dependencies:
@@ -7177,10 +7177,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jasmine-core@npm:~5.5.0":
-  version: 5.5.0
-  resolution: "jasmine-core@npm:5.5.0"
-  checksum: 10c0/9914f45ce6bcc016d61ee591a8a71dd0d88902ddf5fa887b11966040ce0916379bc4d5f446c07c58226b16f8a0f9719fa201cd92a3f07b02e8c8aa4169448600
+"jasmine-core@npm:^5.7.0":
+  version: 5.7.0
+  resolution: "jasmine-core@npm:5.7.0"
+  checksum: 10c0/33d030ccc4141734e49f4e14b7e8910ceab0219396876292acfef94167d13ad2e819a9297b57cad5c9d2df1331a80e1a6e9b6e0fade4316d1edc404a6c09d6b7
   languageName: node
   linkType: hard
 
@@ -7303,7 +7303,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"karma-chrome-launcher@npm:~3.2.0":
+"karma-chrome-launcher@npm:^3.2.0":
   version: 3.2.0
   resolution: "karma-chrome-launcher@npm:3.2.0"
   dependencies:
@@ -7312,7 +7312,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"karma-coverage@npm:~2.2.0":
+"karma-coverage@npm:^2.2.1":
   version: 2.2.1
   resolution: "karma-coverage@npm:2.2.1"
   dependencies:
@@ -7326,7 +7326,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"karma-jasmine-html-reporter@npm:~2.1.0":
+"karma-jasmine-html-reporter@npm:^2.1.0":
   version: 2.1.0
   resolution: "karma-jasmine-html-reporter@npm:2.1.0"
   peerDependencies:
@@ -7337,7 +7337,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"karma-jasmine@npm:~5.1.0":
+"karma-jasmine@npm:^5.1.0":
   version: 5.1.0
   resolution: "karma-jasmine@npm:5.1.0"
   dependencies:
@@ -7357,7 +7357,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"karma@npm:~6.4.0":
+"karma@npm:^6.4.4":
   version: 6.4.4
   resolution: "karma@npm:6.4.4"
   dependencies:
@@ -9298,7 +9298,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:~7.8.0":
+"rxjs@npm:^7.8.2":
   version: 7.8.2
   resolution: "rxjs@npm:7.8.2"
   dependencies:
@@ -10160,23 +10160,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:~5.7.2":
-  version: 5.7.3
-  resolution: "typescript@npm:5.7.3"
+"typescript@npm:^5.8.3":
+  version: 5.8.3
+  resolution: "typescript@npm:5.8.3"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10c0/b7580d716cf1824736cc6e628ab4cd8b51877408ba2be0869d2866da35ef8366dd6ae9eb9d0851470a39be17cbd61df1126f9e211d8799d764ea7431d5435afa
+  checksum: 10c0/5f8bb01196e542e64d44db3d16ee0e4063ce4f3e3966df6005f2588e86d91c03e1fb131c2581baf0fb65ee79669eea6e161cd448178986587e9f6844446dbb48
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A~5.7.2#optional!builtin<compat/typescript>":
-  version: 5.7.3
-  resolution: "typescript@patch:typescript@npm%3A5.7.3#optional!builtin<compat/typescript>::version=5.7.3&hash=5786d5"
+"typescript@patch:typescript@npm%3A^5.8.3#optional!builtin<compat/typescript>":
+  version: 5.8.3
+  resolution: "typescript@patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10c0/6fd7e0ed3bf23a81246878c613423730c40e8bdbfec4c6e4d7bf1b847cbb39076e56ad5f50aa9d7ebd89877999abaee216002d3f2818885e41c907caaa192cc4
+  checksum: 10c0/39117e346ff8ebd87ae1510b3a77d5d92dae5a89bde588c747d25da5c146603a99c8ee588c7ef80faaf123d89ed46f6dbd918d534d641083177d5fac38b8a1cb
   languageName: node
   linkType: hard
 
@@ -10785,7 +10785,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zone.js@npm:~0.15.0":
+"zone.js@npm:^0.15.0":
   version: 0.15.0
   resolution: "zone.js@npm:0.15.0"
   checksum: 10c0/981b664c1978759a2854f6e6692d245d1d6334c6b20b7e2e5fa9b60eed74743b29c6a71f7472dc6d2790ab53d67e30475bcd92b9f7664e50aef8bbcd40379552

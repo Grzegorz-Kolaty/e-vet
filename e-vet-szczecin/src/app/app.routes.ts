@@ -24,9 +24,7 @@ export const routes: Routes = [
     path: 'appointments',
     canActivate: [authGuard],
     loadChildren: () =>
-      import('./appointments/appointments.routes').then(
-        m => m.APPOINTMENTS_ROUTES
-      ),
+      import('./appointments/appointments.routes').then(m => m.APPOINTMENTS_ROUTES),
   },
   {
     path: '',

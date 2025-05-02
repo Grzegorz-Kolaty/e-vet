@@ -1,5 +1,4 @@
 import {inject, Injectable} from '@angular/core';
-import {FIRESTORE} from '../../app.config';
 import {
   deleteDoc,
   doc,
@@ -15,6 +14,7 @@ import {collectionData} from 'rxfire/firestore';
 import {from, map} from 'rxjs';
 import {Appointment} from '../interfaces/user.interface';
 import {AuthService} from './auth.service';
+import {FIRESTORE} from "../../firebase.providers";
 
 @Injectable({
   providedIn: 'root',
@@ -60,8 +60,6 @@ export class AppointmentsService {
   }
 
   getReservedAppointmentsForVet(userId: string) {
-
-
     const appointmentsCollection = query(
       collection(this.firestore, 'appointments'),
       where('vetId', '==', userId),
