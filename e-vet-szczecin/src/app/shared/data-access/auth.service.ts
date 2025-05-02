@@ -14,6 +14,7 @@ import {
   User,
   sendPasswordResetEmail,
   confirmPasswordReset,
+  signInWithEmailLink
 } from 'firebase/auth';
 import {authState} from 'rxfire/auth';
 import {toSignal} from '@angular/core/rxjs-interop';
