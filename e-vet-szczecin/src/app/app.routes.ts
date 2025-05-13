@@ -10,21 +10,24 @@ export const routes: Routes = [
   },
   {
     path: 'auth',
-    loadChildren: () => import('./auth/auth.routes').then(m => m.AUTH_ROUTES),
-  },
-  {
-    path: 'auth/action',
-    loadComponent: () => import('./auth/pages/auth-action-handler/auth-action-handler.component').then(m => m.AuthActionHandlerComponent)
+    loadComponent: () => import('./auth/auth.component'),
   },
   {
     path: 'dashboard',
-    loadComponent: () => import('./dashboard/dashboard.component'),
+    canActivate: [authGuard],
+    loadChildren: () =>
+      import('./dashboard/dashboard.routes').then(m => m.DASHBOARD_ROUTES),
   },
   {
     path: 'appointments',
     canActivate: [authGuard],
     loadChildren: () =>
       import('./appointments/appointments.routes').then(m => m.APPOINTMENTS_ROUTES),
+  },
+  {
+    path: 'clinics',
+    canActivate: [authGuard],
+    loadChildren: () => import('./clinics/clinics.routes').then(m => m.CLINICS_ROUTES)
   },
   {
     path: '',

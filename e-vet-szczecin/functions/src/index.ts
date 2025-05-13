@@ -10,11 +10,49 @@
 import {HttpsError, onCall} from "firebase-functions/v2/https";
 import {getAuth} from "firebase-admin/auth";
 import {initializeApp} from 'firebase-admin/app';
-
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+import {getFirestore, FieldValue} from 'firebase-admin/firestore';
 
 initializeApp();
+const auth = getAuth();
+
+// Funkcja do ustawiania claims dla użytkowników
+const setCustomClaims = async (uid: string, requestedRole: string) => {
+
+  try {
+    await new Promise(resolve => setTimeout(resolve, 15000));
+
+    await auth.setCustomUserClaims(uid, { role: requestedRole });
+    return { success: true };
+  } catch (error) {
+    throw new HttpsError("internal", `Error setting role: ${requestedRole}`, error);
+  }
+};
+
+// export const createUser = onCall(
+// {
+//   enforceAppCheck: true,
+// },
+// async (request) => {
+//   // if (!request.auth || !request.auth.token || !request.auth.token.email) {
+//   //   throw new HttpsError("failed-precondition", "The function must be called while authenticated.");
+//   // }
+//
+//   const user = request.data;
+//
+//    const userCreation= await auth.createUser({
+//     displayName: user.displayName,
+//     email: user.email,
+//      password: user.password
+//   })
+//
+//   const uid = userCreation.uid
+//
+//   const setClaims = await setCustomClaims(uid, user.role);
+//
+//    const token = await auth.createCustomToken(uid)
+//
+//   return setCustomClaims(uid, user.role);
+// })
 
 
 export const setCustomClaimsRole = onCall(
@@ -26,23 +64,13 @@ export const setCustomClaimsRole = onCall(
       throw new HttpsError("failed-precondition", "The function must be called while authenticated.");
     }
 
-    const auth = getAuth()
+    const requestedRole = request.data;
 
-    if (!auth) {
-      throw new HttpsError("failed-precondition", "Server Error, no auth on firebase backend");
-    }
+    return setCustomClaims(request.auth.uid, requestedRole);
+  }
+);
 
-    const requestedRole = request.data
-
-    try {
-      return await auth.setCustomUserClaims(request.auth.uid, {role: requestedRole})
-    } catch (error) {
-      throw new HttpsError("internal", `Error creating user ${requestedRole}`, error);
-    }
-  });
-
-
-export const updateProfile = onCall(
+export const createNewClinic = onCall(
   {
     enforceAppCheck: true,
   },
@@ -51,51 +79,52 @@ export const updateProfile = onCall(
       throw new HttpsError("failed-precondition", "The function must be called while authenticated.");
     }
 
-    const auth = getAuth()
+    const db = getFirestore();
+    const vetId = request.auth.uid;
+    const { name, description, address } = request.data;
+    const vetName = request.data.member.name;
+    const vetEmail = request.data.member.email;
 
-    if (!auth) {
-      throw new HttpsError("failed-precondition", "Server Error, no auth on firebase backend");
+    if (!name || !address || !vetName || !vetEmail) {
+      throw new HttpsError("invalid-argument", "Missing clinic or vet information.", request.data);
     }
 
-    const registerForm = request.data
+    // Przykład ustawiania roli weterynarza
 
     try {
-      await auth.setCustomUserClaims(request.auth.uid, {
-        role: "vet",
-        address: registerForm.address,
-      })
+      const clinicRef = db.collection("clinics").doc(); // create new clinic doc
+      const membersRef = clinicRef.collection("members").doc(vetId); // add vet as member
+
+      const batch = db.batch();
+
+      batch.set(clinicRef, {
+        name,
+        description: description || null,
+        address,
+        createdAt: FieldValue.serverTimestamp(),
+        ownerId: vetId,
+      });
+
+      batch.set(membersRef, {
+        name: vetName,
+        email: vetEmail,
+        isAdmin: true,
+        joinedAt: FieldValue.serverTimestamp(),
+      });
+
+      await batch.commit();
+
+      const user = await auth.getUser(request.auth.uid)
+      user.customClaims
+      await auth.setCustomUserClaims(request.auth.uid, {...user.customClaims, clinicId: clinicRef.id});
+
+
       return {
         success: true,
-        message: `Claims with specified role has been set`,
-      }
+        clinicId: clinicRef.id,
+      };
     } catch (error) {
-      throw new HttpsError("internal", "Error creating user", error);
+      throw new HttpsError("internal", "Failed to create clinic", error as Error);
     }
-  });
-
-export const createUser = onCall({
-    enforceAppCheck: true,
-  },
-  async (request) => {
-    if (!request.auth || !request.auth.token || !request.auth.token.email) {
-      throw new HttpsError("failed-precondition", "The function must be called while authenticated.");
-    }
-
-    const auth = getAuth()
-
-    // auth.createCustomToken()
-
-    if (!auth) {
-      throw new HttpsError("failed-precondition", "Server Error, no auth on firebase backend");
-    }
-
-    const requestedRole = request.data
-
-    try {
-      // const createUser = await auth.createUser({})
-      // await createUser.
-      await auth.setCustomUserClaims(request.auth.uid, {role: requestedRole})
-    } catch (error) {
-      throw new HttpsError("internal", `Error creating user ${requestedRole}`, error);
-    }
-  });
+  }
+);

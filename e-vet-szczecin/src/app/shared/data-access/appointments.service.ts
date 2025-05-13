@@ -26,7 +26,7 @@ export class AppointmentsService {
   addAppointment(appointment: Appointment) {
     const docId = `${appointment.vetId}_${appointment.dateTimeFrom}`;
     const appointmentDocRef = doc(this.firestore, 'appointments', docId);
-    return from(setDoc(appointmentDocRef, appointment));
+    return setDoc(appointmentDocRef, appointment);
   }
 
   removeAppointment(appointment: Appointment) {

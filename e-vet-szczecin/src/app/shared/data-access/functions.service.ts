@@ -2,7 +2,11 @@ import {inject, Injectable} from '@angular/core';
 import {httpsCallable} from 'firebase/functions';
 import {Role} from '../interfaces/user.interface';
 import {FUNCTIONS} from "../../firebase.providers";
+import {CreateClinic} from "./clinic.service";
 
+interface CustomClaimsResponse {
+  success: boolean;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -16,9 +20,33 @@ export class FunctionsService {
     return callable(role);
   }
 
+  // async setCustomClaimsRole(role: Role): Promise<boolean> {
+  //   const callable = httpsCallable<any, CustomClaimsResponse>(this.functions, 'setCustomClaimsRole');
+  //
+  //   try {
+  //     const result = await callable(role); // teraz result.data ma typ CustomClaimsResponse
+  //     console.log(result)
+  //
+  //     if (result.data.success) {
+  //       return true;
+  //     } else {
+  //       throw new Error('Serwer zwrócił success: false');
+  //     }
+  //   } catch (error) {
+  //     console.error('Błąd przy ustawianiu roli:', error);
+  //     throw error;
+  //   }
+  // }
+
+
   updateProfile(address: string) {
     const callable = httpsCallable(this.functions, 'updateProfile');
     return callable({address: address});
   }
 
+  createNewClinic(data: CreateClinic) {
+    const callable = httpsCallable(this.functions, 'createNewClinic');
+    return callable(data);
+
+  }
 }

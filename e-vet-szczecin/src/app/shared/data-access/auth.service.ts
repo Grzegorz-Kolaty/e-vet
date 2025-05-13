@@ -1,7 +1,4 @@
-import {
-  inject,
-  Injectable,
-} from '@angular/core';
+import {effect, inject, Injectable, signal} from '@angular/core';
 import {from} from 'rxjs';
 import {Credentials, RegisterCredentials, Role} from '../interfaces/user.interface';
 import {
@@ -14,11 +11,11 @@ import {
   User,
   sendPasswordResetEmail,
   confirmPasswordReset,
-  signInWithEmailLink
+  signInAnonymously,
+  IdTokenResult
 } from 'firebase/auth';
 import {authState} from 'rxfire/auth';
 import {toSignal} from '@angular/core/rxjs-interop';
-import {Router} from '@angular/router';
 import {FunctionsService} from './functions.service';
 import {AUTH} from "../../firebase.providers";
 
@@ -26,54 +23,87 @@ import {AUTH} from "../../firebase.providers";
   providedIn: 'root',
 })
 export class AuthService {
-  auth = inject(AUTH);
-  router = inject(Router);
-  functionsService = inject(FunctionsService)
+  private readonly auth = inject(AUTH);
+  private readonly functionsService = inject(FunctionsService);
 
-  user$ = authState(this.auth);
-  user = toSignal(this.user$, {initialValue: null});
-  // verifiedEmailedUser = linkedSignal(() => {
-  //   return this.user()?.emailVerified ? this.user() : null
-  // })
-  // userRole = signal<Role | null>(null);
+  user = toSignal(authState(this.auth), {initialValue: null});
+  role = signal<Role | undefined>(undefined);
+  vetClinicId = signal<string | undefined>(undefined)
 
-  // onGetToken = rxResource({
-  //   request: () => this.user(),
-  //   loader: obj => from(getIdTokenResult(obj.request!, true)),
-  // });
+  constructor() {
+    effect(async () => {
+      const user = this.user()
+      if (user) {
+        // await this.refreshIdToken()
+        await this.refreshIdToken()
+      }
+    })
 
-  refreshToken() {
-    console.log('refresh token auth service');
-    // this.onGetToken.reload()
+  }
+
+   setRoles(idTokenResult: IdTokenResult) {
+        console.log(idTokenResult.claims)
+        if (idTokenResult.claims['role'] === Role.Vet) {
+          this.role.set(Role.Vet)
+        }
+        if (idTokenResult.claims['role'] === Role.User) {
+          this.role.set(Role.User)
+        }
+        if (idTokenResult.claims['clinicId']) {
+          const clinicId = idTokenResult.claims['clinicId'] as string
+          this.vetClinicId.set(clinicId)
+        }
+
+  }
+
+  async refreshIdToken() {
+    const currentUser = this.auth.currentUser; // Pobierz aktualnego użytkownika z Firebase Authentication
+
+    if (!currentUser) {
+      throw new Error('Brak zalogowanego użytkownika');
+    }
+
+    const token = await currentUser.getIdTokenResult(true);
+    // await currentUser.reload()
+    this.setRoles(token)
   }
 
   async register(registerForm: RegisterCredentials) {
     try {
       const userCredential = await createUserWithEmailAndPassword(this.auth, registerForm.email, registerForm.password);
-      await this.functionsService.setCustomClaimsRole(Role.User)
-      return await sendEmailVerification(userCredential.user)
+      await sendEmailVerification(userCredential.user);
+
+      await this.functionsService.setCustomClaimsRole(registerForm.role);
+      // const success = await this.functionsService.setCustomClaimsRole(registerForm.role);
+      // if (!success) {
+      //   throw new Error('Nie udało się ustawić roli');
+      // }
+
+      // await new Promise(resolve => setTimeout(resolve, 3000));
+      // await this.refreshIdToken();
+
     } catch (error) {
       console.error('Błąd podczas rejestracji:', error);
       throw error;
     }
   }
 
-
-  login(credentials: Credentials) {
-    return from(
-      signInWithEmailAndPassword(
-        this.auth,
-        credentials.email,
-        credentials.password
-      ).then(() => {
-      })
-    );
+  async login(credentials: Credentials) {
+    await signInWithEmailAndPassword(
+      this.auth,
+      credentials.email,
+      credentials.password
+    )
+    await this.refreshIdToken()
+    // await this.setRoles(userCredential.user, true)
   }
 
+  // async signInAnonymously() {
+  //   return await signInAnonymously(this.auth)
+  // }
 
   async logout() {
     return await signOut(this.auth);
-    // return await this.router.navigate(['auth', 'login']);
   }
 
   updateProfileData(
@@ -93,20 +123,26 @@ export class AuthService {
     }
   }
 
-  initiateEmail(user: User) {
-    return from(sendEmailVerification(user));
+  async initiateEmail(user: User) {
+    return await sendEmailVerification(user);
   }
 
-  resetPassword(email: string) {
-    return from(sendPasswordResetEmail(this.auth, email))
+  async resetPassword(email: string) {
+    return await sendPasswordResetEmail(this.auth, email)
   }
 
-  confirmPasswordReset(oobCode: string, newPassword: string) {
-    return from(confirmPasswordReset(this.auth, oobCode, newPassword))
+  async confirmPasswordReset(oobCode: string, newPassword: string) {
+    return await confirmPasswordReset(this.auth, oobCode, newPassword)
   }
 
-  verifyEmail(oobCode: string) {
-    return from(applyActionCode(this.auth, oobCode));
+  async verifyEmail(oobCode: string) {
+    try {
+      await applyActionCode(this.auth, oobCode);
+      await this.refreshIdToken()
+    } catch (err) {
+      throw new Error('User email not verified')
+    }
+
   }
 
 }

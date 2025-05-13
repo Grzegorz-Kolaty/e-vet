@@ -5606,6 +5606,7 @@ __metadata:
     karma-coverage: "npm:^2.2.1"
     karma-jasmine: "npm:^5.1.0"
     karma-jasmine-html-reporter: "npm:^2.1.0"
+    ngx-mask: "npm:^19.0.6"
     rxfire: "npm:^6.1.0"
     rxjs: "npm:^7.8.2"
     tslib: "npm:^2.8.1"
@@ -8111,6 +8112,19 @@ __metadata:
   version: 2.6.2
   resolution: "neo-async@npm:2.6.2"
   checksum: 10c0/c2f5a604a54a8ec5438a342e1f356dff4bc33ccccdb6dc668d94fe8e5eccfc9d2c2eea6064b0967a767ba63b33763f51ccf2cd2441b461a7322656c1f06b3f5d
+  languageName: node
+  linkType: hard
+
+"ngx-mask@npm:^19.0.6":
+  version: 19.0.6
+  resolution: "ngx-mask@npm:19.0.6"
+  dependencies:
+    tslib: "npm:^2.3.0"
+  peerDependencies:
+    "@angular/common": ">=14.0.0"
+    "@angular/core": ">=14.0.0"
+    "@angular/forms": ">=14.0.0"
+  checksum: 10c0/df2f11edfdd785761b7804d5011380e0d3c2801ef453444871c2594df7411a362313ed7855fd099e6d8b5f343d81cb3744c4f3e1a99a84ad845fe8928be8c6be
   languageName: node
   linkType: hard
 

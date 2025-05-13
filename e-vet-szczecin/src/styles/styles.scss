@@ -8,35 +8,45 @@ body::-webkit-scrollbar {
 }
 
 html, body, app-root {
+  --bs-body-font-size: 20px;
+  --bs-dark-bg-subtle: #3033373b;
+
   display: block;
   height: 100%;
+  background: linear-gradient(135deg, rgba(65, 88, 208, 0.61) 0%, rgba(102, 51, 153, 0.61) 100%);
+}
+
+.btn {
+  --bs-btn-font-size: 1.5.rem;
+
 }
 
 
-.catbackground {
+.cat__background {
   background-size: contain;
   background-position-x: -100%;
-  background-image: linear-gradient(135deg, #4158D0 0%, #C850C0 100%), url('../assets/ceilingcat3.png');
+  //background-image: linear-gradient(135deg, #4158D0 0%, #C850C0 100%), url('../assets/ceilingcat3.png');
   background-blend-mode: overlay;
 }
 
 .brown__cat__background {
   background-size: contain;
   background-position-x: -30%;
-  background-image: linear-gradient(183deg, #626a94 0%, #c59cc2 100%), url(../assets/browncat.png);
+  //background-image: linear-gradient(183deg, #626a94 0%, #c59cc2 100%), url(../assets/browncat.png);
   background-blend-mode: overlay;
 }
 
 .dog__background {
   background-repeat: no-repeat;
   background-size: cover;
-  background-position-y: 35%;
+  background-position-y: 40%;
   background-image: url('../assets/doge.jpg');
 }
 
 
 .glass {
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: rgba(236, 236, 236, 0.16);
+  //backdrop-filter: blur(10px);
 }
 
 .w-20 {
@@ -49,4 +59,17 @@ html, body, app-root {
 
 .w-10 {
   width: 10% !important;
+}
+
+.text-shadow {
+  text-shadow: 1px 1px 2px #0000008c;
+}
+
+.invalid-feedback{
+  text-shadow: 1px 1px 2px #0000008c, 1px 1px 3px #0000008c;
+}
+
+.form-label {
+  text-shadow: 1px 1px 2px #0000008c;
+
 }

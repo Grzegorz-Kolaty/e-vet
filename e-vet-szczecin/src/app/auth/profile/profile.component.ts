@@ -1,54 +1,56 @@
-import {
-  ChangeDetectionStrategy,
-  Component, computed, effect,
-  inject, resource, signal,
-} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, effect, inject, OnDestroy, resource, signal} from '@angular/core';
 import {ReactiveFormsModule} from '@angular/forms';
 import {AuthService} from '../../shared/data-access/auth.service';
 import {FontAwesomeModule} from '@fortawesome/angular-fontawesome';
 import {Router} from '@angular/router';
-import {ProfilePicComponent} from './profile-pic/profile-pic.component';
 import {Role} from '../../shared/interfaces/user.interface';
-import {ProfileFormComponent} from './profile-form/profile-form.component';
 import {FunctionsService} from '../../shared/data-access/functions.service';
+import {FirestoreService} from "../../shared/data-access/firestore.service";
+import {ProfilePicComponent} from "../../dashboard/ui/profile-pic/profile-pic.component";
 
 
 @Component({
   selector: 'app-profile',
-  imports: [ReactiveFormsModule, FontAwesomeModule, ProfilePicComponent, ProfileFormComponent],
+  imports: [ReactiveFormsModule, FontAwesomeModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    <button class="btn btn-outline-primary" type="button" (click)="firestoreService.data()">
+      Zapisz
+    </button>
+
+    <input type="text"
+           #inputsig/>
     <section>
-        <app-profile-pic [user]="authService.user()"></app-profile-pic>
+      <!--        <app-profile-pic [user]="authService.user()"/>-->
 
-        <div class="mt-5 p-3 text-center">
-<!--          <h4>{{ userRole() === Role.Vet ? Role.Vet + '.' : '' }}{{ user()?.displayName }}</h4>-->
-          <!--          <div class="d-inline-flex">-->
-          <!--            <button class="btn btn-lg btn-outline-primary mx-3" type="submit">Kliniki</button>-->
-          <!--            <button class="btn btn-lg btn-primary mx-2" type="submit">Pacjenci</button>-->
-          <!--          </div>-->
-        </div>
+      <!--        <div class="mt-5 p-3 text-center">-->
+      <!--              <h4>{{ userRole() === Role.Vet ? Role.Vet + '.' : '' }}{{ user()?.displayName }}</h4>-->
+      <!--              <div class="d-inline-flex">-->
+      <!--                <button class="btn btn-lg btn-outline-primary mx-3" type="submit">Kliniki</button>-->
+      <!--                <button class="btn btn-lg btn-primary mx-2" type="submit">Pacjenci</button>-->
+      <!--              </div>-->
+      <!--        </div>-->
 
-        <app-profile-form [user]="authService.user()" [role]="Role.User" (userName)="displayNameSig.set($event)"
-                          [status]="displayNameChangeStatus()"></app-profile-form>
+      <!--        <app-profile-form-->
+      <!--          [user]="authService.user()"-->
+      <!--          [role]="Role.User"-->
+      <!--          (userName)="displayNameSig.set($event)"-->
+      <!--          [status]="displayNameChangeStatus()"-->
+      <!--        />-->
 
 
     </section>
   `,
   styles: ``,
+  // providers: [FirestoreService]
 })
-export default class ProfileComponent {
+export default class ProfileComponent implements OnDestroy {
   authService = inject(AuthService);
   functionsService = inject(FunctionsService)
+  firestoreService = inject(FirestoreService)
   router = inject(Router);
 
   protected readonly Role = Role;
-
-
-
-  // user = this.authService.verifiedEmailedUser;
-  //
-  // userRole = this.authService.userRole
 
   displayNameSig = signal<string | undefined>(undefined);
   onDisplayNameChange = resource({
@@ -57,17 +59,40 @@ export default class ProfileComponent {
   })
   displayNameChangeStatus = computed(() => this.onDisplayNameChange.status())
 
-  // constructor() {
-  //   effect(() => {
-  //     if (!this.authService.user()) {
-  //       this.router.navigate(['auth', 'login']);
-  //     }
-  //   });
-  //
-  //   // effect(() => {
-  //   //   console.log(this.displayNameChangeStatus());
-  //   // });
-  // }
+  constructor() {
+    // effect(() => {
+    //   console.log(this.firestoreService.steamData.value())
+    // })
+
+    // this.firestoreService.data()
+
+    effect(() => {
+      console.log(this.firestoreService.dataSig())
+    });
+    // effect(() => {
+    //   console.log(this.firestoreService.userDoc().subscribe())
+    // })
+
+
+    // effect(() => {
+    //   console.log(this.firestoreService.lazyListening())
+    // })
+    //
+    // effect(() => {
+    //   console.log(this.firestoreService.userDoc())
+    // })
+
+    // effect(() => {
+    //   if (!this.authService.user()) {
+    //     this.router.navigate(['auth', 'login']);
+    //   }
+    // });
+
+    // effect(() => {
+    //   console.log(this.displayNameChangeStatus());
+    // });
+  }
+
 
   // updateAuthDisplayName(name: string, user: User) {
   //   this.isLoading.set(true);
@@ -82,6 +107,12 @@ export default class ProfileComponent {
   //     },
   //   });
   // }
+
+  ngOnDestroy() {
+    console.log('profile component destroyed')
+    this.firestoreService.data()
+
+  }
 
 
 }

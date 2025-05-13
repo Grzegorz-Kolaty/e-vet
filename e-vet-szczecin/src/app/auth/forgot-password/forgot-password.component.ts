@@ -1,19 +1,18 @@
-import {ChangeDetectionStrategy, Component, computed, inject, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, inject, resource, signal} from '@angular/core';
 import {FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
 import {AuthService} from '../../shared/data-access/auth.service';
-import {rxResource} from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-forgot-password',
   imports: [ReactiveFormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="mx-auto my-5 col-lg-5 p-5 rounded glass shadow fw-semibold p-5">
+    <form class="d-flex flex-column gap-3 fw-semibold">
 
       <h3 class="mb-3 text-center fw-bold">Zresetuj hasło</h3>
 
-      <div class="mb-3">
-        <label for="emailInput" class="form-label"> Email address </label>
+      <div class="mb-2">
+        <label for="emailInput" class="form-label">Email</label>
         <input
           [formControl]="email"
           placeholder="email"
@@ -25,43 +24,42 @@ import {rxResource} from '@angular/core/rxjs-interop';
         />
       </div>
 
-      <div class="mb-3">
+      <div class="mb-2 fs-5">
         @if (onSubmitResetPassword.error()) {
-          <span class="text-danger">{{ onSubmitResetPassword.error() }}</span>
-        } @else if (onSubmitResetPassword.status() === 4) {
-          <span class="text-success">Wysłaliśmy dla Ciebie mail</span>
-        } @else {
-          <span class="invisible">Nothing</span>
+          <span class="text-black">{{ onSubmitResetPassword.error() }}</span>
+        }
+        @if (onSubmitResetPassword.status() === 4) {
+          <span class="text-black">Na podany email wysłaliśmy mail z linkiem do resetu hasła.</span>
         }
       </div>
 
       <button
         (click)="onSubmit()"
         [disabled]="onSubmitResetPassword.isLoading()"
-        class="btn btn-lg btn-primary mb-3"
+        class="btn btn-lg btn-warning rounded-4 shadow-lg"
         type="button">
-        Zatwierdź
+        Wyślij mail resetujący
       </button>
 
-    </section>
+    </form>
   `,
   styles: ``
 })
-export default class ForgotPasswordComponent {
-  authService = inject(AuthService);
-  email = new FormControl('', [Validators.required, Validators.email]);
+export class ForgotPasswordComponent {
+  public authService = inject(AuthService);
+  protected email = new FormControl('', [Validators.required, Validators.email]);
 
   userEmail = signal<string | undefined>(undefined);
-  onSubmitResetPassword = rxResource({
-    request: () =>  this.userEmail(),
-    loader: obj => this.authService.resetPassword(obj.request)
+  onSubmitResetPassword = resource({
+    request: () => this.userEmail(),
+    loader: ({request}) => this.authService.resetPassword(request)
   })
 
   onSubmit() {
     const emailToReset = this.email.getRawValue();
     if (!!emailToReset) {
-    console.log(emailToReset)
-    this.userEmail.set(emailToReset);
+      console.log(emailToReset)
+      this.userEmail.set(emailToReset);
     }
   }
 }

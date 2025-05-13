@@ -1,36 +1,31 @@
-import { CanActivateFn, Router } from '@angular/router';
-import { inject } from '@angular/core';
-import { AuthService } from '../data-access/auth.service';
+import {CanActivateFn, Router} from '@angular/router';
+import {computed, inject} from '@angular/core';
+import {AuthService} from '../data-access/auth.service';
+import {toObservable} from "@angular/core/rxjs-interop";
 
 export const authGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  if (authService.user()) {
+  if (!!authService.user() && !!authService.user()?.emailVerified) {
     return true;
   }
-  router.navigate(['auth', 'login']);
+  router.navigate(['auth']);
   return false;
 };
 
-export const noAuthGuard: CanActivateFn = () => {
+let isRoleGranted$: any
+
+export const roleGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
-  const router = inject(Router);
 
-  if (!authService.user()) {
-    return true;
+  if (!isRoleGranted$) {
+    const isRoleGranted = computed(() => {
+      console.log('this computed role has been read: ', authService.role())
+      return authService.role()
+    })
+    isRoleGranted$ = toObservable(isRoleGranted)
   }
-  router.navigate(['dashboard']);
-  return false;
-};
 
-// export const profileCompletedGuard: CanActivateFn = () => {
-//   const authService = inject(AuthService);
-//   const router = inject(Router);
-//
-//   if (authService.userRole()) {
-//     return true;
-//   }
-//   router.navigate(['auth', 'profile']);
-//   return false;
-// };
+  return isRoleGranted$
+};
