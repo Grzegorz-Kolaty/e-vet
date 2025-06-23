@@ -1,11 +1,12 @@
-import {ChangeDetectionStrategy, Component} from '@angular/core';
+import {ChangeDetectionStrategy, Component, effect, inject} from '@angular/core';
+import {AuthService} from "../../shared/data-access/auth.service";
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'app-vet',
   imports: [],
   template: `
-    <div class="container justify-content-center pt-5">
-
+    <div class="container justify-content-center">
       <div class="text-center my-5">
         <div class="m-5">
           <h1 class="mb-3 fw-bolder"><b>Witaj w PetCare</b></h1>
@@ -62,14 +63,20 @@ import {ChangeDetectionStrategy, Component} from '@angular/core';
 
       </div>
     </div>
-
-
-
   `,
   styleUrl: './vet.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export default class VetComponent {
+  public readonly authService = inject(AuthService);
+  private readonly router = inject(Router)
 
+  constructor() {
+    effect(() => {
+      if (!this.authService.firebaseUser()) {
+        this.router.navigate(['auth'])
+      }
+    });
+  }
 
 }

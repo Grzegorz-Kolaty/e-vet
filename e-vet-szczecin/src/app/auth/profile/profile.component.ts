@@ -21,10 +21,10 @@ import {ProfilePicComponent} from "../../dashboard/ui/profile-pic/profile-pic.co
     <input type="text"
            #inputsig/>
     <section>
-      <!--        <app-profile-pic [user]="authService.user()"/>-->
+      <!--        <app-profile-pic [firebaseUser]="authService.firebaseUser()"/>-->
 
       <!--        <div class="mt-5 p-3 text-center">-->
-      <!--              <h4>{{ userRole() === Role.Vet ? Role.Vet + '.' : '' }}{{ user()?.displayName }}</h4>-->
+      <!--              <h4>{{ userRole() === Role.Vet ? Role.Vet + '.' : '' }}{{ firebaseUser()?.displayName }}</h4>-->
       <!--              <div class="d-inline-flex">-->
       <!--                <button class="btn btn-lg btn-outline-primary mx-3" type="submit">Kliniki</button>-->
       <!--                <button class="btn btn-lg btn-primary mx-2" type="submit">Pacjenci</button>-->
@@ -32,7 +32,7 @@ import {ProfilePicComponent} from "../../dashboard/ui/profile-pic/profile-pic.co
       <!--        </div>-->
 
       <!--        <app-profile-form-->
-      <!--          [user]="authService.user()"-->
+      <!--          [firebaseUser]="authService.firebaseUser()"-->
       <!--          [role]="Role.User"-->
       <!--          (userName)="displayNameSig.set($event)"-->
       <!--          [status]="displayNameChangeStatus()"-->
@@ -83,7 +83,7 @@ export default class ProfileComponent implements OnDestroy {
     // })
 
     // effect(() => {
-    //   if (!this.authService.user()) {
+    //   if (!this.authService.firebaseUser()) {
     //     this.router.navigate(['auth', 'login']);
     //   }
     // });
@@ -94,9 +94,9 @@ export default class ProfileComponent implements OnDestroy {
   }
 
 
-  // updateAuthDisplayName(name: string, user: User) {
+  // updateAuthDisplayName(name: string, firebaseUser: User) {
   //   this.isLoading.set(true);
-  //   this.authService.updateProfileData({displayName: name}, user).subscribe({
+  //   this.authService.updateProfileData({displayName: name}, firebaseUser).subscribe({
   //     next: () => {
   //       console.log(name);
   //     },

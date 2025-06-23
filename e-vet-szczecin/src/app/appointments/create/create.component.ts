@@ -83,7 +83,7 @@ export default class CreateComponent {
   authService = inject(AuthService);
   appointmentService = inject(AppointmentsService);
 
-  user = this.authService.user;
+  user = this.authService.firebaseUser;
 
   onSelectWeekSig = signal<Date[]>([]);
   onGetAppointmentsResource = rxResource({
@@ -129,6 +129,7 @@ export default class CreateComponent {
     // });
     // toSignal(this.appointmentService.addAppointment(appointment))
   }
+
   // confirmUpdateAppointments
   // async onConfirmUpdateAppointments() {
   //   console.log(this.appointments())

@@ -1,59 +1,70 @@
-import {ChangeDetectionStrategy, Component, effect, inject, resource, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, inject, resource, signal} from '@angular/core';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
+import {RouterLink} from "@angular/router";
 import {RegisterCredentials, Role} from '../../shared/interfaces/user.interface';
 import {AuthService} from '../../shared/data-access/auth.service';
 
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   template: `
-    {{registration.status().toFixed()}}
+    <h1 class="mb-4 text-center fw-bolder">
+      {{ isVet() === Role.User ? 'Zarejestruj się' : 'Rejestracja weterynarzy' }}
+    </h1>
+
+    @if (registration.error()) {
+      <div class="bg-danger text-center rounded-4 p-3 mb-4">
+        <span class="text-white">{{ registration.error() }}</span>
+      </div>
+    }
+
+    @if (registration.status() === 4) {
+      <div class="bg-success text-center rounded-4 p-3 mb-4">
+        <span class="text-white">Rejestracja udana! Sprawdź skrzynkę email</span>
+      </div>
+    }
 
     <form [formGroup]="registerForm"
           (ngSubmit)="onSubmit(isVet())"
           #form="ngForm"
-          class="d-flex flex-column gap-3 fw-semibold">
+          class="d-flex flex-column gap-3">
 
-      <h3 class="mb-3 text-center fw-bold">
-        {{ isVet() === Role.User ? 'Zarejestruj się' : 'Rejestracja weterynarzy' }}
-      </h3>
-
-      <div class="mb-3">
-        <label for="displayNameInput" class="form-label">
-          {{ isVet() === Role.User ? 'Nazwa użytkownika' : 'Imię i nazwisko' }}
-        </label>
+      <div class="form-floating mb-2">
         <input
           formControlName="displayName"
           placeholder="np. imię i nazwisko"
           type="text"
-          class="form-control form-control-lg shadow"
+          class="form-control form-control-lg shadow-lg"
           id="displayNameInput"
           aria-describedby="displayNameInput"
           required/>
+        <label for="displayNameInput">
+          {{ isVet() === Role.User ? 'Nazwa użytkownika' : 'Imię i nazwisko' }}
+        </label>
       </div>
 
-      <div class="mb-3">
-        <label for="emailInput" class="form-label">Email</label>
+      <div class="form-floating mb-2">
         <input
           formControlName="email"
           placeholder="email"
           type="email"
-          class="form-control form-control-lg shadow"
+          class="form-control form-control-lg shadow-lg"
           id="emailInput"
           aria-describedby="emailHelp"
           required/>
+        <label for="emailInput">Email</label>
       </div>
 
-      <div class="mb-3">
-        <label for="passwordInput" class="form-label">Hasło</label>
+      <div class="form-floating mb-2">
         <input
           formControlName="password"
           type="password"
-          class="form-control form-control-lg shadow"
+          class="form-control form-control-lg shadow-lg"
           id="passwordInput"
           placeholder="min. 6 znaków"
           required/>
+        <label for="passwordInput">Hasło</label>
       </div>
 
       <div class="form-check form-switch ms-auto mb-4">
@@ -72,57 +83,48 @@ import {AuthService} from '../../shared/data-access/auth.service';
       </div>
 
       <button
+        class="btn btn-dark btn-lg rounded-5 mb-3 shadow-lg w-75 mx-auto fw-bold"
         [disabled]="registration.isLoading()"
-        class="btn btn-lg btn-dark rounded-4 mb-3 shadow-lg"
         type="submit">
-        {{ isVet() === Role.Vet ? 'Utwórz konto weterynarza! 👩🏻‍⚕️' : 'Zarejestruj' }}
+        Zarejestruj
       </button>
 
-      @if (registration.error() && form.submitted) {
-        <span class="text-danger">{{ registration.error() }}</span>
-      } @else if (registration.status() === 4) {
-        <span class="text-success">Rejestracja udana - wysłaliśmy mail weryfikacyjny!</span>
-      } @else {
-        <span class="visually-hidden">Nothing</span>
-      }
+      <a class="btn bg-transparent text-decoration-none" [routerLink]="['/auth', 'login']">
+        Masz już konto? <b>Zaloguj się</b>
+      </a>
 
     </form>
   `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class RegisterComponent {
+export default class RegisterComponent {
   public authService = inject(AuthService);
-  private fb = inject(FormBuilder);
   protected readonly Role = Role;
 
   isVet = signal<Role>(Role.User)
-
+  register = signal<RegisterCredentials | undefined>(undefined);
+  registration = resource({
+    request: () => this.register(),
+    loader: ({request}) =>
+      this.authService.register(request!)
+  });
+  private fb = inject(FormBuilder);
   registerForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.pattern(/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/)]],
     displayName: ['', Validators.required],
     password: ['', Validators.required],
   });
 
-  register = signal<RegisterCredentials | undefined>(undefined);
-  registration = resource({
-    request: () => this.register(),
-    loader: ({request}) => {
-return       this.authService.register(request!)
-
-    },
-  });
-
   constructor() {
     this.setRandomData();
+  }
 
-    effect(() => {
-      if (this.registration.value()) {
-        this.registerForm.disable()
-      }
-    });
-
-    effect(() => {
-      console.log(this.registration.status())
-    })
+  onSubmit(role: Role): void {
+    const rawForm = this.registerForm.getRawValue();
+    if (this.registerForm.valid) {
+      const data = {...rawForm, role}
+      this.register.set(data);
+    }
   }
 
   private setRandomData() {
@@ -136,13 +138,5 @@ return       this.authService.register(request!)
       displayName,
       password,
     });
-  }
-
-  onSubmit(role: Role): void {
-    const rawForm = this.registerForm.getRawValue();
-    if (this.registerForm.valid) {
-      const data = {...rawForm, role}
-      this.register.set(data);
-    }
   }
 }

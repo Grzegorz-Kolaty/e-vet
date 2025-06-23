@@ -2,8 +2,21 @@ import {computed, inject, Injectable, OnDestroy, signal} from '@angular/core';
 import {AuthService} from "./auth.service";
 import {FIRESTORE} from "../../firebase.providers";
 import {defer, map, Observable, Subject} from 'rxjs';
-import { Appointment } from '../interfaces/user.interface';
-import {addDoc, collection, deleteDoc, doc, getDoc, limit, orderBy, query, setDoc, updateDoc} from "firebase/firestore";
+import {Appointment} from '../interfaces/user.interface';
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  GeoPoint,
+  getDoc,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  setDoc,
+  updateDoc
+} from "firebase/firestore";
 import {collectionData} from "rxfire/firestore";
 import {FunctionsService} from "./functions.service";
 
@@ -19,6 +32,7 @@ export interface Clinic {
   address: Address;
   id?: string;
   description: string;
+  geo: GeoPoint;
 }
 
 export interface ClinicMember {
@@ -38,7 +52,6 @@ export class ClinicService implements OnDestroy {
   private authService = inject(AuthService);
   private firestore = inject(FIRESTORE);
   private readonly functionsService = inject(FunctionsService);
-
 
 
   // constructor() {
@@ -78,9 +91,40 @@ export class ClinicService implements OnDestroy {
   //   );
   // }
 
+  async findClinicByCoordinates(lat: number, lon: number, toleranceMeters = 20): Promise<Clinic | null> {
+    const clinicsRef = collection(this.firestore, 'clinics');
+    const snapshot = await getDocs(clinicsRef);
+
+    for (const doc of snapshot.docs) {
+      const data = doc.data() as Clinic & { geo: GeoPoint };
+      if (!data.geo) continue;
+
+      const distance = this.haversineDistance(lat, lon, data.geo.latitude, data.geo.longitude);
+      if (distance <= toleranceMeters) {
+        return {id: doc.id, ...data};
+      }
+    }
+
+    return null;
+  }
+
+  private haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const toRad = (v: number) => v * Math.PI / 180;
+    const R = 6371e3; // radius Earth in meters
+    const φ1 = toRad(lat1), φ2 = toRad(lat2);
+    const Δφ = toRad(lat2 - lat1), Δλ = toRad(lon2 - lon1);
+
+    const a = Math.sin(Δφ / 2) ** 2 +
+      Math.cos(φ1) * Math.cos(φ2) *
+      Math.sin(Δλ / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
+  }
+
   async createNewClinic(createNewClinic: CreateClinic) {
     await this.functionsService.createNewClinic(createNewClinic)
-    await this.authService.refreshIdToken()
+    // await this.authService.refreshIdToken()
   }
 
   async getVetClinic(clinicId: string) {

@@ -1,148 +1,93 @@
-import {effect, inject, Injectable, signal} from '@angular/core';
-import {from} from 'rxjs';
-import {Credentials, RegisterCredentials, Role} from '../interfaces/user.interface';
+import {inject, Injectable, signal} from '@angular/core';
+import {Credentials, RegisterCredentials, UserInterface} from '../interfaces/user.interface';
 import {
-  createUserWithEmailAndPassword,
+  applyActionCode,
+  confirmPasswordReset,
+  sendEmailVerification,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
-  sendEmailVerification,
-  applyActionCode,
   User,
-  sendPasswordResetEmail,
-  confirmPasswordReset,
-  signInAnonymously,
-  IdTokenResult
 } from 'firebase/auth';
-import {authState} from 'rxfire/auth';
-import {toSignal} from '@angular/core/rxjs-interop';
-import {FunctionsService} from './functions.service';
-import {AUTH} from "../../firebase.providers";
+import {httpsCallable} from "firebase/functions";
+import {AUTH, FUNCTIONS} from "../../firebase.providers";
+import {UserService} from "./user.service";
+import {user} from "rxfire/auth";
+import {tap} from "rxjs";
+
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private readonly auth = inject(AUTH);
-  private readonly functionsService = inject(FunctionsService);
+  readonly auth = inject(AUTH);
+  private readonly functions = inject(FUNCTIONS);
+  private readonly userService = inject(UserService)
 
-  user = toSignal(authState(this.auth), {initialValue: null});
-  role = signal<Role | undefined>(undefined);
-  vetClinicId = signal<string | undefined>(undefined)
 
-  constructor() {
-    effect(async () => {
-      const user = this.user()
-      if (user) {
-        // await this.refreshIdToken()
-        await this.refreshIdToken()
+  user$ = user(this.auth).pipe(
+    tap(async (user) => {
+      this.firebaseUser.set(user)
+      const token = await user?.getIdToken()
+      if (token) {
+        this.user.set(this.userService.deserializeUserToken(token))
+      } else {
+        this.user.set(null)
+        this.userService.clearLocalStorage()
       }
-    })
+    }),
+  )
 
+  // selectors
+  firebaseUser = signal<User | null>(null)
+  user = signal<UserInterface | null>(null)
+
+  public async register(registerForm: RegisterCredentials) {
+    return httpsCallable(this.functions, 'createUser')(registerForm)
   }
 
-   setRoles(idTokenResult: IdTokenResult) {
-        console.log(idTokenResult.claims)
-        if (idTokenResult.claims['role'] === Role.Vet) {
-          this.role.set(Role.Vet)
-        }
-        if (idTokenResult.claims['role'] === Role.User) {
-          this.role.set(Role.User)
-        }
-        if (idTokenResult.claims['clinicId']) {
-          const clinicId = idTokenResult.claims['clinicId'] as string
-          this.vetClinicId.set(clinicId)
-        }
-
+  public login(credentials: Credentials) {
+    return signInWithEmailAndPassword(this.auth, credentials.email, credentials.password);
   }
 
-  async refreshIdToken() {
-    const currentUser = this.auth.currentUser; // Pobierz aktualnego użytkownika z Firebase Authentication
-
-    if (!currentUser) {
-      throw new Error('Brak zalogowanego użytkownika');
-    }
-
-    const token = await currentUser.getIdTokenResult(true);
-    // await currentUser.reload()
-    this.setRoles(token)
+  public async logout() {
+    this.userService.clearLocalStorage()
+    await signOut(this.auth);
   }
 
-  async register(registerForm: RegisterCredentials) {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(this.auth, registerForm.email, registerForm.password);
-      await sendEmailVerification(userCredential.user);
-
-      await this.functionsService.setCustomClaimsRole(registerForm.role);
-      // const success = await this.functionsService.setCustomClaimsRole(registerForm.role);
-      // if (!success) {
-      //   throw new Error('Nie udało się ustawić roli');
-      // }
-
-      // await new Promise(resolve => setTimeout(resolve, 3000));
-      // await this.refreshIdToken();
-
-    } catch (error) {
-      console.error('Błąd podczas rejestracji:', error);
-      throw error;
-    }
+  public async updateProfileData(profileData: { displayName?: string | null; photoURL?: string | null }, user: User) {
+    return updateProfile(user, profileData);
   }
 
-  async login(credentials: Credentials) {
-    await signInWithEmailAndPassword(
-      this.auth,
-      credentials.email,
-      credentials.password
-    )
-    await this.refreshIdToken()
-    // await this.setRoles(userCredential.user, true)
-  }
-
-  // async signInAnonymously() {
-  //   return await signInAnonymously(this.auth)
-  // }
-
-  async logout() {
-    return await signOut(this.auth);
-  }
-
-  updateProfileData(
-    profileData: { displayName?: string | null; photoURL?: string | null },
-    user: User
-  ) {
-    return from(updateProfile(user, profileData));
-  }
-
-  async updateProfiles(username: string) {
-    const user = this.user();
-    // if (!user) {
-    //   throw new Error('User not logged in');
-    // }
+  public async updateProfiles(username: string) {
+    const user = this.firebaseUser();
     if (user) {
-      await updateProfile(user, {displayName: username});
+      return updateProfile(user, {displayName: username});
     }
   }
 
-  async initiateEmail(user: User) {
-    return await sendEmailVerification(user);
+  public async initiateEmail(user: User) {
+    return sendEmailVerification(user);
   }
 
-  async resetPassword(email: string) {
-    return await sendPasswordResetEmail(this.auth, email)
+  public async resetPassword(email: string) {
+    return sendPasswordResetEmail(this.auth, email)
   }
 
-  async confirmPasswordReset(oobCode: string, newPassword: string) {
-    return await confirmPasswordReset(this.auth, oobCode, newPassword)
+  public async confirmPasswordReset(oobCode: string, newPassword: string) {
+    return confirmPasswordReset(this.auth, oobCode, newPassword)
   }
 
-  async verifyEmail(oobCode: string) {
-    try {
-      await applyActionCode(this.auth, oobCode);
-      await this.refreshIdToken()
-    } catch (err) {
-      throw new Error('User email not verified')
+  public async verifyEmail(oobCode: string) {
+    await applyActionCode(this.auth, oobCode)
+    if (this.auth.currentUser) {
+      try {
+        await this.auth.currentUser.getIdToken(true)
+        await this.auth.currentUser.reload()
+      } catch (error) {
+        console.error('verify email err')
+      }
     }
-
   }
-
 }

@@ -1,7 +1,7 @@
 // import { inject, Injectable } from '@angular/core';
 // import { AuthService } from '../../../shared/data-access/auth.service';
 // import { Subject } from 'rxjs';
-// import { Credentials } from '../../../shared/interfaces/user.interface';
+// import { Credentials } from '../../../shared/interfaces/firebaseUser.interface';
 //
 // @Injectable()
 // export class LoginService {

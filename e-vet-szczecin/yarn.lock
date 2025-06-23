@@ -1633,6 +1633,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bluehalo/ngx-leaflet@npm:^19.0.0":
+  version: 19.0.0
+  resolution: "@bluehalo/ngx-leaflet@npm:19.0.0"
+  dependencies:
+    tslib: "npm:^2.3.0"
+  peerDependencies:
+    "@angular/common": 19
+    "@angular/core": 19
+    leaflet: 1
+  checksum: 10c0/f3ee00243cfc51cbb0caf7a9e7a859a14e732026d7595ddce0fc7edc62651fb9d80261bf7d12f654303c6309f20e9579fd310f594cbcfa04861242b09b25e11d
+  languageName: node
+  linkType: hard
+
 "@colors/colors@npm:1.5.0":
   version: 1.5.0
   resolution: "@colors/colors@npm:1.5.0"
@@ -4160,6 +4173,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/geojson@npm:*":
+  version: 7946.0.16
+  resolution: "@types/geojson@npm:7946.0.16"
+  checksum: 10c0/1ff24a288bd5860b766b073ead337d31d73bdc715e5b50a2cee5cb0af57a1ed02cc04ef295f5fa68dc40fe3e4f104dd31282b2b818a5ba3231bc1001ba084e3c
+  languageName: node
+  linkType: hard
+
 "@types/http-errors@npm:*":
   version: 2.0.4
   resolution: "@types/http-errors@npm:2.0.4"
@@ -4187,6 +4207,15 @@ __metadata:
   version: 7.0.15
   resolution: "@types/json-schema@npm:7.0.15"
   checksum: 10c0/a996a745e6c5d60292f36731dd41341339d4eeed8180bb09226e5c8d23759067692b1d88e5d91d72ee83dfc00d3aca8e7bd43ea120516c17922cbcb7c3e252db
+  languageName: node
+  linkType: hard
+
+"@types/leaflet@npm:^1.9.17":
+  version: 1.9.17
+  resolution: "@types/leaflet@npm:1.9.17"
+  dependencies:
+    "@types/geojson": "npm:*"
+  checksum: 10c0/b03c98921a1874212d456f5bddb2e2eda87c1a82b458a73d2df844af2ebe59eba869294b563637f4e52b38a5cd8f88c84febd519feb4bc6f3d14768822c1189c
   languageName: node
   linkType: hard
 
@@ -5593,19 +5622,23 @@ __metadata:
     "@angular/platform-browser": "npm:^19.2.9"
     "@angular/platform-browser-dynamic": "npm:^19.2.9"
     "@angular/router": "npm:^19.2.9"
+    "@bluehalo/ngx-leaflet": "npm:^19.0.0"
     "@fortawesome/angular-fontawesome": "npm:^1.0.0"
     "@fortawesome/free-solid-svg-icons": "npm:^6.7.2"
     "@ng-bootstrap/ng-bootstrap": "npm:^18.0.0"
     "@popperjs/core": "npm:^2.11.8"
     "@types/jasmine": "npm:^5.1.7"
+    "@types/leaflet": "npm:^1.9.17"
     bootstrap: "npm:^5.3.5"
     firebase: "npm:^11.6.1"
     jasmine-core: "npm:^5.7.0"
+    jwt-decode: "npm:^4.0.0"
     karma: "npm:^6.4.4"
     karma-chrome-launcher: "npm:^3.2.0"
     karma-coverage: "npm:^2.2.1"
     karma-jasmine: "npm:^5.1.0"
     karma-jasmine-html-reporter: "npm:^2.1.0"
+    leaflet: "npm:^1.9.4"
     ngx-mask: "npm:^19.0.6"
     rxfire: "npm:^6.1.0"
     rxjs: "npm:^7.8.2"
@@ -7304,6 +7337,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jwt-decode@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "jwt-decode@npm:4.0.0"
+  checksum: 10c0/de75bbf89220746c388cf6a7b71e56080437b77d2edb29bae1c2155048b02c6b8c59a3e5e8d6ccdfd54f0b8bda25226e491a4f1b55ac5f8da04cfbadec4e546c
+  languageName: node
+  linkType: hard
+
 "karma-chrome-launcher@npm:^3.2.0":
   version: 3.2.0
   resolution: "karma-chrome-launcher@npm:3.2.0"
@@ -7406,6 +7446,13 @@ __metadata:
     picocolors: "npm:^1.0.0"
     shell-quote: "npm:^1.8.1"
   checksum: 10c0/8b5a26be6b0da1da039ed2254b837dea0651a6406ea4dc4c9a5b28ea72862f1b12880135c495baf9d8a08997473b44034172506781744cf82e155451a40b7d51
+  languageName: node
+  linkType: hard
+
+"leaflet@npm:^1.9.4":
+  version: 1.9.4
+  resolution: "leaflet@npm:1.9.4"
+  checksum: 10c0/f639441dbb7eb9ae3fcd29ffd7d3508f6c6106892441634b0232fafb9ffb1588b05a8244ec7085de2c98b5ed703894df246898477836cfd0ce5b96d4717b5ca1
   languageName: node
   linkType: hard
 

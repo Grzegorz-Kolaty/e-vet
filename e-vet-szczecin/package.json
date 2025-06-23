@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "firebase emulators:exec --project=e-vet-szczecin --ui \"ng serve\"",
+    "start": "firebase emulators:exec --project=e-vet-szczecin --ui 'ng serve'",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
@@ -18,12 +18,15 @@
     "@angular/platform-browser": "^19.2.9",
     "@angular/platform-browser-dynamic": "^19.2.9",
     "@angular/router": "^19.2.9",
+    "@bluehalo/ngx-leaflet": "^19.0.0",
     "@fortawesome/angular-fontawesome": "^1.0.0",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@ng-bootstrap/ng-bootstrap": "^18.0.0",
     "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.5",
     "firebase": "^11.6.1",
+    "jwt-decode": "^4.0.0",
+    "leaflet": "^1.9.4",
     "ngx-mask": "^19.0.6",
     "rxfire": "^6.1.0",
     "rxjs": "^7.8.2",
@@ -36,6 +39,7 @@
     "@angular/compiler-cli": "^19.2.9",
     "@angular/localize": "^19.2.9",
     "@types/jasmine": "^5.1.7",
+    "@types/leaflet": "^1.9.17",
     "jasmine-core": "^5.7.0",
     "karma": "^6.4.4",
     "karma-chrome-launcher": "^3.2.0",
@@ -44,5 +48,8 @@
     "karma-jasmine-html-reporter": "^2.1.0",
     "typescript": "^5.8.3"
   },
-  "packageManager": "yarn@4.9.1"
+  "packageManager": "yarn@4.9.1",
+  "engines": {
+    "node": "22"
+  }
 }

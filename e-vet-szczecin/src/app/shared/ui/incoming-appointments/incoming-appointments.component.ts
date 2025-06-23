@@ -39,7 +39,7 @@ export class IncomingAppointmentsComponent {
   authService = inject(AuthService)
 
   onGetAppointmentsForVet = rxResource({
-    request: () => this.authService.user()?.uid,
+    request: () => this.authService.firebaseUser()?.uid,
     loader: uid => this.appointmentService.getReservedAppointmentsForVet(uid.request)
   })
 

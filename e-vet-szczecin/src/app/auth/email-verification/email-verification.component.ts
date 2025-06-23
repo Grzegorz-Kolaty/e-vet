@@ -1,101 +1,54 @@
-import {
-  Component, computed, effect, inject, input, resource, signal
-} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, effect, inject, resource, signal} from '@angular/core';
 import {AuthService} from '../../shared/data-access/auth.service';
-import {User} from "firebase/auth";
-import {Router} from "@angular/router";
+import {ActivatedRoute} from "@angular/router";
 
 @Component({
   selector: 'app-email-verification',
   template: `
-    @if (!oobCode()) {
-      <h3 class="mb-3 text-center fw-bold">Weryfikacja maila</h3>
-      <h5 class="mb-3">
-        Na adres mailowy został wysłany mail z kodem autoryzującym.
-      </h5>
-      <h4 class="mb-3">Nie dotarł?</h4>
+    <h1 class="mb-4 text-center fw-bolder">Weryfikacja email</h1>
 
-      <button (click)="user.set(authService.user()!)"
-              type="button"
-              [disabled]="onEmailResend.status() === 4"
-              class="btn btn-outline-dark mb-3 rounded-4 shadow-lg">
-        Ponów email weryfikacyjny
-      </button>
-      <br>
-
-      @if (isSending()) {
-        <div class="d-flex justify-content-center mb-3">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Ładowanie...</span>
-          </div>
+    @if (isVerifying()) {
+      <div class="d-flex justify-content-center mb-3">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Ładowanie...</span>
         </div>
-      }
-
-      @if (isSendingSuccessful()) {
-        <span class="text-success mb-3">Wysłano nowy mail weryfikacyjny!</span>
-      }
-      @if (sendingError()) {
-        <span class="text-danger">{{ sendingError() }}</span>
-      }
-
-    } @else {
-      <h3 class="mb-3">Kod weryfikacyjny</h3>
-      <input type="text"
-             disabled
-             [value]="oobCode()"
-             #codeInput
-             class="form-control mb-3"/>
-
-      @if (isVerifying()) {
-        <div class="d-flex justify-content-center mb-3">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Ładowanie...</span>
-          </div>
-        </div>
-      }
-
-      <div class="mb-3">
-        @if (verificationError()) {
-          <span class="text-danger">{{ verificationError() }}</span>
-        } @else if (isVerificationSuccessful()) {
-          <span class="text-success">Weryfikacja udała się!</span>
-        }
       </div>
     }
 
+    @if (verificationError()) {
+      <div class="bg-danger text-danger text-center rounded-4 pulse-box p-3 mb-4">
+        <span class="text-white">Wystąpił błąd z weryfikacją email</span>
+      </div>
+    }
+
+    @if (isVerificationSuccessful()) {
+      <div class="bg-success text-center text-success rounded-4 pulse-box p-3 mb-4">
+        <span class="text-white">Weryfikacja udała się!</span>
+      </div>
+    }
   `,
   styles: ``,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EmailVerificationComponent {
-  public authService = inject(AuthService);
-  public router = inject(Router);
+export default class EmailVerificationComponent {
+  private readonly authService = inject(AuthService);
+  private readonly route = inject(ActivatedRoute);
 
-  user = signal<User | undefined>(undefined)
-  oobCode = input<string | undefined>(undefined);
 
-  onEmailResend = resource({
-    request: () => this.user(),
-    loader: ({request}) => this.authService.initiateEmail(request!)
-  })
-
-  isSending = this.onEmailResend.isLoading;
-  sendingError = this.onEmailResend.error;
-  isSendingSuccessful = computed(() => this.onEmailResend.status() === 4)
-
+  oobCode = signal<string | undefined>(undefined);
   onEmailVerification = resource({
     request: () => this.oobCode(),
     loader: ({request}) => this.authService.verifyEmail(request)
   })
 
-  isVerifying = this.onEmailVerification.isLoading;
-  verificationError = this.onEmailVerification.error;
+  isVerifying = computed(() => this.onEmailVerification.isLoading());
+  verificationError = computed(() => !!this.onEmailVerification.error());
   isVerificationSuccessful = computed(() => this.onEmailVerification.status() === 4);
 
   constructor() {
-    effect(() => {
-      if (this.isVerificationSuccessful() || !!this.authService.user()?.emailVerified) {
-        this.router.navigate(['dashboard'])
-      }
-    });
+    const queryParams = this.route.snapshot.queryParams;
+    const oobCode = queryParams['oobCode'];
+    this.oobCode.set(oobCode)
   }
+
 }

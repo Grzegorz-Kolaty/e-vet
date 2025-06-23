@@ -1,24 +1,23 @@
-import {Component, inject, ViewEncapsulation} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, inject} from '@angular/core';
 import {RouterLink, RouterLinkActive} from '@angular/router';
-import {FaIconComponent, FaIconLibrary} from "@fortawesome/angular-fontawesome";
+import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 import {NgbPopover} from '@ng-bootstrap/ng-bootstrap';
-import {
-  faBars,
-  faCalendarDays,
-  faGear,
-  faNotesMedical,
-  faPaw,
-  faStore,
-  faUser, faUserGear
-} from "@fortawesome/free-solid-svg-icons";
 import {AuthService} from "../../data-access/auth.service";
 import {Role} from "../../interfaces/user.interface";
+import {AsyncPipe} from "@angular/common";
+
 
 @Component({
   selector: 'app-header',
-  imports: [RouterLink, RouterLinkActive, FaIconComponent, NgbPopover],
-  encapsulation: ViewEncapsulation.None,
+  imports: [RouterLink, RouterLinkActive, FaIconComponent, NgbPopover, AsyncPipe],
   template: `
+
+    <!--    @let user2 = authService.user$ | async;-->
+    {{ user() }}
+
+    <hr>
+    {{ userData() }}
+    @let role = authService.user()?.role;
     <nav class="navbar navbar-expand-sm shadow-lg bg-dark py-2 text-white lead">
       <div class="container-md justify-content-center justify-content-sm-between">
 
@@ -29,40 +28,57 @@ import {Role} from "../../interfaces/user.interface";
           <span class="mx-2">{{ appTitle }}</span>
         </button>
 
-        <div class="d-inline-flex gap-4">
 
-          @if (!authService.user() || !authService.user()?.emailVerified) {
+        <div class="d-inline-flex gap-4">
+          @if (!user()) {
             <button class="btn btn-outline-light border-3 rounded-4 shadow-lg"
                     routerLinkActive="active"
                     [routerLink]="['auth']">
               Zaczynamy&nbsp;🩺
             </button>
           } @else {
-            <a class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
-               routerLinkActive="active"
-               [routerLink]="['dashboard']">
-              Dashboard&nbsp;🩺
-            </a>
-
-            <a class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
-               routerLinkActive="active"
-               [routerLink]="['clinics']">
-              Kliniki&nbsp;🏥
-            </a>
-
-
             <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
                     routerLinkActive="active"
-                    [routerLink]="['appointments', 'browse']">
-              Rezerwacja wizyt&nbsp;📅
+                    [routerLink]="['dashboard']">
+              Dashboard&nbsp;🩺
             </button>
 
-            @if (authService.role() === Role.Vet) {
+            <span [ngbPopover]="!user()?.emailVerified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
+                  triggers="mouseenter:mouseleave"
+                  tabindex="0">
               <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
                       routerLinkActive="active"
-                      [routerLink]="['appointments', 'create']">
-                Planner terminów&nbsp;💌
+                      [routerLink]="['clinics']"
+                      [disabled]="!user()?.emailVerified"
+                      [attr.aria-disabled]="!user()?.emailVerified">
+                Kliniki&nbsp;🏥
               </button>
+            </span>
+
+            <span [ngbPopover]="!user()?.emailVerified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
+                  triggers="mouseenter:mouseleave"
+                  tabindex="0">
+              <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
+                      routerLinkActive="active"
+                      [routerLink]="['appointments', 'browse']"
+                      [disabled]="!user()?.emailVerified"
+                      [attr.aria-disabled]="!user()?.emailVerified">
+                Rezerwacja wizyt&nbsp;📅
+              </button>
+            </span>
+
+            @if (role === Role.Vet) {
+              <span [ngbPopover]="!user()?.emailVerified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
+                    triggers="mouseenter:mouseleave"
+                    tabindex="0">
+                <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
+                        routerLinkActive="active"
+                        [routerLink]="['appointments', 'create']"
+                        [class.disabled]="!user()?.emailVerified"
+                        [attr.aria-disabled]="!user()?.emailVerified">
+                  Planner terminów&nbsp;💌
+                </button>
+              </span>
             }
 
             <button class="btn btn-outline-primary text-white border-3 border-dark rounded-4 shadow-lg"
@@ -77,49 +93,34 @@ import {Role} from "../../interfaces/user.interface";
                 <button class="btn text-white border-0"
                         routerLinkActive="active"
                         [routerLink]="['profile']">
-
                   <fa-icon [icon]="['fas', 'user-gear']" size="xl"></fa-icon>
                   <br>
                   Profile
                 </button>
 
                 <hr class="text-white"/>
-                <button type="button"
-                        class="btn btn-outline-light rounded-4 border-0"
+                <button class="btn btn-outline-light rounded-4 border-0"
+                        type="button"
                         (click)="authService.logout()">
                   Wyloguj
                 </button>
-
               </ng-template>
             </button>
-
           }
-        </div>
 
+        </div>
       </div>
     </nav>
   `,
-  styles: `
-    .custom-popover {
-      width: 15% !important;
-    }
-
-    .popover-body {
-      display: flex;
-      flex-flow: column nowrap;
-      justify-content: center;
-      text-align: center;
-    }
-  `
+  styles: ``,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HeaderComponent {
   public readonly appTitle = "PetCare"
   public readonly authService = inject(AuthService);
-  public library = inject(FaIconLibrary);
-
-  constructor() {
-    this.library.addIcons(faPaw, faStore, faUser, faNotesMedical, faCalendarDays, faGear, faBars, faUserGear)
-  }
-
   protected readonly Role = Role;
+
+  user = computed(() => this.authService.firebaseUser())
+  userData = computed(() => this.authService.user())
+
 }

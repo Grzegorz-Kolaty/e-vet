@@ -42,7 +42,7 @@ export class AppointmentsService {
     const endOfDay = new Date(dayDate[dayDate.length - 1]);
     endOfDay.setHours(23, 59, 59, 0);
 
-    const uid = this.authService.user()?.uid;
+    const uid = this.authService.firebaseUser()?.uid;
 
     const appointmentsCollection = query(
       collection(this.firestore, 'appointments'),

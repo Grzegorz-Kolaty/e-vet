@@ -1,10 +1,14 @@
 import {ChangeDetectionStrategy, Component, computed, inject, input, resource, signal} from '@angular/core';
-import {AuthService} from '../../shared/data-access/auth.service';
 import {FormControl, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
+import {AuthService} from '../../shared/data-access/auth.service';
 
 
 @Component({
   selector: 'app-password-reset',
+  imports: [
+    FormsModule,
+    ReactiveFormsModule
+  ],
   template: `
     @if (oobCode()) {
       <h4 class="mb-3">Wprowadź nowe hasło</h4>
@@ -81,12 +85,9 @@ import {FormControl, FormsModule, ReactiveFormsModule, Validators} from "@angula
     }
   `,
   styles: ``,
-  imports: [
-    FormsModule,
-    ReactiveFormsModule
-  ]
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PasswordResetComponent {
+export default class PasswordResetComponent {
   public authService = inject(AuthService);
   protected email = new FormControl('', [Validators.required, Validators.email]);
 

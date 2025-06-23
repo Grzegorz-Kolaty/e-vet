@@ -2,21 +2,27 @@ import {Component, inject, resource, signal} from '@angular/core';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {AuthService} from '../../shared/data-access/auth.service';
 import {Credentials} from '../../shared/interfaces/user.interface';
-
+import {RouterLink} from "@angular/router";
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   template: `
+    <h1 class="mb-4 text-center fw-bolder">Zaloguj się</h1>
+
+    @if (logger.error()) {
+      <div class="bg-danger text-center rounded-4 p-3 mb-4">
+        <span class="text-white">{{ logger.error() }}</span>
+      </div>
+    }
+
     <form [formGroup]="loginForm"
           (ngSubmit)="onSubmit()"
-          class="d-flex flex-column gap-3 fw-semibold mb-3"
-          #form="ngForm">
+          #form="ngForm"
+          class="d-flex flex-column gap-3">
 
-      <h3 class="mb-3 text-center fw-bold">Zaloguj się</h3>
 
-      <div class="mb-3">
-        <label for="emailInput" class="form-label">Email</label>
+      <div class="form-floating mb-2">
         <input formControlName="email"
                placeholder="email"
                type="email"
@@ -24,41 +30,45 @@ import {Credentials} from '../../shared/interfaces/user.interface';
                id="emailInput"
                aria-describedby="emailHelp"
                required/>
+        <label for="emailInput">Email</label>
+
       </div>
 
-      <div class="mb-3">
-        <label for="passwordInput" class="form-label">Hasło</label>
+      <div class="form-floating mb-2">
         <input formControlName="password"
                type="password"
                class="form-control form-control-lg"
                id="passwordInput"
                placeholder="password"/>
+        <label for="passwordInput">Hasło</label>
       </div>
 
-      <button class="btn btn-lg btn-dark rounded-4 shadow-lg mb-3"
-              type="submit"
-              [disabled]="logger.isLoading()">
+      <a class="text-end btn bg-transparent mb-4" [routerLink]="['/auth', 'forgot-password']">
+        Nie pamiętasz hasła?
+      </a>
+
+      <button
+        class="btn btn-dark btn-lg rounded-5 mb-3 shadow-lg w-75 mx-auto fw-bold"
+        type="submit"
+        [disabled]="logger.isLoading()">
         Loguj
       </button>
 
-      @if (logger.error() && form.submitted) {
-        <span class="text-danger">{{ logger.error() }}</span>
-      } @else {
-        <span class="visually-hidden">Nothing</span>
-      }
+      <a class="btn bg-transparent text-decoration-none" [routerLink]="['/auth', 'register']">
+        Nie masz konta? <b>Zarejestruj się</b>
+      </a>
 
     </form>
   `,
 })
-export class LoginComponent {
+export default class LoginComponent {
   public readonly authService = inject(AuthService);
-  private readonly fb = inject(FormBuilder);
-
   login = signal<Credentials | undefined>(undefined);
   logger = resource({
     request: () => this.login(),
-    loader: ({request}) => this.authService.login(request!),
+    loader: ({request}) => this.authService.login(request!)
   });
+  private readonly fb = inject(FormBuilder);
 
   loginForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],

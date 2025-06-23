@@ -15,25 +15,26 @@ declare global {
 }
 
 const firebaseApp = initializeApp(environment.firebase);
+
 export const AUTH = new InjectionToken<Auth>('Firebase Auth');
 export const FIRESTORE = new InjectionToken<Firestore>('Firebase Firestore');
 export const STORAGE = new InjectionToken<FirebaseStorage>('Firebase Storage');
-export const FUNCTIONS = new InjectionToken<Functions>('Firebase Functions');
 export const APPCHECK = new InjectionToken<AppCheck>('Firebase AppCheck');
+export const FUNCTIONS = new InjectionToken<Functions>('Firebase Functions');
 
 export function provideFirebaseServices(): EnvironmentProviders {
   const auth = getAuth(firebaseApp);
-  const functions = getFunctions(firebaseApp);
   const firestore = initializeFirestore(firebaseApp, {})
   const storage = getStorage(firebaseApp);
+  const functions = getFunctions(firebaseApp);
   window.FIREBASE_APPCHECK_DEBUG_TOKEN = false
 
   if (!environment.production) {
     window.FIREBASE_APPCHECK_DEBUG_TOKEN = environment.firebase.recaptchaToken // for emulating appcheck
     connectAuthEmulator(auth, 'http://localhost:9099', {disableWarnings: true});
-    connectFunctionsEmulator(functions, 'localhost', 5001);
     connectFirestoreEmulator(firestore, 'localhost', 8080);
     connectStorageEmulator(storage, 'localhost', 9199);
+    connectFunctionsEmulator(functions, 'localhost', 5001);
   }
 
 
@@ -46,7 +47,7 @@ export function provideFirebaseServices(): EnvironmentProviders {
     {provide: AUTH, useValue: auth},
     {provide: FIRESTORE, useValue: firestore},
     {provide: STORAGE, useValue: storage},
+    {provide: APPCHECK, useValue: appCheck},
     {provide: FUNCTIONS, useValue: functions},
-    {provide: APPCHECK, useValue: appCheck}
   ])
 }

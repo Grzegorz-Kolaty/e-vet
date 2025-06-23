@@ -11,64 +11,51 @@ import {HttpsError, onCall} from "firebase-functions/v2/https";
 import {getAuth} from "firebase-admin/auth";
 import {initializeApp} from 'firebase-admin/app';
 import {getFirestore, FieldValue} from 'firebase-admin/firestore';
+import {sendVerificationEmail} from './mailer';
+
 
 initializeApp();
 const auth = getAuth();
 
-// Funkcja do ustawiania claims dla użytkowników
-const setCustomClaims = async (uid: string, requestedRole: string) => {
 
-  try {
-    await new Promise(resolve => setTimeout(resolve, 15000));
-
-    await auth.setCustomUserClaims(uid, { role: requestedRole });
-    return { success: true };
-  } catch (error) {
-    throw new HttpsError("internal", `Error setting role: ${requestedRole}`, error);
-  }
-};
-
-// export const createUser = onCall(
-// {
-//   enforceAppCheck: true,
-// },
-// async (request) => {
-//   // if (!request.auth || !request.auth.token || !request.auth.token.email) {
-//   //   throw new HttpsError("failed-precondition", "The function must be called while authenticated.");
-//   // }
-//
-//   const user = request.data;
-//
-//    const userCreation= await auth.createUser({
-//     displayName: user.displayName,
-//     email: user.email,
-//      password: user.password
-//   })
-//
-//   const uid = userCreation.uid
-//
-//   const setClaims = await setCustomClaims(uid, user.role);
-//
-//    const token = await auth.createCustomToken(uid)
-//
-//   return setCustomClaims(uid, user.role);
-// })
-
-
-export const setCustomClaimsRole = onCall(
-  {
-    enforceAppCheck: true,
-  },
+export const createUser = onCall(
+  {enforceAppCheck: true},
   async (request) => {
-    if (!request.auth || !request.auth.token || !request.auth.token.email) {
-      throw new HttpsError("failed-precondition", "The function must be called while authenticated.");
+    const user = request.data;
+    let uid: string;
+
+    try {
+      const userCreation = await auth.createUser({
+        displayName: user.displayName,
+        email: user.email,
+        emailVerified: false,
+        password: user.password,
+      });
+      uid = userCreation.uid;
+    } catch (err: any) {
+      if (err.code === 'auth/email-already-exists') {
+        throw new HttpsError("already-exists", "Ten adres email jest już zarejestrowany.", err);
+      }
+      throw new HttpsError("internal", "Błąd tworzenia konta użytkownika", err);
     }
 
-    const requestedRole = request.data;
+    try {
+      await auth.setCustomUserClaims(uid, {role: user.role});
+    } catch (err) {
+      throw new HttpsError("internal", "Błąd przy ustawianiu ról", err);
+    }
 
-    return setCustomClaims(request.auth.uid, requestedRole);
+    try {
+      const verificationLink = await auth.generateEmailVerificationLink(user.email);
+      await sendVerificationEmail(user.email, verificationLink);
+    } catch (err) {
+      throw new HttpsError("internal", "Błąd wysyłania maila weryfikacyjnego", err);
+    }
+
+    return {success: true};
   }
 );
+
 
 export const createNewClinic = onCall(
   {
@@ -81,7 +68,7 @@ export const createNewClinic = onCall(
 
     const db = getFirestore();
     const vetId = request.auth.uid;
-    const { name, description, address } = request.data;
+    const {name, description, address} = request.data;
     const vetName = request.data.member.name;
     const vetEmail = request.data.member.email;
 
@@ -115,14 +102,10 @@ export const createNewClinic = onCall(
       await batch.commit();
 
       const user = await auth.getUser(request.auth.uid)
-      user.customClaims
       await auth.setCustomUserClaims(request.auth.uid, {...user.customClaims, clinicId: clinicRef.id});
 
 
-      return {
-        success: true,
-        clinicId: clinicRef.id,
-      };
+      return {clinicId: clinicRef.id};
     } catch (error) {
       throw new HttpsError("internal", "Failed to create clinic", error as Error);
     }

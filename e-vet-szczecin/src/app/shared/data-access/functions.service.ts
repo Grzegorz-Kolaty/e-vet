@@ -4,9 +4,6 @@ import {Role} from '../interfaces/user.interface';
 import {FUNCTIONS} from "../../firebase.providers";
 import {CreateClinic} from "./clinic.service";
 
-interface CustomClaimsResponse {
-  success: boolean;
-}
 
 @Injectable({
   providedIn: 'root',
@@ -14,11 +11,13 @@ interface CustomClaimsResponse {
 export class FunctionsService {
   functions = inject(FUNCTIONS);
 
-  setCustomClaimsRole(role: Role) {
-    const callable = httpsCallable(this.functions, 'setCustomClaimsRole');
-    console.log(role)
-    return callable(role);
-  }
+  // setCustomClaimsRole(role: Role) {
+  //   const callable = httpsCallable(this.functions, 'setCustomClaimsRole');
+  //   return callable(role);
+  // }
+
+
+
 
   // async setCustomClaimsRole(role: Role): Promise<boolean> {
   //   const callable = httpsCallable<any, CustomClaimsResponse>(this.functions, 'setCustomClaimsRole');
@@ -39,14 +38,13 @@ export class FunctionsService {
   // }
 
 
-  updateProfile(address: string) {
-    const callable = httpsCallable(this.functions, 'updateProfile');
-    return callable({address: address});
-  }
+  // updateProfile(address: string) {
+  //   const callable = httpsCallable(this.functions, 'updateProfile');
+  //   return callable({address: address});
+  // }
 
   createNewClinic(data: CreateClinic) {
     const callable = httpsCallable(this.functions, 'createNewClinic');
     return callable(data);
-
   }
 }

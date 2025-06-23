@@ -1,3 +1,12 @@
+export interface UserInterface {
+  uid: string;
+  email: string;
+  name: string;
+  role: Role;
+  picture?: string;
+  emailVerified: boolean;
+}
+
 export interface RegisterCredentials {
   email: string;
   password: string;

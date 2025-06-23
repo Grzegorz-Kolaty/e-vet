@@ -1,11 +1,11 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CalendarService {
   /**
-   * Builds Array of number with hours - it will be changeable in future (for ex. user wants only 6:00 - 14:00, etc.
+   * Builds Array of number with hours - it will be changeable in future (for ex. firebaseUser wants only 6:00 - 14:00, etc.
    */
   getHoursOfDay() {
     const hours: Date[] = [];

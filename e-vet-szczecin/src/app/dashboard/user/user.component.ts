@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import {ChangeDetectionStrategy, Component} from '@angular/core';
 
 @Component({
-  selector: 'app-user',
+  selector: 'app-firebaseUser',
   imports: [],
   templateUrl: './user.component.html',
   styleUrl: './user.component.scss',

@@ -1,41 +1,59 @@
 import {Routes} from '@angular/router';
 import {HomeComponent} from './home_404/home.component';
-import {NotFoundPageComponent} from './home_404/not-found-page.component';
-import {authGuard} from './shared/guards/auth.guard';
+import {authGuard, emailVerifiedGuard} from './shared/guards/accessGuards';
+import {LayoutComponent} from "./layout/layout.component";
+import {userDataResolver} from "./shared/resolvers/role.resolver";
 
 export const routes: Routes = [
   {
-    path: 'home',
-    component: HomeComponent,
-  },
-  {
-    path: 'auth',
-    loadComponent: () => import('./auth/auth.component'),
-  },
-  {
-    path: 'dashboard',
-    canActivate: [authGuard],
-    loadChildren: () =>
-      import('./dashboard/dashboard.routes').then(m => m.DASHBOARD_ROUTES),
-  },
-  {
-    path: 'appointments',
-    canActivate: [authGuard],
-    loadChildren: () =>
-      import('./appointments/appointments.routes').then(m => m.APPOINTMENTS_ROUTES),
-  },
-  {
-    path: 'clinics',
-    canActivate: [authGuard],
-    loadChildren: () => import('./clinics/clinics.routes').then(m => m.CLINICS_ROUTES)
-  },
-  {
     path: '',
-    redirectTo: 'home',
-    pathMatch: "full"
+    component: LayoutComponent,
+    children: [
+      {
+        path: '',
+        redirectTo: 'home',
+        pathMatch: 'full'
+      },
+      {
+        path: 'home',
+        component: HomeComponent
+      },
+      {
+        path: 'auth',
+        loadChildren: () =>
+          import('./auth/auth.routes').then(m => m.AUTH_ROUTES)
+      },
+      {
+        path: 'dashboard',
+        canActivate: [authGuard],
+        resolve: {user: userDataResolver},
+        loadComponent: () =>
+          import('./dashboard/dashboard.component')
+      },
+      {
+        path: 'clinics',
+        canActivate: [authGuard, emailVerifiedGuard],
+        resolve: {user: userDataResolver},
+        loadComponent: () =>
+          import('./clinics/clinics.component')
+      },
+      {
+        path: 'appointments',
+        canActivate: [authGuard],
+        resolve: {user: userDataResolver},
+        loadChildren: () =>
+          import('./appointments/appointments.routes').then(m => m.APPOINTMENTS_ROUTES)
+      },
+      {
+        path: '**',
+        redirectTo: '',
+        pathMatch: 'full'
+      },
+    ]
   },
   {
     path: '**',
-    component: NotFoundPageComponent,
+    redirectTo: '',
+    pathMatch: 'full'
   },
 ];

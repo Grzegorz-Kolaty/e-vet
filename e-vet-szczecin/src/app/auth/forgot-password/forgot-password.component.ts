@@ -1,10 +1,11 @@
 import {ChangeDetectionStrategy, Component, inject, resource, signal} from '@angular/core';
 import {FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
 import {AuthService} from '../../shared/data-access/auth.service';
+import {RouterLink} from "@angular/router";
 
 @Component({
   selector: 'app-forgot-password',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="d-flex flex-column gap-3 fw-semibold">
@@ -24,7 +25,7 @@ import {AuthService} from '../../shared/data-access/auth.service';
         />
       </div>
 
-      <div class="mb-2 fs-5">
+      <div class="mb-2">
         @if (onSubmitResetPassword.error()) {
           <span class="text-black">{{ onSubmitResetPassword.error() }}</span>
         }
@@ -36,16 +37,20 @@ import {AuthService} from '../../shared/data-access/auth.service';
       <button
         (click)="onSubmit()"
         [disabled]="onSubmitResetPassword.isLoading()"
-        class="btn btn-lg btn-warning rounded-4 shadow-lg"
+        class="btn btn-lg btn-warning rounded-4 shadow-lg mb-3"
         type="button">
         Wyślij mail resetujący
       </button>
+
+      <a class="btn bg-transparent text-decoration-none" [routerLink]="['/auth', 'login']">
+        Znasz hasło? <b>Powróć do logowania</b>
+      </a>
 
     </form>
   `,
   styles: ``
 })
-export class ForgotPasswordComponent {
+export default class ForgotPasswordComponent {
   public authService = inject(AuthService);
   protected email = new FormControl('', [Validators.required, Validators.email]);
 
