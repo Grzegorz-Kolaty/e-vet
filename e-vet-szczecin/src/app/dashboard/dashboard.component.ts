@@ -71,10 +71,6 @@ import {Router} from "@angular/router";
 export default class DashboardComponent {
   authService = inject(AuthService)
   router = inject(Router)
-  // protected viewMode = signal<Role | null>(null)
-  // protected readonly Role = Role;
-  // private readonly route = inject(ActivatedRoute)
-
 
   constructor() {
     effect(() => {

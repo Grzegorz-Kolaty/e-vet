@@ -4,7 +4,7 @@ import {
   inject,
   signal,
   ViewContainerRef,
-  computed,
+  computed, input,
 } from '@angular/core';
 import {toObservable, toSignal} from "@angular/core/rxjs-interop";
 import {FormsModule} from "@angular/forms";
@@ -12,8 +12,8 @@ import {httpResource} from "@angular/common/http";
 import {LeafletModule} from "@bluehalo/ngx-leaflet";
 import {debounceTime, distinctUntilChanged} from "rxjs";
 import {map, marker, tileLayer, latLng, Map} from 'leaflet';
-import {Clinic, ClinicService} from "../../../shared/data-access/clinic.service";
 import {CreateClinicComponent} from "../create-clinic/create-clinic.component";
+import {GeoPoint} from "firebase/firestore";
 
 export interface LocationResult {
   display_name: string;
@@ -87,6 +87,7 @@ export interface LocationResult {
     .map {
       height: 800px;
     }
+
     .search-box {
       display: flex;
       flex-flow: column nowrap;
@@ -108,6 +109,9 @@ export interface LocationResult {
   `,
 })
 export class MapComponent {
+
+  clinicGeoPoint = input<GeoPoint | undefined>(undefined)
+
   map: Map | null = null
   options = {
     layers: [
@@ -142,8 +146,8 @@ export class MapComponent {
       !!item.address?.house_number) ?? [])
   );
 
-  selectedLocation = signal<LocationResult | undefined>(undefined);
-  clinicAtLocation = signal<Clinic | null | undefined>(undefined);
+  // selectedLocation = signal<LocationResult | undefined>(undefined);
+  // clinicAtLocation = signal<Clinic | null | undefined>(undefined);
 
   // constructor() {
   //   effect(() => {

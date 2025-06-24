@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, computed, effect, inject, resource, signal} from '@angular/core';
 import {AuthService} from '../../shared/data-access/auth.service';
-import {ActivatedRoute} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 
 @Component({
   selector: 'app-email-verification',
@@ -33,6 +33,7 @@ import {ActivatedRoute} from "@angular/router";
 export default class EmailVerificationComponent {
   private readonly authService = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router)
 
 
   oobCode = signal<string | undefined>(undefined);
@@ -49,6 +50,12 @@ export default class EmailVerificationComponent {
     const queryParams = this.route.snapshot.queryParams;
     const oobCode = queryParams['oobCode'];
     this.oobCode.set(oobCode)
+
+    effect(() => {
+      if (this.isVerificationSuccessful() || this.authService.firebaseUser()?.emailVerified) {
+        this.router.navigate(['dashboard'])
+      }
+    })
   }
 
 }

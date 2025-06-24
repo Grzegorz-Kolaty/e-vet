@@ -8,40 +8,41 @@ import {
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
-  User,
+  User
 } from 'firebase/auth';
 import {httpsCallable} from "firebase/functions";
 import {AUTH, FUNCTIONS} from "../../firebase.providers";
-import {UserService} from "./user.service";
 import {user} from "rxfire/auth";
-import {tap} from "rxjs";
+import {jwtDecode} from "jwt-decode";
 
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  readonly auth = inject(AUTH);
+  private readonly auth = inject(AUTH);
   private readonly functions = inject(FUNCTIONS);
-  private readonly userService = inject(UserService)
 
-
-  user$ = user(this.auth).pipe(
-    tap(async (user) => {
-      this.firebaseUser.set(user)
-      const token = await user?.getIdToken()
-      if (token) {
-        this.user.set(this.userService.deserializeUserToken(token))
-      } else {
-        this.user.set(null)
-        this.userService.clearLocalStorage()
-      }
-    }),
-  )
+  user$ = user(this.auth)
 
   // selectors
   firebaseUser = signal<User | null>(null)
   user = signal<UserInterface | null>(null)
+
+  public async reloadUser() {
+    if (this.auth.currentUser) {
+      try {
+        await this.auth.currentUser.getIdToken(true);
+        await this.auth.currentUser.reload();
+      } catch (error) {
+        console.error('verify email err', error);
+      }
+    }
+  }
+
+  public deserializeUserToken(token: string): UserInterface {
+    return jwtDecode(token)
+  }
 
   public async register(registerForm: RegisterCredentials) {
     return httpsCallable(this.functions, 'createUser')(registerForm)
@@ -52,7 +53,6 @@ export class AuthService {
   }
 
   public async logout() {
-    this.userService.clearLocalStorage()
     await signOut(this.auth);
   }
 
@@ -67,8 +67,8 @@ export class AuthService {
     }
   }
 
-  public async initiateEmail(user: User) {
-    return sendEmailVerification(user);
+  public async initiateEmail() {
+    if (this.auth.currentUser) await sendEmailVerification(this.auth.currentUser);
   }
 
   public async resetPassword(email: string) {
@@ -81,13 +81,6 @@ export class AuthService {
 
   public async verifyEmail(oobCode: string) {
     await applyActionCode(this.auth, oobCode)
-    if (this.auth.currentUser) {
-      try {
-        await this.auth.currentUser.getIdToken(true)
-        await this.auth.currentUser.reload()
-      } catch (error) {
-        console.error('verify email err')
-      }
-    }
+    await this.reloadUser()
   }
 }

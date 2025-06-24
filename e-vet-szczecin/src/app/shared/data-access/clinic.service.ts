@@ -1,95 +1,37 @@
-import {computed, inject, Injectable, OnDestroy, signal} from '@angular/core';
-import {AuthService} from "./auth.service";
+import {inject, Injectable} from '@angular/core';
 import {FIRESTORE} from "../../firebase.providers";
-import {defer, map, Observable, Subject} from 'rxjs';
+import {defer} from 'rxjs';
 import {Appointment} from '../interfaces/user.interface';
 import {
-  addDoc,
   collection,
   deleteDoc,
   doc,
   GeoPoint,
   getDoc,
   getDocs,
-  limit,
-  orderBy,
-  query,
-  setDoc,
   updateDoc
 } from "firebase/firestore";
-import {collectionData} from "rxfire/firestore";
 import {FunctionsService} from "./functions.service";
+import {Clinic, CreateClinic} from "../interfaces/clinics.interface";
 
-export interface Address {
-  city: string;
-  street: string;
-  houseNumber: string;
-  zipCode: string;
-}
-
-export interface Clinic {
-  name: string;
-  address: Address;
-  id?: string;
-  description: string;
-  geo: GeoPoint;
-}
-
-export interface ClinicMember {
-  vetId: string;
-  name: string;
-  email: string;
-}
-
-export interface CreateClinic extends Clinic {
-  member: ClinicMember;
-}
 
 @Injectable({
   providedIn: 'root',
 })
-export class ClinicService implements OnDestroy {
-  private authService = inject(AuthService);
+export class ClinicService {
   private firestore = inject(FIRESTORE);
   private readonly functionsService = inject(FunctionsService);
 
+  public async getVetClinicById(clinicId: string): Promise<Clinic> {
+    const clinicDocRef = doc(this.firestore, 'clinics', clinicId);
+    const clinicSnap = await getDoc(clinicDocRef)
 
-  // constructor() {
-  //   this.subs.add = this.add$.pipe(
-  //     takeUntilDestroyed(),
-  //     exhaustMap((appointment) => this.addAppointment(appointment))).subscribe({
-  //     error: (err) => {
-  //       console.error(err);
-  //       this.error$.next(err)
-  //     }
-  //   })
-  //
-  //   this.subs.add = this.patch$.pipe(
-  //     takeUntilDestroyed(),
-  //     exhaustMap((appointment) => this.reserveAppointment(appointment))).subscribe({
-  //     error: (err) => {
-  //       console.error(err);
-  //       this.error$.next(err)
-  //     }
-  //   })
-  //
-  //   this.subs.add = this.delete$.pipe(
-  //     takeUntilDestroyed(),
-  //     exhaustMap((appointment) => this.removeAppointment(appointment))).subscribe({
-  //     error: (err) => {
-  //       console.error(err);
-  //       this.error$.next(err)
-  //     }
-  //   })
-  //
-  //   this.subs.add = this.appointments$.pipe(
-  //     takeUntilDestroyed()).subscribe((appointments) =>
-  //     this.state.update((state) => ({
-  //       ...state,
-  //       appointments,
-  //     })),
-  //   );
-  // }
+    if (clinicSnap.exists()) {
+      return clinicSnap.data() as Clinic
+    } else {
+      throw new Error('Clinic not found')
+    }
+  }
 
   async findClinicByCoordinates(lat: number, lon: number, toleranceMeters = 20): Promise<Clinic | null> {
     const clinicsRef = collection(this.firestore, 'clinics');
@@ -127,16 +69,6 @@ export class ClinicService implements OnDestroy {
     // await this.authService.refreshIdToken()
   }
 
-  async getVetClinic(clinicId: string) {
-    const clinicDocRef = doc(this.firestore, 'clinics', clinicId);
-    const clinicSnap = await getDoc(clinicDocRef)
-
-    if (clinicSnap.exists()) {
-      return clinicSnap.data()
-    } else {
-      throw new Error('Clinic not found')
-    }
-  }
 
   private removeAppointment(appointment: Appointment) {
     const docRef = doc(this.firestore, `appointments/${appointment.id}`)
@@ -161,7 +93,7 @@ export class ClinicService implements OnDestroy {
     return defer(() => updateDoc(appointmentsCollection, updateData));
   }
 
-  ngOnDestroy(): void {
-    // this.subs.dispose()
-  }
+  // ngOnDestroy(): void {
+  //   // this.subs.dispose()
+  // }
 }

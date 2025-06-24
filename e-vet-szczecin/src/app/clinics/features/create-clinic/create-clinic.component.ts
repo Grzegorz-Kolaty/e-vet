@@ -1,11 +1,13 @@
 import {ChangeDetectionStrategy, Component, effect, inject, resource, signal} from '@angular/core';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
-import {ClinicService, CreateClinic} from "../../../shared/data-access/clinic.service";
 import {AuthService} from "../../../shared/data-access/auth.service";
 import {NgxMaskDirective} from "ngx-mask";
 import {NgClass} from "@angular/common";
 import {GeoPoint} from "firebase/firestore";
 import {LocationResult} from "../map/map.component";
+import {ClinicService} from "../../../shared/data-access/clinic.service";
+import {CreateClinic} from "../../../shared/interfaces/clinics.interface";
+
 
 @Component({
   selector: 'app-create-clinic',
@@ -135,10 +137,8 @@ import {LocationResult} from "../map/map.component";
                  id="vetName"
                  required/>
           <label class="form-label mt-2 ">Będziesz administratorem tej kliniki.</label>
-
         </div>
-
-
+        
         <button type="button"
                 class="btn btn-dark p-2 w-100 rounded-4 shadow-lg"
                 (click)="onSubmit()"
@@ -195,20 +195,20 @@ export class CreateClinicComponent {
     email: [this.authService.firebaseUser()?.email, Validators.required]
   })
 
-  constructor() {
-    effect(() => {
-      // if (this.onCreateClinic.status() === 4) {
-      console.log(this.onCreateClinic.status())
-      // this.onSuccessfulCreateClinic.emit()
-    })
-
-    // effect(() => {
-    //   if (this.onCreateClinic.status() === 4) {
-    //     console.log('onCreateClinic succed')
-    //     this.onSuccessfulCreateClinic.emit()
-    //   }
-    // })
-  }
+  // constructor() {
+  //   effect(() => {
+  //     // if (this.onCreateClinic.status() === 4) {
+  //     console.log(this.onCreateClinic.status())
+  //     // this.onSuccessfulCreateClinic.emit()
+  //   })
+  //
+  //   // effect(() => {
+  //   //   if (this.onCreateClinic.status() === 4) {
+  //   //     console.log('onCreateClinic succed')
+  //   //     this.onSuccessfulCreateClinic.emit()
+  //   //   }
+  //   // })
+  // }
 
   onSubmit() {
     if (this.clinicForm.valid && this.clinicMemberForm.valid) {

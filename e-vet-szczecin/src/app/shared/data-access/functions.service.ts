@@ -1,8 +1,7 @@
 import {inject, Injectable} from '@angular/core';
 import {httpsCallable} from 'firebase/functions';
-import {Role} from '../interfaces/user.interface';
 import {FUNCTIONS} from "../../firebase.providers";
-import {CreateClinic} from "./clinic.service";
+import {CreateClinic} from "../interfaces/clinics.interface";
 
 
 @Injectable({
@@ -15,8 +14,6 @@ export class FunctionsService {
   //   const callable = httpsCallable(this.functions, 'setCustomClaimsRole');
   //   return callable(role);
   // }
-
-
 
 
   // async setCustomClaimsRole(role: Role): Promise<boolean> {

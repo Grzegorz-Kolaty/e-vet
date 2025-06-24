@@ -1,59 +1,52 @@
 import {ChangeDetectionStrategy, Component, effect, inject, signal} from '@angular/core';
 import {Role} from "../shared/interfaces/user.interface";
-import {ActivatedRoute, Router} from "@angular/router";
-import VetClinicComponent from "./vet-clinic/vet-clinic.component";
-import UserBrowseClinicsComponent from "./user-browse-clinics/user-browse-clinics.component";
+import {Router} from "@angular/router";
 import {AuthService} from "../shared/data-access/auth.service";
+import {VetClinicComponent} from "./vet-clinic/vet-clinic.component";
+import {CreateClinicComponent} from "./features/create-clinic/create-clinic.component";
+import {BrowseClinicsComponent} from "./user-browse-clinics/browse-clinics.component";
 
 
 @Component({
   selector: 'app-clinics',
   imports: [
     VetClinicComponent,
-    UserBrowseClinicsComponent
+    CreateClinicComponent,
+    BrowseClinicsComponent
   ],
   template: `
     <section class="p-5 h-100">
-      {{ viewMode() }}
-      @if (viewMode() === Role.User) {
-        @defer {
-          <app-user-browse-clinics/>
-        } @loading (minimum 100) {
-          <h3>Loading</h3>
-        }
+      @if (user()?.role === Role.User) {
+        <app-browse-clinics/>
       }
 
-      @if (viewMode() === Role.Vet) {
-        @if (clinicId()) {
-          <app-vet-clinic/>
+      @if (user()?.role === Role.Vet) {
+        @if (user()?.clinicId) {
+          <app-vet-clinic [clinicId]="user()!.clinicId"/>
         } @else {
-          <p>clinic neds to be crtd</p>
+          <app-create-clinic/>
         }
       }
-
     </section>
   `,
   styles: ``,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export default class ClinicsComponent {
+  protected readonly Role = Role;
   private authService = inject(AuthService)
   private router = inject(Router)
-  protected readonly viewMode = signal<Role | null>(null)
-  protected readonly clinicId = signal<string | null>(null)
-  protected readonly Role = Role;
-  private readonly route = inject(ActivatedRoute)
+
+  user = this.authService.user
 
   constructor() {
-    this.viewMode.set(this.route.snapshot.data['user']['role'])
-    this.clinicId.set(this.route.snapshot.data['user']['clinicId'])
-
-
     effect(() => {
-      if (!this.authService.firebaseUser()) {
+      const user = this.user()
+      if (!user) {
         this.router.navigate(['auth'])
       }
     })
 
   }
+
 }

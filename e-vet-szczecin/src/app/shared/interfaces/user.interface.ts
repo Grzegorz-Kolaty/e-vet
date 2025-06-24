@@ -3,8 +3,9 @@ export interface UserInterface {
   email: string;
   name: string;
   role: Role;
+  clinicId?: string
   picture?: string;
-  emailVerified: boolean;
+  email_verified: boolean;
 }
 
 export interface RegisterCredentials {

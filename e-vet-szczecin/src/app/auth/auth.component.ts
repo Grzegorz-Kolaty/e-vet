@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
+import {ChangeDetectionStrategy, Component, effect, inject} from '@angular/core';
 import {NgClass} from "@angular/common";
 import {ActivatedRoute, Router, RouterOutlet} from "@angular/router";
 
@@ -36,6 +36,7 @@ export class AuthComponent {
     } else if (mode === 'resetPassword' && oobCode) {
       this.router.navigate(['/auth/reset-password'], {queryParams: {oobCode}});
     }
+
   }
 
   getBackgroundClass(): string {
