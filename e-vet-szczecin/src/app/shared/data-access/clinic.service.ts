@@ -65,6 +65,7 @@ export class ClinicService {
   }
 
   async createNewClinic(createNewClinic: CreateClinic) {
+    console.log(createNewClinic)
     await this.functionsService.createNewClinic(createNewClinic)
     // await this.authService.refreshIdToken()
   }

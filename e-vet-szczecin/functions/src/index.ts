@@ -1,4 +1,4 @@
-/**
+  /**
  * Import function triggers from their respective submodules:
  *
  * import {onCall} from "firebase-functions/v2/https";
@@ -10,7 +10,7 @@
 import {HttpsError, onCall} from "firebase-functions/v2/https";
 import {getAuth} from "firebase-admin/auth";
 import {initializeApp} from 'firebase-admin/app';
-import {getFirestore, FieldValue} from 'firebase-admin/firestore';
+import {getFirestore, FieldValue, GeoPoint} from 'firebase-admin/firestore';
 import {sendVerificationEmail} from './mailer';
 
 
@@ -71,11 +71,20 @@ export const createNewClinic = onCall(
     const {name, description, address} = request.data;
     const vetName = request.data.member.name;
     const vetEmail = request.data.member.email;
+    const geo = request.data.geo;
+
+
+    const {latitude, longitude} = geo;
+
+    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+      throw new HttpsError("invalid-argument", "Współrzędne są poza dopuszczalnym zakresem.");
+    }
+
+    const geoPoint = new GeoPoint(latitude, longitude);
 
     if (!name || !address || !vetName || !vetEmail) {
       throw new HttpsError("invalid-argument", "Missing clinic or vet information.", request.data);
     }
-
     // Przykład ustawiania roli weterynarza
 
     try {
@@ -90,6 +99,7 @@ export const createNewClinic = onCall(
         address,
         createdAt: FieldValue.serverTimestamp(),
         ownerId: vetId,
+        geo: geoPoint
       });
 
       batch.set(membersRef, {
@@ -107,7 +117,7 @@ export const createNewClinic = onCall(
 
       return {clinicId: clinicRef.id};
     } catch (error) {
-      throw new HttpsError("internal", "Failed to create clinic", error as Error);
+      throw new HttpsError("internal", "Failed to create clinic", request.data);
     }
   }
 );

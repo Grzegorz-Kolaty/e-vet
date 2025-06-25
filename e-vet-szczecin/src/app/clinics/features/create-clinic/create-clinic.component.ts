@@ -138,7 +138,7 @@ import {CreateClinic} from "../../../shared/interfaces/clinics.interface";
                  required/>
           <label class="form-label mt-2 ">Będziesz administratorem tej kliniki.</label>
         </div>
-        
+
         <button type="button"
                 class="btn btn-dark p-2 w-100 rounded-4 shadow-lg"
                 (click)="onSubmit()"
@@ -173,7 +173,8 @@ export class CreateClinicComponent {
     loader: async ({request}) => {
       // await this.auth.refreshToken(); // aktualizuj custom claims
       // this.clinicCreated.emit(result.clinicId); // emit do rodzica
-      return await this.clinicService.createNewClinic(request!);
+      await this.clinicService.createNewClinic(request!);
+      await this.authService.reloadUser()
     }
   });
 
@@ -228,18 +229,12 @@ export class CreateClinicComponent {
           email: user.email
         },
         geo: {
-          latitude: 123123,
-          longitude: 12312,
-          isEqual: function (other: GeoPoint): boolean {
-            throw new Error('Function not implemented.');
-          },
-          toJSON: function (): { latitude: number; longitude: number; } {
-            throw new Error('Function not implemented.');
-          }
+          latitude: 53.4285,
+          longitude: 14.5528 // np. dla Szczecina
         }
-      };
+      }
 
-      this.createClinic.set(payload);
+        this.createClinic.set(payload);
+      }
     }
   }
-}

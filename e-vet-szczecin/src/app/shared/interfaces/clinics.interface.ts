@@ -12,7 +12,10 @@ export interface Clinic {
   address: Address;
   id?: string;
   description: string;
-  geo: GeoPoint;
+  geo: {
+    longitude: number;
+    latitude: number;
+  }
 }
 
 export interface ClinicMember {
