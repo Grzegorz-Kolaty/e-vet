@@ -68,7 +68,8 @@ export class AuthService {
   }
 
   public async initiateEmail() {
-    if (this.auth.currentUser) await sendEmailVerification(this.auth.currentUser);
+    console.log('initiate proc')
+    await sendEmailVerification(this.firebaseUser()!)
   }
 
   public async resetPassword(email: string) {

@@ -1,6 +1,8 @@
-import {ChangeDetectionStrategy, Component, effect, inject} from '@angular/core';
+import {ChangeDetectionStrategy, Component, effect, inject, resource, signal} from '@angular/core';
 import {AuthService} from "../shared/data-access/auth.service";
 import {Router} from "@angular/router";
+import {Subject} from "rxjs";
+import {toSignal} from "@angular/core/rxjs-interop";
 
 
 @Component({
@@ -8,13 +10,25 @@ import {Router} from "@angular/router";
   imports: [],
   template: `
     <div class="container justify-content-center">
-      <div class="text-center my-5">
+      <div class="my-5 text-center">
         <div class="m-5">
           <h1 class="mb-3 fw-bolder"><b>Witaj w PetCare</b></h1>
           <h3>Twoja prosta platforma do zarządzania wizytami</h3>
         </div>
 
-        <div class="d-inline-flex gap-5 mb-5">
+
+        @if (!authService.firebaseUser()?.emailVerified) {
+          {{ sendEmailSig() }}
+          {{ onSendVerificationEmail.status() }}
+          <div class="d-flex flex-column gap-2 align-items-center">
+            <h4 class="text-shadow"><u>Twój adres email nie jest zweryfikowany</u></h4>
+            <h5>Nie dotarł? Ponów maila weryfikacyjnego</h5>
+            <button class="btn btn-lg btn-outline-info rounded-4"
+                    (click)="sendEmailSig.set(undefined)" type="button">
+              Wyślij ponownie&nbsp;📩
+            </button>
+          </div>
+        } @else {
           <button class="btn btn-lg btn-dark px-5 rounded-4 shadow-lg fw-semibold" type="button">
             Twoja klinika
           </button>
@@ -22,7 +36,9 @@ import {Router} from "@angular/router";
           <button class="btn btn-lg btn-outline-light px-4 rounded-4 shadow-lg fw-semibold" type="button">
             Nadchodzące wizyty
           </button>
-        </div>
+        }
+
+
       </div>
 
       <div class="row g-4">
@@ -72,11 +88,33 @@ export default class DashboardComponent {
   authService = inject(AuthService)
   router = inject(Router)
 
+  user = this.authService.firebaseUser
+
+  sendEmailSig = signal(undefined); // sygnał typu boolean
+
+  sendEmail$ = new Subject<void>()
+
+  // sendEmailSig = toSignal(this.sendEmail$)
+
+  onSendVerificationEmail = resource({
+    request: this.sendEmailSig,
+    loader: () => {
+      console.log('📩 Resource loader działa');
+      return this.authService.initiateEmail()
+    }
+  });
+
   constructor() {
     effect(() => {
       if (!this.authService.firebaseUser()) {
         this.router.navigate(['auth'])
       }
     })
+
+    effect(() => {
+      console.log(this.sendEmailSig())
+    })
   }
+
+
 }

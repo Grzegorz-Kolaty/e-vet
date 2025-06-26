@@ -35,15 +35,9 @@ import {Role} from "../../interfaces/user.interface";
               Dashboard&nbsp;🩺
             </button>
 
-            @if (!user()?.email_verified) {
-              <button class="btn btn-outline-info border-3 border-dark rounded-4 shadow-lg"
-                      (click)="authService.initiateEmail()">
-                Ponów email weryfikacyjny
-              </button>
-            } @else {
-              <span [ngbPopover]="!user()?.email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
-                    triggers="mouseenter:mouseleave"
-                    tabindex="0">
+            <span [ngbPopover]="!user()?.email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
+                  triggers="mouseenter:mouseleave"
+                  tabindex="0">
               <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
                       routerLinkActive="active"
                       [routerLink]="['clinics']"
@@ -53,10 +47,10 @@ import {Role} from "../../interfaces/user.interface";
               </button>
             </span>
 
-              @if (role === Role.User) {
-                <span [ngbPopover]="!user()?.email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
-                      triggers="mouseenter:mouseleave"
-                      tabindex="0">
+            @if (role === Role.User) {
+              <span [ngbPopover]="!user()?.email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
+                    triggers="mouseenter:mouseleave"
+                    tabindex="0">
               <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
                       routerLinkActive="active"
                       [routerLink]="['appointments', 'browse']"
@@ -64,13 +58,13 @@ import {Role} from "../../interfaces/user.interface";
                       [attr.aria-disabled]="!user()?.email_verified">
                 Rezerwacja wizyt&nbsp;📅
               </button>
-                </span>
-              }
+              </span>
+            }
 
-              @if (role === Role.Vet) {
-                <span [ngbPopover]="!user()?.email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
-                      triggers="mouseenter:mouseleave"
-                      tabindex="0">
+            @if (role === Role.Vet) {
+              <span [ngbPopover]="!user()?.email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
+                    triggers="mouseenter:mouseleave"
+                    tabindex="0">
                 <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
                         routerLinkActive="active"
                         [routerLink]="['appointments', 'create']"
@@ -79,35 +73,37 @@ import {Role} from "../../interfaces/user.interface";
                   Planner terminów&nbsp;💌
                 </button>
               </span>
-              }
-
-              <button class="btn btn-outline-primary text-white border-3 border-dark rounded-4 shadow-lg"
-                      [ngbPopover]="popoverContent"
-                      placement="bottom"
-                      triggers="click"
-                      container="body"
-                      popoverClass="custom-popover bg-dark">
-                <fa-icon [icon]="['fas', 'bars']" size="lg"></fa-icon>
-
-                <ng-template #popoverContent>
-                  <button class="btn text-white border-0"
-                          routerLinkActive="active"
-                          [routerLink]="['profile']">
-                    <fa-icon [icon]="['fas', 'user-gear']" size="xl"></fa-icon>
-                    <br>
-                    Profile
-                  </button>
-
-                  <hr class="text-white"/>
-                  <button class="btn btn-outline-light rounded-4 border-0"
-                          type="button"
-                          (click)="authService.logout()">
-                    Wyloguj
-                  </button>
-                </ng-template>
-              </button>
             }
+
+            <button class="btn btn-outline-primary text-white border-3 border-dark rounded-4 shadow-lg"
+                    [ngbPopover]="popoverContent"
+                    placement="bottom"
+                    triggers="click"
+                    container="body"
+                    popoverClass="custom-popover bg-dark"
+                    [disabled]="!user()?.email_verified">
+              <fa-icon [icon]="['fas', 'bars']" size="lg"></fa-icon>
+
+              <ng-template #popoverContent>
+                <button class="btn text-white border-0"
+                        routerLinkActive="active"
+                        [routerLink]="['profile']">
+                  <fa-icon [icon]="['fas', 'user-gear']" size="xl"></fa-icon>
+                  <br>
+                  Profile
+                </button>
+
+                <hr class="text-white"/>
+                <button class="btn btn-outline-light rounded-4 border-0"
+                        type="button"
+                        (click)="authService.logout()">
+                  Wyloguj
+                </button>
+              </ng-template>
+            </button>
+
           }
+
         </div>
       </div>
     </nav>

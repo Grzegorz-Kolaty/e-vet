@@ -196,20 +196,6 @@ export class CreateClinicComponent {
     email: [this.authService.firebaseUser()?.email, Validators.required]
   })
 
-  // constructor() {
-  //   effect(() => {
-  //     // if (this.onCreateClinic.status() === 4) {
-  //     console.log(this.onCreateClinic.status())
-  //     // this.onSuccessfulCreateClinic.emit()
-  //   })
-  //
-  //   // effect(() => {
-  //   //   if (this.onCreateClinic.status() === 4) {
-  //   //     console.log('onCreateClinic succed')
-  //   //     this.onSuccessfulCreateClinic.emit()
-  //   //   }
-  //   // })
-  // }
 
   onSubmit() {
     if (this.clinicForm.valid && this.clinicMemberForm.valid) {
@@ -220,6 +206,7 @@ export class CreateClinicComponent {
 
       const clinicData = this.clinicForm.getRawValue();
       const memberData = this.clinicMemberForm.getRawValue();
+      const geoPoint = new GeoPoint(53.4285, 14.5528);
 
       const payload: CreateClinic = {
         ...clinicData,
@@ -228,13 +215,10 @@ export class CreateClinicComponent {
           name: memberData.name,
           email: user.email
         },
-        geo: {
-          latitude: 53.4285,
-          longitude: 14.5528 // np. dla Szczecina
-        }
+        geo: geoPoint
       }
 
-        this.createClinic.set(payload);
-      }
+      this.createClinic.set(payload);
     }
   }
+}

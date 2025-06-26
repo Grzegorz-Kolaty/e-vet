@@ -1,4 +1,4 @@
-  /**
+/**
  * Import function triggers from their respective submodules:
  *
  * import {onCall} from "firebase-functions/v2/https";
@@ -10,7 +10,7 @@
 import {HttpsError, onCall} from "firebase-functions/v2/https";
 import {getAuth} from "firebase-admin/auth";
 import {initializeApp} from 'firebase-admin/app';
-import {getFirestore, FieldValue, GeoPoint} from 'firebase-admin/firestore';
+import {getFirestore, Firestore, FieldValue, GeoPoint} from 'firebase-admin/firestore';
 import {sendVerificationEmail} from './mailer';
 
 
@@ -66,26 +66,26 @@ export const createNewClinic = onCall(
       throw new HttpsError("failed-precondition", "The function must be called while authenticated.");
     }
 
-    const db = getFirestore();
+    const db: Firestore = getFirestore();
     const vetId = request.auth.uid;
     const {name, description, address} = request.data;
     const vetName = request.data.member.name;
     const vetEmail = request.data.member.email;
-    const geo = request.data.geo;
+    const geo = new GeoPoint(request.data.geo.latitude, request.data.geo.longitude)
 
-
-    const {latitude, longitude} = geo;
-
-    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-      throw new HttpsError("invalid-argument", "Współrzędne są poza dopuszczalnym zakresem.");
-    }
-
-    const geoPoint = new GeoPoint(latitude, longitude);
+    //
+    // const {latitude, longitude} = geo;
+    //
+    // if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+    //   throw new HttpsError("invalid-argument", "Współrzędne są poza dopuszczalnym zakresem.");
+    // }
+    //
+    // const geoPoint = new GeoPoint(latitude, longitude);
 
     if (!name || !address || !vetName || !vetEmail) {
       throw new HttpsError("invalid-argument", "Missing clinic or vet information.", request.data);
     }
-    // Przykład ustawiania roli weterynarza
+    
 
     try {
       const clinicRef = db.collection("clinics").doc(); // create new clinic doc
@@ -99,7 +99,7 @@ export const createNewClinic = onCall(
         address,
         createdAt: FieldValue.serverTimestamp(),
         ownerId: vetId,
-        geo: geoPoint
+        geo: geo
       });
 
       batch.set(membersRef, {

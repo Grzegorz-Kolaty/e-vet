@@ -53,7 +53,7 @@ import {LoaderComponent} from "../../shared/ui/loader/loader.component";
         <div class="row row-cols-lg-2">
 
           <div class="col">
-            <app-map [clinicGeoPoint]="clinic?.geo"/>
+            <!--            <app-map [clinicGeoPoint]="clinic.geo"/>-->
           </div>
 
           <div class="col">

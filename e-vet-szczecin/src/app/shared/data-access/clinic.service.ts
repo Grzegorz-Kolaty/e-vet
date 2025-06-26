@@ -6,7 +6,6 @@ import {
   collection,
   deleteDoc,
   doc,
-  GeoPoint,
   getDoc,
   getDocs,
   updateDoc
@@ -33,36 +32,36 @@ export class ClinicService {
     }
   }
 
-  async findClinicByCoordinates(lat: number, lon: number, toleranceMeters = 20): Promise<Clinic | null> {
-    const clinicsRef = collection(this.firestore, 'clinics');
-    const snapshot = await getDocs(clinicsRef);
+  // async findClinicByCoordinates(lat: number, lon: number, toleranceMeters = 20): Promise<Clinic | null> {
+  //   const clinicsRef = collection(this.firestore, 'clinics');
+  //   const snapshot = await getDocs(clinicsRef);
+  //
+  //   for (const doc of snapshot.docs) {
+  //     const data = doc.data() as Clinic & { geo: GeoPoint };
+  //     if (!data.geo) continue;
+  //
+  //     const distance = this.haversineDistance(lat, lon, data.geo.latitude, data.geo.longitude);
+  //     if (distance <= toleranceMeters) {
+  //       return {id: doc.id, ...data};
+  //     }
+  //   }
+  //
+  //   return null;
+  // }
 
-    for (const doc of snapshot.docs) {
-      const data = doc.data() as Clinic & { geo: GeoPoint };
-      if (!data.geo) continue;
-
-      const distance = this.haversineDistance(lat, lon, data.geo.latitude, data.geo.longitude);
-      if (distance <= toleranceMeters) {
-        return {id: doc.id, ...data};
-      }
-    }
-
-    return null;
-  }
-
-  private haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const toRad = (v: number) => v * Math.PI / 180;
-    const R = 6371e3; // radius Earth in meters
-    const φ1 = toRad(lat1), φ2 = toRad(lat2);
-    const Δφ = toRad(lat2 - lat1), Δλ = toRad(lon2 - lon1);
-
-    const a = Math.sin(Δφ / 2) ** 2 +
-      Math.cos(φ1) * Math.cos(φ2) *
-      Math.sin(Δλ / 2) ** 2;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c;
-  }
+  // private haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  //   const toRad = (v: number) => v * Math.PI / 180;
+  //   const R = 6371e3; // radius Earth in meters
+  //   const φ1 = toRad(lat1), φ2 = toRad(lat2);
+  //   const Δφ = toRad(lat2 - lat1), Δλ = toRad(lon2 - lon1);
+  //
+  //   const a = Math.sin(Δφ / 2) ** 2 +
+  //     Math.cos(φ1) * Math.cos(φ2) *
+  //     Math.sin(Δλ / 2) ** 2;
+  //   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  //
+  //   return R * c;
+  // }
 
   async createNewClinic(createNewClinic: CreateClinic) {
     console.log(createNewClinic)
