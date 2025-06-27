@@ -3,11 +3,15 @@ import {AuthService} from "../shared/data-access/auth.service";
 import {Router} from "@angular/router";
 import {Subject} from "rxjs";
 import {toSignal} from "@angular/core/rxjs-interop";
+import {User} from "firebase/auth";
+import {LoaderComponent} from "../shared/ui/loader/loader.component";
 
 
 @Component({
   selector: 'app-dashboard',
-  imports: [],
+  imports: [
+    LoaderComponent
+  ],
   template: `
     <div class="container justify-content-center">
       <div class="my-5 text-center">
@@ -18,13 +22,27 @@ import {toSignal} from "@angular/core/rxjs-interop";
 
 
         @if (!authService.firebaseUser()?.emailVerified) {
-          {{ sendEmailSig() }}
-          {{ onSendVerificationEmail.status() }}
+          @if (onSendVerificationEmail.status() === 2) {
+            <app-loader/>
+          }
+
+          @if (onSendVerificationEmail.status() === 4) {
+            <div class="bg-success text-center rounded-4 p-3 mb-4">
+              <span class="text-white">Email wysłano! Sprawdź skrzynkę</span>
+            </div>
+          }
+
+          @if (onSendVerificationEmail.status() === 1) {
+            <div class="bg-danger text-center rounded-4 p-3 mb-4">
+              <span class="text-white">Wystąpił błąd przy wysyłce maila, spróbuj ponownie za kilka minut</span>
+            </div>
+          }
+
           <div class="d-flex flex-column gap-2 align-items-center">
             <h4 class="text-shadow"><u>Twój adres email nie jest zweryfikowany</u></h4>
             <h5>Nie dotarł? Ponów maila weryfikacyjnego</h5>
             <button class="btn btn-lg btn-outline-info rounded-4"
-                    (click)="sendEmailSig.set(undefined)" type="button">
+                    (click)="sendEmailSig.set(user()!)" type="button">
               Wyślij ponownie&nbsp;📩
             </button>
           </div>
@@ -90,18 +108,10 @@ export default class DashboardComponent {
 
   user = this.authService.firebaseUser
 
-  sendEmailSig = signal(undefined); // sygnał typu boolean
-
-  sendEmail$ = new Subject<void>()
-
-  // sendEmailSig = toSignal(this.sendEmail$)
-
+  sendEmailSig = signal<User | undefined>(undefined);
   onSendVerificationEmail = resource({
-    request: this.sendEmailSig,
-    loader: () => {
-      console.log('📩 Resource loader działa');
-      return this.authService.initiateEmail()
-    }
+    request: () => this.sendEmailSig(),
+    loader: ({request}) => this.authService.initiateEmail(request!)
   });
 
   constructor() {
@@ -112,9 +122,14 @@ export default class DashboardComponent {
     })
 
     effect(() => {
-      console.log(this.sendEmailSig())
-    })
+      console.log(this.authService.firebaseUser())
+    });
+
+    effect(() => {
+      console.log(this.authService.user())
+    });
   }
+
 
 
 }

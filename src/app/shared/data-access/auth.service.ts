@@ -1,4 +1,4 @@
-import {inject, Injectable, signal} from '@angular/core';
+import {computed, inject, Injectable, signal} from '@angular/core';
 import {Credentials, RegisterCredentials, UserInterface} from '../interfaces/user.interface';
 import {
   applyActionCode,
@@ -12,8 +12,9 @@ import {
 } from 'firebase/auth';
 import {httpsCallable} from "firebase/functions";
 import {AUTH, FUNCTIONS} from "../../firebase.providers";
-import {user} from "rxfire/auth";
+import {idToken, user} from "rxfire/auth";
 import {jwtDecode} from "jwt-decode";
+import {toSignal} from "@angular/core/rxjs-interop";
 
 
 @Injectable({
@@ -24,10 +25,24 @@ export class AuthService {
   private readonly functions = inject(FUNCTIONS);
 
   user$ = user(this.auth)
-
+  token = toSignal(idToken(this.auth))
   // selectors
   firebaseUser = signal<User | null>(null)
-  user = signal<UserInterface | null>(null)
+
+  user = computed(async () => {
+    const userObj = this.firebaseUser()
+    if (userObj) {
+      console.log(this.token())
+      const token = await userObj.getIdToken()
+      console.log(token)
+      await userObj.reload()
+      const userInterface = this.deserializeUserToken(token)
+      console.log(userInterface)
+      return userInterface
+    }
+    return null
+  })
+  // user = signal<UserInterface | null>(null)
 
   public async reloadUser() {
     if (this.auth.currentUser) {
@@ -67,9 +82,8 @@ export class AuthService {
     }
   }
 
-  public async initiateEmail() {
-    console.log('initiate proc')
-    await sendEmailVerification(this.firebaseUser()!)
+  public async initiateEmail(user: User) {
+    await sendEmailVerification(user)
   }
 
   public async resetPassword(email: string) {

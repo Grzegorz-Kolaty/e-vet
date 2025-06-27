@@ -34,15 +34,15 @@ export class AppComponent {
       faGear, faBars, faUserGear, faLocationDot, faMap, faMagnifyingGlass
     );
 
-    this.authService.user$.pipe(takeUntilDestroyed()).subscribe(async (user) => {
+    this.authService.user$.pipe(takeUntilDestroyed()).subscribe((user) => {
       if (user) {
-        const token = await user.getIdToken()
-        const userDeserialized = this.authService.deserializeUserToken(token)
-        this.authService.user.set(userDeserialized)
-        console.log(userDeserialized)
+        // const token = await user.getIdToken()
+        // const userDeserialized = this.authService.deserializeUserToken(token)
+        // this.authService.user.set(userDeserialized)
+        // console.log(userDeserialized)
         this.authService.firebaseUser.set(user)
       } else {
-        this.authService.user.set(null)
+        // this.authService.user.set(null)
         this.authService.firebaseUser.set(null)
       }
     })
