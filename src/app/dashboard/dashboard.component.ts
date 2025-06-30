@@ -14,6 +14,7 @@ import {LoaderComponent} from "../shared/ui/loader/loader.component";
   ],
   template: `
     <div class="container justify-content-center">
+
       <div class="my-5 text-center">
         <div class="m-5">
           <h1 class="mb-3 fw-bolder"><b>Witaj w PetCare</b></h1>
@@ -47,17 +48,16 @@ import {LoaderComponent} from "../shared/ui/loader/loader.component";
             </button>
           </div>
         } @else {
-          <button class="btn btn-lg btn-dark px-5 rounded-4 shadow-lg fw-semibold" type="button">
+          <button class="btn btn-lg btn-dark px-5 m-2 rounded-4 shadow-lg fw-semibold" type="button">
             Twoja klinika
           </button>
 
-          <button class="btn btn-lg btn-outline-light px-4 rounded-4 shadow-lg fw-semibold" type="button">
+          <button class="btn btn-lg btn-outline-light px-4 m-2 rounded-4 shadow-lg fw-semibold" type="button">
             Nadchodzące wizyty
           </button>
         }
-
-
       </div>
+
 
       <div class="row g-4">
         <div class="col-12 col-lg-4">
@@ -120,16 +120,7 @@ export default class DashboardComponent {
         this.router.navigate(['auth'])
       }
     })
-
-    effect(() => {
-      console.log(this.authService.firebaseUser())
-    });
-
-    effect(() => {
-      console.log(this.authService.user())
-    });
   }
-
 
 
 }

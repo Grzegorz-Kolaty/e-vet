@@ -1,4 +1,4 @@
-import {computed, inject, Injectable, signal} from '@angular/core';
+import {inject, Injectable, signal} from '@angular/core';
 import {Credentials, RegisterCredentials, UserInterface} from '../interfaces/user.interface';
 import {
   applyActionCode,
@@ -10,11 +10,10 @@ import {
   updateProfile,
   User
 } from 'firebase/auth';
+import {user} from "rxfire/auth";
 import {httpsCallable} from "firebase/functions";
-import {AUTH, FUNCTIONS} from "../../firebase.providers";
-import {idToken, user} from "rxfire/auth";
 import {jwtDecode} from "jwt-decode";
-import {toSignal} from "@angular/core/rxjs-interop";
+import {AUTH, FUNCTIONS} from "../../firebase.providers";
 
 
 @Injectable({
@@ -24,25 +23,12 @@ export class AuthService {
   private readonly auth = inject(AUTH);
   private readonly functions = inject(FUNCTIONS);
 
+  // sources
   user$ = user(this.auth)
-  token = toSignal(idToken(this.auth))
-  // selectors
-  firebaseUser = signal<User | null>(null)
 
-  user = computed(async () => {
-    const userObj = this.firebaseUser()
-    if (userObj) {
-      console.log(this.token())
-      const token = await userObj.getIdToken()
-      console.log(token)
-      await userObj.reload()
-      const userInterface = this.deserializeUserToken(token)
-      console.log(userInterface)
-      return userInterface
-    }
-    return null
-  })
-  // user = signal<UserInterface | null>(null)
+  // selectors
+  user = signal<UserInterface | null>(null)
+  firebaseUser = signal<User | null>(null)
 
   public async reloadUser() {
     if (this.auth.currentUser) {

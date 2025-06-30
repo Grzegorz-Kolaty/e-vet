@@ -21,6 +21,12 @@ import {Role} from "../../interfaces/user.interface";
           <span class="mx-2">{{ appTitle }}</span>
         </button>
 
+        @if (role) {
+          <h3 class="lead mb-0 mx-auto">
+            {{ role === Role.User ? 'Panel opiekuna zwierzaków 🐕‍🦺' : 'Panel weterynarza ' }}
+          </h3>
+        }
+
         <div class="d-inline-flex gap-4">
           @if (!user()) {
             <button class="btn btn-outline-light border-3 rounded-4 shadow-lg"

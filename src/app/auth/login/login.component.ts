@@ -1,8 +1,8 @@
-import {Component, inject, resource, signal} from '@angular/core';
+import {Component, effect, inject, resource, signal} from '@angular/core';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {AuthService} from '../../shared/data-access/auth.service';
 import {Credentials} from '../../shared/interfaces/user.interface';
-import {RouterLink} from "@angular/router";
+import {Router, RouterLink} from "@angular/router";
 
 @Component({
   selector: 'app-login',
@@ -63,17 +63,25 @@ import {RouterLink} from "@angular/router";
 })
 export default class LoginComponent {
   public readonly authService = inject(AuthService);
+  private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router)
+
   login = signal<Credentials | undefined>(undefined);
   logger = resource({
     request: () => this.login(),
     loader: ({request}) => this.authService.login(request!)
   });
-  private readonly fb = inject(FormBuilder);
 
   loginForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required],
   });
+
+  constructor() {
+    effect(async () => {
+      this.logger.status() === 4 || !!this.authService.firebaseUser() ? await this.router.navigate(['dashboard']) : null
+    })
+  }
 
   onSubmit() {
     const form = this.loginForm.getRawValue();

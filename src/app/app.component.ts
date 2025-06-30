@@ -25,7 +25,6 @@ import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 export class AppComponent {
   readonly authService = inject(AuthService);
   private readonly library = inject(FaIconLibrary);
-  private readonly router = inject(Router)
 
 
   constructor() {
@@ -34,17 +33,27 @@ export class AppComponent {
       faGear, faBars, faUserGear, faLocationDot, faMap, faMagnifyingGlass
     );
 
-    this.authService.user$.pipe(takeUntilDestroyed()).subscribe((user) => {
+    this.authService.user$.pipe(takeUntilDestroyed()).subscribe(async (user) => {
       if (user) {
-        // const token = await user.getIdToken()
-        // const userDeserialized = this.authService.deserializeUserToken(token)
-        // this.authService.user.set(userDeserialized)
-        // console.log(userDeserialized)
+        const token = await user.getIdToken()
+        const userDeserialized = this.authService.deserializeUserToken(token)
+        this.authService.user.set(userDeserialized)
         this.authService.firebaseUser.set(user)
       } else {
-        // this.authService.user.set(null)
+        this.authService.user.set(null)
         this.authService.firebaseUser.set(null)
       }
     })
+
+    // fallback for scenario when
+    // user logs in without email verification
+    // reassures reload token and user in Firebase
+    effect(() => {
+      if (this.authService.firebaseUser() && this.authService.firebaseUser()?.emailVerified && !this.authService.user()?.email_verified) {
+        this.authService.reloadUser()
+      }
+    })
+
   }
+
 }
