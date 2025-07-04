@@ -9,11 +9,11 @@ export const routes: Routes = [
     path: '',
     component: LayoutComponent,
     children: [
-      {
-        path: '',
-        redirectTo: 'home',
-        pathMatch: 'full'
-      },
+      // {
+      //   path: '',
+      //   redirectTo: 'home',
+      //   pathMatch: 'full'
+      // },
       {
         path: 'home',
         component: HomeComponent
@@ -43,14 +43,9 @@ export const routes: Routes = [
       },
       {
         path: '**',
-        redirectTo: '',
+        redirectTo: 'home',
         pathMatch: 'full'
       },
     ]
-  },
-  {
-    path: '**',
-    redirectTo: '',
-    pathMatch: 'full'
   },
 ];

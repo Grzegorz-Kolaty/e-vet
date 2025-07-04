@@ -35,6 +35,8 @@ export class AppComponent {
 
     this.authService.user$.pipe(takeUntilDestroyed()).subscribe(async (user) => {
       if (user) {
+        console.log('appComponent user exist')
+
         const token = await user.getIdToken()
         const userDeserialized = this.authService.deserializeUserToken(token)
         this.authService.user.set(userDeserialized)

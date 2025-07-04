@@ -78,8 +78,11 @@ export default class LoginComponent {
   });
 
   constructor() {
+    console.log('login component constructor')
     effect(async () => {
-      this.logger.status() === 4 || !!this.authService.firebaseUser() ? await this.router.navigate(['dashboard']) : null
+      console.log('login component effect nav')
+
+      this.logger.status() === 4 ? await this.router.navigate(['dashboard']) : null
     })
   }
 

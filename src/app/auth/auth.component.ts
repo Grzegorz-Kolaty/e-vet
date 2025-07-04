@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, effect, inject} from '@angular/core';
+ import {ChangeDetectionStrategy, Component, effect, inject} from '@angular/core';
 import {NgClass} from "@angular/common";
 import {ActivatedRoute, Router, RouterOutlet} from "@angular/router";
 
@@ -32,6 +32,7 @@ export class AuthComponent {
     const oobCode = queryParams['oobCode'];
 
     if (mode === 'verifyEmail' && oobCode) {
+      console.log('AuthComponent navigate to verify email')
       this.router.navigate(['/auth/verify-email'], {queryParams: {oobCode}});
     } else if (mode === 'resetPassword' && oobCode) {
       this.router.navigate(['/auth/reset-password'], {queryParams: {oobCode}});

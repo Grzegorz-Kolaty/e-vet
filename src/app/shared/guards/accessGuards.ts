@@ -11,8 +11,11 @@ export const authGuard: CanActivateFn = (route, state) => {
   return authService.user$.pipe(
     map(user => {
       if (user) {
+        console.log('AuthGuard user exist, letting in')
         return true
       } else {
+        console.log('AuthGuard no user, navigate to login')
+
         return router.parseUrl('/auth/login');
       }
     })
