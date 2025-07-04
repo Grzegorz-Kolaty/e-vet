@@ -1,26 +1,12 @@
-# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
-
-# Compiled output
+# Build output
 /dist
-/tmp
-/out-tsc
-/bazel-out
+/functions/lib/
 
-# Node
+# Node modules
 /node_modules
-npm-debug.log
-yarn-error.log
 
-# IDEs and editors
+# IDEs
 .idea/
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
-
-# Visual Studio Code
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -28,19 +14,27 @@ yarn-error.log
 !.vscode/extensions.json
 .history/*
 
-# Miscellaneous
-/.angular/cache
+# Angular cache and metadata
+.angular/
+
+# Yarn cache and files
+.yarn/
+
+# Firebase local emulator data, configs
+.firebase/
+
+# Logs and temporary files
+*.log
+/tmp
+/out-tsc
+/bazel-out
 .sass-cache/
-/connect.lock
-/coverage
-/libpeerconnection.log
+connect.lock
+coverage
+typings
+libpeerconnection.log
 testem.log
-/typings
 
 # System files
 .DS_Store
 Thumbs.db
-
-/.firebase
-/.yarn/
-/.firebase/
