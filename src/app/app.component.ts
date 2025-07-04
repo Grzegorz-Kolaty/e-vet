@@ -52,6 +52,7 @@ export class AppComponent {
     // reassures reload token and user in Firebase
     effect(() => {
       if (this.authService.firebaseUser() && this.authService.firebaseUser()?.emailVerified && !this.authService.user()?.email_verified) {
+        console.log('AppComponent firebaase user exist, firebase user email is Verified but authService.user(). email is not')
         this.authService.reloadUser()
       }
     })
