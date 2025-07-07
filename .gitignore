@@ -17,9 +17,6 @@
 # Angular cache and metadata
 .angular/
 
-# Yarn cache and files
-.yarn/
-
 # Firebase local emulator data, configs
 .firebase/
 
