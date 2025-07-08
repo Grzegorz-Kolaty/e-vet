@@ -1,5 +1,5 @@
 import {Component, ChangeDetectionStrategy, inject, effect} from '@angular/core';
-import {Router, RouterOutlet} from '@angular/router';
+import {RouterOutlet} from '@angular/router';
 import {AuthService} from './shared/data-access/auth.service';
 import {FaIconLibrary} from "@fortawesome/angular-fontawesome";
 import {
@@ -12,15 +12,45 @@ import {
   faUser, faUserGear
 } from "@fortawesome/free-solid-svg-icons";
 import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
+import {HeaderComponent} from "./shared/ui/header/header.component";
+import {SidebarComponent} from "./shared/ui/sidebar/sidebar.component";
 
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    HeaderComponent,
+    RouterOutlet,
+    SidebarComponent,
+  ],
   template: `
-    <router-outlet/>
+    <div class="layout-container">
+      <app-header></app-header>
+      <div class="content-wrapper">
+<!--        <app-sidebar></app-sidebar>-->
+        <main class="main-content">
+          <router-outlet/>
+        </main>
+      </div>
+    </div>
   `,
+  styles: `
+    .layout-container {
+      display: flex;
+      flex-flow: column nowrap;
+      min-height: 100vh;
+    }
+
+    .content-wrapper {
+      display: flex;
+      flex: 1;
+    }
+
+    .main-content {
+      flex: 1;
+    }
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {
   readonly authService = inject(AuthService);
