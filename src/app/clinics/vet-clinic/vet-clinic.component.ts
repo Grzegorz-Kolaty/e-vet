@@ -45,7 +45,7 @@ import {LoaderComponent} from "../../shared/ui/loader/loader.component";
 
     <div>
       @if (onGetVetClinic.isLoading()) {
-        <app-loader/>
+        <app-loader></app-loader>
       }
 
       @if (onSuccessGetVetClinic()) {

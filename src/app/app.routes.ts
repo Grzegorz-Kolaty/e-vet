@@ -24,6 +24,12 @@ export const routes: Routes = [
       import('./dashboard/dashboard.component')
   },
   {
+    path: 'pets',
+    canActivate: [authGuard, emailVerifiedGuard],
+    loadChildren: () =>
+      import('./pets/pets.routes').then(m => m.PETS_ROUTES)
+  },
+  {
     path: 'clinics',
     canActivate: [authGuard, emailVerifiedGuard],
     loadComponent: () =>

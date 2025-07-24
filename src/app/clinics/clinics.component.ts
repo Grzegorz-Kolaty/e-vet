@@ -2,17 +2,17 @@ import {ChangeDetectionStrategy, Component, effect, inject, signal} from '@angul
 import {Role} from "../shared/interfaces/user.interface";
 import {Router} from "@angular/router";
 import {AuthService} from "../shared/data-access/auth.service";
+import CreateClinicComponent from "./features/create-clinic/create-clinic.component";
+import BrowseClinicsComponent from "./user-browse-clinics/browse-clinics.component";
 import {VetClinicComponent} from "./vet-clinic/vet-clinic.component";
-import {CreateClinicComponent} from "./features/create-clinic/create-clinic.component";
-import {BrowseClinicsComponent} from "./user-browse-clinics/browse-clinics.component";
 
 
 @Component({
   selector: 'app-clinics',
   imports: [
-    VetClinicComponent,
     CreateClinicComponent,
-    BrowseClinicsComponent
+    BrowseClinicsComponent,
+    VetClinicComponent
   ],
   template: `
     <section class="p-5 h-100">
@@ -24,7 +24,8 @@ import {BrowseClinicsComponent} from "./user-browse-clinics/browse-clinics.compo
         @if (user()?.clinicId) {
           <app-vet-clinic [clinicId]="user()!.clinicId"/>
         } @else {
-          <app-create-clinic/>
+          <app-create-clinic />
+<!--          <app-create-clinic/>-->
         }
       }
     </section>

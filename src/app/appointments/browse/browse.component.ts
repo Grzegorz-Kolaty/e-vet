@@ -11,6 +11,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { DatepickerRangeComponent } from '../../shared/ui/datepicker-range/datepicker-range.component';
 import { ReservationsComponent } from './reservations/reservations.component';
 import { Appointment } from '../../shared/interfaces/user.interface';
+import {JsonPipe} from "@angular/common";
 
 @Component({
   selector: 'app-browse',
@@ -43,6 +44,8 @@ import { Appointment } from '../../shared/interfaces/user.interface';
         </div>
       </div>
 
+      {{appointments() | json}}
+
       <div class="row mx-5">
         <div class="col text-center">
           <app-datepicker-range (weekSelection)="onSelectWeekSig.set($event)" />
@@ -66,7 +69,7 @@ import { Appointment } from '../../shared/interfaces/user.interface';
       </div>
     </section>
   `,
-  imports: [DatepickerRangeComponent, ReservationsComponent],
+  imports: [DatepickerRangeComponent, ReservationsComponent, JsonPipe],
   styles: ``,
 })
 export default class BrowseComponent {

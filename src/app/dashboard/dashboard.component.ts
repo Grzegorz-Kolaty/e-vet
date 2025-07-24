@@ -1,17 +1,13 @@
 import {ChangeDetectionStrategy, Component, effect, inject, resource, signal} from '@angular/core';
 import {AuthService} from "../shared/data-access/auth.service";
-import {Router} from "@angular/router";
-import {Subject} from "rxjs";
-import {toSignal} from "@angular/core/rxjs-interop";
+import {Router, RouterLink, RouterLinkActive} from "@angular/router";
 import {User} from "firebase/auth";
-import {LoaderComponent} from "../shared/ui/loader/loader.component";
+import {LoaderComponent} from "../shared/ui/loader/loader.component"
 
 
 @Component({
   selector: 'app-dashboard',
-  imports: [
-    LoaderComponent
-  ],
+  imports: [LoaderComponent, RouterLinkActive, RouterLink],
   template: `
     <div class="container justify-content-center">
 
@@ -24,7 +20,7 @@ import {LoaderComponent} from "../shared/ui/loader/loader.component";
 
         @if (!authService.firebaseUser()?.emailVerified) {
           @if (onSendVerificationEmail.status() === 2) {
-            <app-loader/>
+            <app-loader />
           }
 
           @if (onSendVerificationEmail.status() === 4) {
@@ -48,11 +44,12 @@ import {LoaderComponent} from "../shared/ui/loader/loader.component";
             </button>
           </div>
         } @else {
-          <button class="btn btn-lg btn-dark px-5 m-2 rounded-4 shadow-lg fw-semibold" type="button">
-            Twoja klinika
+          <button class="btn btn-lg btn-dark px-5 m-2 rounded-4 shadow-lg" type="button"
+                  [routerLink]="['/pets']">
+            Dodaj swojego zwierzaka!
           </button>
 
-          <button class="btn btn-lg btn-outline-light px-4 m-2 rounded-4 shadow-lg fw-semibold" type="button">
+          <button class="btn btn-lg btn-light px-5 m-2 rounded-4 shadow-lg" type="button">
             Nadchodzące wizyty
           </button>
         }

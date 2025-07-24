@@ -84,7 +84,7 @@ export class AppointmentsService {
 
     const appointmentsCollection = query(
       collection(this.firestore, 'appointments'),
-      where('reserved', '==', false),
+      // where('reserved', '==', false),
       where('dateTimeFrom', '>=', startOfDay.toISOString()),
       where('dateTimeFrom', '<=', endOfDay.toISOString()),
       orderBy('dateTimeFrom'),

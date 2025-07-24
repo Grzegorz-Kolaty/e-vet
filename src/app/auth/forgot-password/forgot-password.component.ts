@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, inject, resource, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, effect, inject, resource, signal} from '@angular/core';
 import {FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
 import {AuthService} from '../../shared/data-access/auth.service';
 import {RouterLink} from "@angular/router";
@@ -8,21 +8,25 @@ import {RouterLink} from "@angular/router";
   imports: [ReactiveFormsModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <form class="d-flex flex-column gap-3 fw-semibold">
+    <h3 class="mb-4 text-center">
+      Zresetuj hasło
+    </h3>
 
-      <h3 class="mb-3 text-center fw-bold">Zresetuj hasło</h3>
-
-      <div class="mb-2">
-        <label for="emailInput" class="form-label">Email</label>
+    <form class="d-flex flex-column gap-3">
+      <div class="form-floating mb-2">
         <input
           [formControl]="email"
           placeholder="email"
           type="email"
-          class="form-control form-control-lg shadow"
+          class="form-control form-control-lg shadow-lg"
           id="emailInput"
           aria-describedby="emailHelp"
           required
         />
+        <label for="emailInput">
+          Email
+        </label>
+
       </div>
 
       <div class="mb-2">
@@ -37,13 +41,28 @@ import {RouterLink} from "@angular/router";
       <button
         (click)="onSubmit()"
         [disabled]="onSubmitResetPassword.isLoading()"
-        class="btn btn-lg btn-warning rounded-4 shadow-lg mb-3"
+        class="btn btn-lg btn-warning rounded-5 mb-3 shadow-lg w-75 mx-auto"
         type="button">
-        Wyślij mail resetujący
+        Resetuj
+      </button>
+
+      <button
+        (click)="onDestroy()"
+        class="btn btn-lg btn-warning rounded-5 mb-3 shadow-lg w-75 mx-auto"
+        type="button">
+        Destroy
+      </button>
+
+      <button
+        (click)="onReload()"
+        class="btn btn-lg btn-warning rounded-5 mb-3 shadow-lg w-75 mx-auto"
+        type="button">
+        Reload
       </button>
 
       <a class="btn bg-transparent text-decoration-none" [routerLink]="['/auth', 'login']">
-        Znasz hasło? <b>Powróć do logowania</b>
+        Znasz hasło?
+        <b>Powróć do logowania</b>
       </a>
 
     </form>
@@ -60,11 +79,26 @@ export default class ForgotPasswordComponent {
     loader: ({request}) => this.authService.resetPassword(request)
   })
 
+  constructor() {
+    effect(() => {
+      if (this.onSubmitResetPassword.status() === 4) {
+        // this.onSubmitResetPassword.destroy()
+      }
+    })
+  }
   onSubmit() {
     const emailToReset = this.email.getRawValue();
-    if (!!emailToReset) {
+    if (this.email.valid && emailToReset) {
       console.log(emailToReset)
       this.userEmail.set(emailToReset);
     }
   }
+
+  onDestroy() {
+  this.onSubmitResetPassword.destroy()
+}
+
+onReload() {
+    this.onSubmitResetPassword.reload()
+}
 }

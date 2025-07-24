@@ -18,18 +18,24 @@ import {Role} from "../../interfaces/user.interface";
                 type="button"
                 [routerLink]="['home']">
           <fa-icon [icon]="['fas', 'paw']" size="xl"/>
-          <span class="mx-2">{{ appTitle }}</span>
+          <span class="mx-2 title fw-semibold">
+            {{ appTitle }}
+          </span>
         </button>
 
         @if (role) {
           <h3 class="lead mb-0 mx-auto">
-            {{ role === Role.User ? 'Panel opiekuna zwierzaków 🐕‍🦺' : 'Panel weterynarza ' }}
+            {{
+              role === Role.User
+                ? 'Panel opiekuna zwierzaków 🐕‍🦺'
+                : 'Panel weterynarza '
+            }}
           </h3>
         }
 
         <div class="d-inline-flex gap-4">
           @if (!user()) {
-            <button class="btn btn-outline-light border-3 rounded-4 shadow-lg"
+            <button class="btn px-4 btn-outline-light border-3 rounded-4 shadow-lg"
                     routerLinkActive="active"
                     [routerLink]="['auth']">
               Zaczynamy&nbsp;🩺
@@ -41,19 +47,20 @@ import {Role} from "../../interfaces/user.interface";
               Dashboard&nbsp;🩺
             </button>
 
-            <span [ngbPopover]="!user()?.email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
-                  triggers="mouseenter:mouseleave"
-                  tabindex="0">
-              <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
-                      routerLinkActive="active"
-                      [routerLink]="['clinics']"
-                      [disabled]="!user()?.email_verified"
-                      [attr.aria-disabled]="!user()?.email_verified">
-                {{ user()?.role === Role.User ? 'Przeglądaj kliniki' : 'Twoja klinika' }}&nbsp;🏥
-              </button>
-            </span>
+
 
             @if (role === Role.User) {
+              <span [ngbPopover]="!user()?.email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
+                    triggers="mouseenter:mouseleave"
+                    tabindex="0">
+              <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
+                      routerLinkActive="active"
+                      [routerLink]="['pets']"
+                      [disabled]="!user()?.email_verified"
+                      [attr.aria-disabled]="!user()?.email_verified">
+                Twoje zwierzaki&nbsp;📋
+              </button>
+            </span>
               <span [ngbPopover]="!user()?.email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
                     triggers="mouseenter:mouseleave"
                     tabindex="0">
@@ -68,6 +75,18 @@ import {Role} from "../../interfaces/user.interface";
             }
 
             @if (role === Role.Vet) {
+              <span [ngbPopover]="!user()?.email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
+                    triggers="mouseenter:mouseleave"
+                    tabindex="0">
+              <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
+                      routerLinkActive="active"
+                      [routerLink]="['clinics']"
+                      [disabled]="!user()?.email_verified"
+                      [attr.aria-disabled]="!user()?.email_verified">
+                Twoja klinika&nbsp;🏥
+              </button>
+            </span>
+
               <span [ngbPopover]="!user()?.email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
                     triggers="mouseenter:mouseleave"
                     tabindex="0">
@@ -87,19 +106,11 @@ import {Role} from "../../interfaces/user.interface";
                     triggers="click"
                     container="body"
                     popoverClass="custom-popover bg-dark"
-                    [disabled]="!user()?.email_verified">
-              <fa-icon [icon]="['fas', 'bars']" size="lg"></fa-icon>
+                    [disabled]="!user()">
+              <fa-icon [icon]="['fas', 'bars']" size="lg">
+              </fa-icon>
 
               <ng-template #popoverContent>
-                <button class="btn text-white border-0"
-                        routerLinkActive="active"
-                        [routerLink]="['profile']">
-                  <fa-icon [icon]="['fas', 'user-gear']" size="xl"></fa-icon>
-                  <br>
-                  Profile
-                </button>
-
-                <hr class="text-white"/>
                 <button class="btn btn-outline-light rounded-4 border-0"
                         type="button"
                         (click)="authService.logout()">
@@ -107,7 +118,6 @@ import {Role} from "../../interfaces/user.interface";
                 </button>
               </ng-template>
             </button>
-
           }
 
         </div>

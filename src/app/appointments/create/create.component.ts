@@ -3,20 +3,18 @@ import {
   Component,
   computed,
   inject,
-  linkedSignal, resource,
+  linkedSignal,
   signal,
 } from '@angular/core';
-import {DatepickerRangeComponent} from '../../shared/ui/datepicker-range/datepicker-range.component';
 import {AppointmentsService} from '../../shared/data-access/appointments.service';
-import {rxResource, toSignal} from '@angular/core/rxjs-interop';
-import {AppointmentsTableComponent} from './appointments-table/appointments-table.component';
+import {rxResource} from '@angular/core/rxjs-interop';
 import {AuthService} from '../../shared/data-access/auth.service';
 import {User} from 'firebase/auth';
 import {Appointment} from "../../shared/interfaces/user.interface";
 
 @Component({
   selector: 'app-create',
-  imports: [AppointmentsTableComponent, DatepickerRangeComponent, DatepickerRangeComponent],
+  imports: [],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section>
@@ -57,8 +55,8 @@ import {Appointment} from "../../shared/interfaces/user.interface";
       @if (userProfile) {
         <div class="row mx-5">
           <div class="col text-center">
-            <app-datepicker-range
-              (weekSelection)="onSetWeekSelection($event)"/>
+<!--            <app-datepicker-range-->
+<!--              (weekSelection)="onSetWeekSelection($event)"/>-->
           </div>
 
           <!--          <button class="btn btn-outline-info" type="button" (click)="onConfirmUpdateAppointments()">-->
@@ -66,12 +64,12 @@ import {Appointment} from "../../shared/interfaces/user.interface";
           <!--          </button>-->
 
           <div class="col-xxl-9">
-            <app-appointments-table
-              [weekData]="onSelectWeekSig()"
-              [existingAppointments]="appointments()"
-              (addAppointment)="onAddAppointment($event, userProfile)"
-              (removeAppointment)="onRemoveAppointment($event, userProfile)"
-              [isLoading]="isLoading()"/>
+<!--            <app-appointments-table-->
+<!--              [weekData]="onSelectWeekSig()"-->
+<!--              [existingAppointments]="appointments()"-->
+<!--              (addAppointment)="onAddAppointment($event, userProfile)"-->
+<!--              (removeAppointment)="onRemoveAppointment($event, userProfile)"-->
+<!--              [isLoading]="isLoading()"/>-->
           </div>
         </div>
       }

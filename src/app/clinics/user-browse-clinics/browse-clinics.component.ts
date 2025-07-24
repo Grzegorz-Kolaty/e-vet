@@ -7,7 +7,7 @@ import {ChangeDetectionStrategy, Component} from '@angular/core';
   styleUrl: './browse-clinics.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BrowseClinicsComponent {
+export default class BrowseClinicsComponent {
 
 }
 

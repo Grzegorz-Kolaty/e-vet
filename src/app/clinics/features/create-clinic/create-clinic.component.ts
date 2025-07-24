@@ -152,7 +152,7 @@ import {CreateClinic} from "../../../shared/interfaces/clinics.interface";
   styles: ``,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CreateClinicComponent {
+export default class CreateClinicComponent {
   private readonly fb = inject(FormBuilder);
   private readonly clinicService = inject(ClinicService);
   public readonly authService = inject(AuthService);

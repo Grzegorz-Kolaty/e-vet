@@ -12,8 +12,8 @@ import {httpResource} from "@angular/common/http";
 import {LeafletModule} from "@bluehalo/ngx-leaflet";
 import {debounceTime, distinctUntilChanged} from "rxjs";
 import {map, marker, tileLayer, latLng, Map} from 'leaflet';
-import {CreateClinicComponent} from "../create-clinic/create-clinic.component";
 import {GeoPoint} from "firebase/firestore";
+import CreateClinicComponent from "../create-clinic/create-clinic.component";
 
 export interface LocationResult {
   display_name: string;

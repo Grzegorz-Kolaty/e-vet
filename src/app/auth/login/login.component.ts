@@ -8,7 +8,7 @@ import {Router, RouterLink} from "@angular/router";
   selector: 'app-login',
   imports: [ReactiveFormsModule, RouterLink],
   template: `
-    <h1 class="mb-4 text-center fw-bolder">Zaloguj się</h1>
+    <h3 class="mb-4 text-center">Zaloguj się</h3>
 
     @if (logger.error()) {
       <div class="bg-danger text-center rounded-4 p-3 mb-4">
@@ -26,7 +26,7 @@ import {Router, RouterLink} from "@angular/router";
         <input formControlName="email"
                placeholder="email"
                type="email"
-               class="form-control form-control-lg"
+               class="form-control form-control-lg shadow-lg"
                id="emailInput"
                aria-describedby="emailHelp"
                required/>
@@ -37,7 +37,7 @@ import {Router, RouterLink} from "@angular/router";
       <div class="form-floating mb-2">
         <input formControlName="password"
                type="password"
-               class="form-control form-control-lg"
+               class="form-control form-control-lg shadow-lg"
                id="passwordInput"
                placeholder="password"/>
         <label for="passwordInput">Hasło</label>
@@ -48,7 +48,7 @@ import {Router, RouterLink} from "@angular/router";
       </a>
 
       <button
-        class="btn btn-dark btn-lg rounded-5 mb-3 shadow-lg w-75 mx-auto fw-bold"
+        class="btn btn-dark btn-lg rounded-5 mb-3 shadow-lg w-75 mx-auto"
         type="submit"
         [disabled]="logger.isLoading()">
         Loguj

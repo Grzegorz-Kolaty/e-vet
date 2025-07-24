@@ -3,10 +3,18 @@
 /* Importing Bootstrap SCSS file. */
 @use 'bootstrap/scss/bootstrap';
 
-$body-bg: linear-gradient(135deg, rgb(65 88 208) 0%, rgb(102 51 153) 100%);
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Edu+NSW+ACT+Cursive:wght@400..700&display=swap');
 
 body::-webkit-scrollbar {
   display: none;
+}
+
+.title {
+  font-family: "Edu NSW ACT Cursive", cursive !important;
+  //font-optical-sizing: auto;
+  //font-optical-sizing: auto;
+  //font-style: normal;
 }
 
 html, body {
@@ -14,27 +22,38 @@ html, body {
   width: 100%;
   margin: 0;
   padding: 0;
-}
+  font-family: 'Poppins', sans-serif;
 
-body {
-  background: $body-bg;
 }
 
 .outline-none {
   outline: none;
 }
 
-.cat__background1 {
+.background__coloured {
+  background-image: linear-gradient(135deg, #C850C0 0%, #4158D0 100%)
+}
+
+.background__paws {
+  background-image: url('../assets/background_paws.jpg');
+  background-repeat: repeat;
   background-size: contain;
-  background-position-x: -100%;
-  background-image: linear-gradient(135deg, #4158D0 0%, #C850C0 100%), url('../assets/ceilingcat3.png');
+
+  background-blend-mode: overlay;
+}
+
+.cat__background1 {
+  background-image: url('../assets/ceilingcat.png'), url('../assets/ceilingcat.png');
+  background-repeat: no-repeat;
+  background-size: 40% auto, 40% auto;
+  background-position: left center, right center;
   background-blend-mode: overlay;
 }
 
 .cat__background2 {
   background-size: contain;
   background-position-x: -100%;
-  background-image: linear-gradient(135deg, #C850C0 0%, #4158D0 100%), url('../assets/ceilingcat3.png');
+  background-image: linear-gradient(135deg, #C850C0 0%, #4158D0 100%), url('../assets/ceilingcat.png');
   background-blend-mode: overlay;
 }
 
@@ -73,6 +92,10 @@ body {
 
 .form-label {
   text-shadow: 1px 1px 2px #0000008c;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 
 

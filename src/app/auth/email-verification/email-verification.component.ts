@@ -5,7 +5,9 @@ import {ActivatedRoute, Router} from "@angular/router";
 @Component({
   selector: 'app-email-verification',
   template: `
-    <h1 class="mb-4 text-center fw-bolder">Weryfikacja email</h1>
+    <h3 class="mb-4 text-center">
+      Weryfikacja email
+    </h3>
 
     @if (isVerifying()) {
       <div class="d-flex justify-content-center mb-3">
@@ -17,13 +19,17 @@ import {ActivatedRoute, Router} from "@angular/router";
 
     @if (verificationError()) {
       <div class="bg-danger text-danger text-center rounded-4 pulse-box p-3 mb-4">
-        <span class="text-white">Wystąpił błąd z weryfikacją email</span>
+        <span class="text-white">
+          Wystąpił błąd z weryfikacją email
+        </span>
       </div>
     }
 
     @if (isVerificationSuccessful()) {
       <div class="bg-success text-center text-success rounded-4 pulse-box p-3 mb-4">
-        <span class="text-white">Weryfikacja udała się!</span>
+        <span class="text-white">
+          Weryfikacja udała się!
+        </span>
       </div>
     }
   `,

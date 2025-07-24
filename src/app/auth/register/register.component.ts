@@ -9,9 +9,9 @@ import {AuthService} from '../../shared/data-access/auth.service';
   selector: 'app-register',
   imports: [ReactiveFormsModule, RouterLink],
   template: `
-    <h1 class="mb-4 text-center fw-bolder">
+    <h3 class="mb-4 text-center">
       {{ isVet() === Role.User ? 'Zarejestruj się' : 'Rejestracja weterynarzy' }}
-    </h1>
+    </h3>
 
     @if (registration.error()) {
       <div class="bg-danger text-center rounded-4 p-3 mb-4">
@@ -21,7 +21,11 @@ import {AuthService} from '../../shared/data-access/auth.service';
 
     @if (registration.status() === 4) {
       <div class="bg-success text-center rounded-4 p-3 mb-4">
-        <span class="text-white">Rejestracja udana! Sprawdź skrzynkę email</span>
+        <span class="text-white">
+          Rejestracja udana!
+          <br>
+          Sprawdź skrzynkę email
+        </span>
       </div>
     }
 
@@ -40,7 +44,7 @@ import {AuthService} from '../../shared/data-access/auth.service';
           aria-describedby="displayNameInput"
           required/>
         <label for="displayNameInput">
-          {{ isVet() === Role.User ? 'Nazwa użytkownika' : 'Imię i nazwisko' }}
+          Imię i nazwisko
         </label>
       </div>
 
@@ -53,7 +57,9 @@ import {AuthService} from '../../shared/data-access/auth.service';
           id="emailInput"
           aria-describedby="emailHelp"
           required/>
-        <label for="emailInput">Email</label>
+        <label for="emailInput">
+          Email
+        </label>
       </div>
 
       <div class="form-floating mb-2">
@@ -64,33 +70,37 @@ import {AuthService} from '../../shared/data-access/auth.service';
           id="passwordInput"
           placeholder="min. 6 znaków"
           required/>
-        <label for="passwordInput">Hasło</label>
+        <label for="passwordInput">
+          Hasło
+        </label>
       </div>
 
       <div class="form-check form-switch ms-auto mb-4">
         <input
           #roleSwitch
-          class="form-check-input"
+          class="form-check-input cursor-pointer"
           type="checkbox"
           role="switch"
           id="vetSwitch"
           [checked]="isVet() === Role.Vet"
           (change)="isVet.set(roleSwitch.checked ? Role.Vet : Role.User)"
         />
-        <label class="form-check-label" for="vetSwitch">
+        <label class="form-check-label cursor-pointer text-shadow" for="vetSwitch">
           Zarejestruj jako weterynarz
         </label>
       </div>
 
       <button
-        class="btn btn-dark btn-lg rounded-5 mb-3 shadow-lg w-75 mx-auto fw-bold"
+        class="btn btn-dark btn-lg rounded-5 mb-3 shadow-lg w-75 mx-auto"
         [disabled]="registration.isLoading()"
         type="submit">
         Zarejestruj
       </button>
 
-      <a class="btn bg-transparent text-decoration-none" [routerLink]="['/auth', 'login']">
-        Masz już konto? <b>Zaloguj się</b>
+      <a class="btn bg-transparent text-decoration-none"
+         [routerLink]="['/auth', 'login']">
+        Masz już konto?
+        <b>Zaloguj się</b>
       </a>
 
     </form>
