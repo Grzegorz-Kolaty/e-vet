@@ -1,4 +1,4 @@
-import {Component, ChangeDetectionStrategy, inject, effect} from '@angular/core';
+import {Component, ChangeDetectionStrategy, inject} from '@angular/core';
 import {RouterOutlet} from '@angular/router';
 import {AuthService} from './shared/data-access/auth.service';
 import {FaIconLibrary} from "@fortawesome/angular-fontawesome";

@@ -53,8 +53,6 @@ export default class EmailVerificationComponent {
   isVerificationSuccessful = computed(() => this.onEmailVerification.status() === 4);
 
   constructor() {
-    console.log('Verify email constructor')
-
     const queryParams = this.route.snapshot.queryParams;
     const oobCode = queryParams['oobCode'];
     this.oobCode.set(oobCode)
