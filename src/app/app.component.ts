@@ -3,7 +3,7 @@ import {RouterOutlet} from '@angular/router';
 import {AuthService} from './shared/data-access/auth.service';
 import {FaIconLibrary} from "@fortawesome/angular-fontawesome";
 import {
-  faBars,
+  faBars, faBookMedical,
   faCalendarDays,
   faGear, faLocationDot, faMagnifyingGlass, faMap,
   faNotesMedical,
@@ -25,7 +25,7 @@ import {HeaderComponent} from "./shared/ui/header/header.component";
     <div class="layout-container">
       <app-header></app-header>
       <div class="content-wrapper">
-        <main class="main-content">
+        <main class="main-content bg-body-secondary">
           <router-outlet/>
         </main>
       </div>
@@ -57,7 +57,7 @@ export class AppComponent {
   constructor() {
     this.library.addIcons(
       faPaw, faStore, faUser, faNotesMedical, faCalendarDays,
-      faGear, faBars, faUserGear, faLocationDot, faMap, faMagnifyingGlass
+      faGear, faBars, faUserGear, faLocationDot, faMap, faMagnifyingGlass, faBookMedical
     );
 
     this.authService.user$.pipe(takeUntilDestroyed()).subscribe(async (user) => {
