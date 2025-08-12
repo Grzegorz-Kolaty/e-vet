@@ -6893,12 +6893,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dot-env@npm:^0.0.1":
+  version: 0.0.1
+  resolution: "dot-env@npm:0.0.1"
+  checksum: 10c0/84d78f6443a522b3c783807ece5f11ef36c9477176b4fe5191c938f2a0e32d91499ca3052eee13194b5cc4c95c0e4bd3e8f438133ef1138ee0f89552ccdbc717
+  languageName: node
+  linkType: hard
+
 "dot-prop@npm:^5.2.0":
   version: 5.3.0
   resolution: "dot-prop@npm:5.3.0"
   dependencies:
     is-obj: "npm:^2.0.0"
   checksum: 10c0/93f0d343ef87fe8869320e62f2459f7e70f49c6098d948cc47e060f4a3f827d0ad61e83cb82f2bd90cd5b9571b8d334289978a43c0f98fea4f0e99ee8faa0599
+  languageName: node
+  linkType: hard
+
+"dotenv@npm:^17.2.1":
+  version: 17.2.1
+  resolution: "dotenv@npm:17.2.1"
+  checksum: 10c0/918dd2f9d8b8f86b0afabad9534793d51de3718c437f9e7b6525628cf68c1d4ae768cc37a5afff38c066f58a8ecf549f4ac6cd5617485bd328e826112cc2650a
   languageName: node
   linkType: hard
 
@@ -6949,6 +6963,7 @@ __metadata:
     "@types/jasmine": "npm:^5.1.7"
     "@types/leaflet": "npm:^1.9.17"
     bootstrap: "npm:^5.3.5"
+    dotenv: "npm:^17.2.1"
     firebase: "npm:^11.6.1"
     firebase-tools: "npm:^14.12.0"
     jasmine-core: "npm:^5.7.0"
@@ -8239,6 +8254,7 @@ __metadata:
     "@google-cloud/resource-manager": "npm:^6.1.0"
     "@google-cloud/secret-manager": "npm:^6.0.1"
     "@types/nodemailer": "npm:^6.4.17"
+    dot-env: "npm:^0.0.1"
     firebase-admin: "npm:^12.6.0"
     firebase-functions: "npm:^6.0.1"
     firebase-functions-test: "npm:^3.1.0"

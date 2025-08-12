@@ -1,11 +1,13 @@
 import {createTransport, Transporter} from 'nodemailer';
-import {getSecret} from './secrets';
+import dotenv from 'dotenv'
+
+dotenv.config({path: './.env'})
 
 export let cachedTransporter: Transporter | null = null;
 
 async function initNodeMailer(): Promise<Transporter> {
-  const email = await getSecret('GMAIL_EMAIL');
-  const pass = await getSecret('GMAIL_PASS');
+  const email = process.env.GMAIL_EMAIL
+  const pass = process.env.GMAIL_PASS
 
   cachedTransporter = createTransport({
     service: 'gmail',
