@@ -1,9 +1,9 @@
-import {ChangeDetectionStrategy, Component, inject, signal} from '@angular/core';
-
-
-import {NgbActiveModal} from "@ng-bootstrap/ng-bootstrap";
+import {ChangeDetectionStrategy, Component, inject, signal} from "@angular/core";
 import {httpResource} from "@angular/common/http";
-import {AnimalTaxonometry} from "../../../shared/interfaces/animals.interface";
+import {NgbActiveModal} from "@ng-bootstrap/ng-bootstrap";
+import {NgSelectComponent} from "@ng-select/ng-select";
+import {FormsModule} from "@angular/forms";
+
 
 interface INaturalistResult {
   id: number;
@@ -31,30 +31,43 @@ interface INaturalistResponse {
 
 @Component({
   selector: 'app-pet-create',
-  imports: [],
+  imports: [NgSelectComponent, FormsModule],
   template: `
     <div class="container p-5">
       <div class="modal-header">
-        <h4 class="modal-title">Wyszukaj zwierzę</h4>
         <button type="button" class="btn-close" aria-label="Close"
-                (click)="activeModal.dismiss('Cross click')"></button>
+                (click)="activeModal.dismiss('Cross click')">
+
+        </button>
       </div>
 
       <div class="modal-body">
         <input
           type="text"
           class="form-control mb-3"
-          placeholder="Wpisz nazwę gatunku"
+          placeholder="Wpisz nazwę gatunku np. Wróbel, Pies Domowy, Kot"
           #searchTerm
           (input)="query.set(searchTerm.value)">
 
-        <select class="form-select mb-3" [value]="iconicTaxa()" #animalType (change)="onTaxaChange(animalType.value)">
-          @for (option of taxaOptions; track option.label) {
-            <option [value]="option.value">
-              {{ option.label }}
-            </option>
-          }
-        </select>
+        <!--        <select class="form-select mb-3" [value]="iconicTaxa()" #animalType-->
+        <!--                (change)="iconicTaxa.set(+animalType.value)">-->
+        <!--          @for (option of taxaOptions; track option.label) {-->
+        <!--            <option [value]="option.value">-->
+        <!--              {{ option.label }}-->
+        <!--            </option>-->
+        <!--          }-->
+        <!--        </select>-->
+
+        <ng-select
+          [items]="taxaOptions"
+          bindLabel="label"
+          bindValue="value"
+          [clearable]="false"
+          [searchable]="true"
+          [ngModel]="iconicTaxa()"
+          (ngModelChange)="iconicTaxa.set($event)">
+        </ng-select>
+
 
         <!-- Ładowanie -->
         @if (searchResults.isLoading()) {
@@ -69,49 +82,50 @@ interface INaturalistResponse {
         }
 
         @if (searchResults.value()) {
-          <ul>
+          <div class="d-flex flex-column flex-nowrap p-2">
             @for (animal of searchResults.value()?.results; track animal.id) {
-              <li>
+              <div class="d-flex flex-row flex-nowrap">
                 @if (animal.default_photo && animal.default_photo.medium_url) {
-                  <img [src]="animal.default_photo.medium_url" alt="photo" width="40" height="40" class="me-2 rounded"/>
+                  <img [src]="animal.default_photo.medium_url" alt="photo" width="128" height="128"
+                       class="me-2 rounded"/>
                 }
                 <strong>{{ animal.preferred_common_name || '(brak polskiej nazwy)' }}</strong>
+                <br>
                 <small class="text-muted">({{ animal.name }})</small>
-              </li>
+              </div>
             }
-          </ul>
+          </div>
         } @else {
           <p class="text-muted">Brak wyników.</p>
         }
 
       </div>
-
       <div class="modal-footer">
         <button type="button" class="btn btn-outline-secondary"
                 (click)="activeModal.close('Close click')">
           Zamknij
         </button>
       </div>
-    </div>
+
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PetCreateComponent {
-  private iNaturalistAPI = 'https://api.inaturalist.org/v1/taxa/autocomplete';
+  private iNaturalistAPI = 'https://api.inaturalist.org/v1/taxa';
   protected activeModal = inject(NgbActiveModal);
 
   query = signal('');
-  iconicTaxa = signal<AnimalTaxonometry>(AnimalTaxonometry.animals);
+  iconicTaxa = signal<number>(1);
 
   readonly taxaOptions = [
-    {label: 'Zwierzęta', value: AnimalTaxonometry.animals},
-    {label: 'Ssaki', value: AnimalTaxonometry.mammals},
-    {label: 'Ptaki', value: AnimalTaxonometry.birds},
-    {label: 'Gady', value: AnimalTaxonometry.reptiles},
-    {label: 'Płazy', value: AnimalTaxonometry.amphibians},
-    {label: 'Ryby kostnoszkieletowe', value: AnimalTaxonometry.fishes},
-    {label: 'Owady', value: AnimalTaxonometry.insects},
-    {label: 'Pajęczaki', value: AnimalTaxonometry.arachnids},
+    {label: 'Zwierzęta', value: 1},         // Animalia
+    {label: 'Ssaki', value: 40151},         // Mammalia
+    {label: 'Ptaki', value: 3},             // Aves
+    {label: 'Gady', value: 26036},          // Reptilia
+    {label: 'Płazy', value: 20978},         // Amphibia
+    {label: 'Ryby kostnoszkieletowe', value: 47178}, // Actinopterygii
+    {label: 'Owady', value: 47158},         // Insecta
+    {label: 'Pajęczaki', value: 47119},     // Arachnida
   ];
 
 
@@ -120,16 +134,12 @@ export class PetCreateComponent {
     params: {
       q: this.query(),
       locale: 'pl',
-      iconic_taxa: this.iconicTaxa(),
+      taxon_id: this.iconicTaxa(),
+      is_active: true,
       rank: 'species',
-      photos: 'true',
       per_page: '10',
-      quality_grade: 'research'
+      order_by: 'observations_count',
     }
   }));
-
-  onTaxaChange(value: string) {
-    this.iconicTaxa.set(value as AnimalTaxonometry);
-  }
 
 }

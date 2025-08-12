@@ -3812,6 +3812,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ng-select/ng-select@npm:^20.1.1":
+  version: 20.1.1
+  resolution: "@ng-select/ng-select@npm:20.1.1"
+  dependencies:
+    tslib: "npm:^2.8.1"
+  peerDependencies:
+    "@angular/common": ^20.0.0
+    "@angular/core": ^20.0.0
+    "@angular/forms": ^20.0.0
+  checksum: 10c0/ea559cd968a4d3cd76b00ca576c86aaf72b21a91dfb8312cabe4abed96b70e9e010a73f1c05b194853e46a2bb247936a05ad021aedbbdf5ec90df66b627cc43f
+  languageName: node
+  linkType: hard
+
 "@ngtools/webpack@npm:19.2.15":
   version: 19.2.15
   resolution: "@ngtools/webpack@npm:19.2.15"
@@ -6959,6 +6972,7 @@ __metadata:
     "@fortawesome/angular-fontawesome": "npm:^1.0.0"
     "@fortawesome/free-solid-svg-icons": "npm:^6.7.2"
     "@ng-bootstrap/ng-bootstrap": "npm:^18.0.0"
+    "@ng-select/ng-select": "npm:^20.1.1"
     "@popperjs/core": "npm:^2.11.8"
     "@types/jasmine": "npm:^5.1.7"
     "@types/leaflet": "npm:^1.9.17"
