@@ -106,6 +106,7 @@ interface INaturalistResponse {
           Zamknij
         </button>
       </div>
+    </div>
 
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
