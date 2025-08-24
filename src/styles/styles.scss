@@ -1,10 +1,13 @@
 /* You can add global styles to this file, and also import other style files */
-
 /* Importing Bootstrap SCSS file. */
 @use 'bootstrap/scss/bootstrap';
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Edu+NSW+ACT+Cursive:wght@400..700&display=swap');
+
+:root {
+  --bs-body-font-size: 1.25rem; /* 20px */
+}
 
 body::-webkit-scrollbar {
   display: none;
@@ -12,9 +15,6 @@ body::-webkit-scrollbar {
 
 .title {
   font-family: "Edu NSW ACT Cursive", cursive !important;
-  //font-optical-sizing: auto;
-  //font-optical-sizing: auto;
-  //font-style: normal;
 }
 
 html, body {
@@ -23,10 +23,6 @@ html, body {
   margin: 0;
   padding: 0;
   font-family: 'Poppins', sans-serif;
-}
-
-.modal-dialog {
-  margin-top: 15% ;
 }
 
 .outline-none {
@@ -60,14 +56,6 @@ html, body {
   background-blend-mode: overlay;
 }
 
-.dog__background {
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position-y: 40%;
-  background-image: url('../assets/doge.jpg');
-}
-
-
 .glass {
   background-color: rgba(236, 236, 236, 0.16);
   backdrop-filter: blur(10px);
@@ -83,6 +71,10 @@ html, body {
 
 .w-10 {
   width: 10% !important;
+}
+
+.w-30 {
+  width: 30%;
 }
 
 .text-shadow {
@@ -150,31 +142,4 @@ html, body {
   --bs-btn-disabled-color: #adb5bd;
   --bs-btn-disabled-bg: #fff;
   --bs-btn-disabled-border-color: #dee2e6;
-
-  //color: var(--bs-btn-color);
-  //background-color: var(--bs-btn-bg);
-  //border: 1px solid var(--bs-btn-border-color);
 }
-
-//.btn-white:hover {
-//  color: var(--bs-btn-hover-color);
-//  background-color: var(--bs-btn-hover-bg);
-//  border-color: var(--bs-btn-hover-border-color);
-//}
-//
-//.btn-white:focus {
-//  box-shadow: 0 0 0 0.25rem rgba(var(--bs-btn-focus-shadow-rgb), 0.25);
-//}
-//
-//.btn-white:active {
-//  color: var(--bs-btn-active-color);
-//  background-color: var(--bs-btn-active-bg);
-//  border-color: var(--bs-btn-active-border-color);
-//  box-shadow: var(--bs-btn-active-shadow);
-//}
-//
-//.btn-white:disabled {
-//  color: var(--bs-btn-disabled-color);
-//  background-color: var(--bs-btn-disabled-bg);
-//  border-color: var(--bs-btn-disabled-border-color);
-//}

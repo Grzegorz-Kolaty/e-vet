@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, effect, inject, resource, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, inject, resource, signal} from '@angular/core';
 import {FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
 import {AuthService} from '../../shared/data-access/auth.service';
 import {RouterLink} from "@angular/router";
@@ -33,7 +33,7 @@ import {RouterLink} from "@angular/router";
         @if (onSubmitResetPassword.error()) {
           <span class="text-black">{{ onSubmitResetPassword.error() }}</span>
         }
-        @if (onSubmitResetPassword.status() === 4) {
+        @if (onSubmitResetPassword.status() === 'resolved') {
           <span class="text-black">Na podany email wysłaliśmy mail z linkiem do resetu hasła.</span>
         }
       </div>
@@ -75,17 +75,15 @@ export default class ForgotPasswordComponent {
 
   userEmail = signal<string | undefined>(undefined);
   onSubmitResetPassword = resource({
-    request: () => this.userEmail(),
-    loader: ({request}) => this.authService.resetPassword(request)
+    loader: async () => {
+      const email = this.userEmail();
+      if (!email) {
+        throw new Error('Brak adresu email');
+      }
+      return await this.authService.resetPassword(email);
+    }
   })
 
-  constructor() {
-    effect(() => {
-      if (this.onSubmitResetPassword.status() === 4) {
-        // this.onSubmitResetPassword.destroy()
-      }
-    })
-  }
   onSubmit() {
     const emailToReset = this.email.getRawValue();
     if (this.email.valid && emailToReset) {
@@ -95,10 +93,10 @@ export default class ForgotPasswordComponent {
   }
 
   onDestroy() {
-  this.onSubmitResetPassword.destroy()
-}
+    this.onSubmitResetPassword.destroy()
+  }
 
-onReload() {
+  onReload() {
     this.onSubmitResetPassword.reload()
-}
+  }
 }

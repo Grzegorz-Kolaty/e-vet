@@ -11,17 +11,17 @@ import {LoaderComponent} from "../shared/ui/loader/loader.component"
   template: `
     <section class="container-fluid h-100 p-5">
       @if (!authService.firebaseUser()?.emailVerified) {
-        @if (onSendVerificationEmail.status() === 2) {
+        @if (onSendVerificationEmail.isLoading()) {
           <app-loader/>
         }
 
-        @if (onSendVerificationEmail.status() === 4) {
+        @if (onSendVerificationEmail.status() === 'resolved') {
           <div class="bg-success text-center rounded-4 p-3 mb-4">
             <span class="text-white">Email wysłano! Sprawdź skrzynkę</span>
           </div>
         }
 
-        @if (onSendVerificationEmail.status() === 1) {
+        @if (onSendVerificationEmail.error()) {
           <div class="bg-danger text-center rounded-4 p-3 mb-4">
             <span class="text-white">Wystąpił błąd przy wysyłce maila, spróbuj ponownie za kilka minut</span>
           </div>
@@ -87,11 +87,8 @@ import {LoaderComponent} from "../shared/ui/loader/loader.component"
               </div>
             </div>
           </div>
-
         </div>
-
       }
-
     </section>
   `,
   styles: ``,
@@ -105,8 +102,10 @@ export default class DashboardComponent {
 
   sendEmailSig = signal<User | undefined>(undefined);
   onSendVerificationEmail = resource({
-    request: () => this.sendEmailSig(),
-    loader: ({request}) => this.authService.initiateEmail(request!)
+    params: this.sendEmailSig,
+    loader: async (user) => {
+      return await this.authService.initiateEmail(user.params)
+    }
   });
 
   constructor() {

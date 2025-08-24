@@ -11,8 +11,7 @@ import {Role} from "../../interfaces/user.interface";
   imports: [RouterLink, RouterLinkActive, FaIconComponent, NgbPopover],
   template: `
     @let role = authService.user()?.role;
-    <nav
-      class="navbar navbar-expand-sm flex-column flex-lg-row align-items-center shadow-lg bg-dark py-2 text-white lead">
+    <nav class="navbar flex-nowrap flex-column flex-lg-row align-items-center justify-content-sm-between shadow-lg bg-dark py-2 text-white lead">
 
       <button class="btn bg-transparent text-white d-inline-flex"
               type="button"

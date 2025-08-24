@@ -1,16 +1,8 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  linkedSignal,
-  signal,
-} from '@angular/core';
-import { AppointmentsService } from '../../shared/data-access/appointments.service';
-import { rxResource } from '@angular/core/rxjs-interop';
-import { DatepickerRangeComponent } from '../../shared/ui/datepicker-range/datepicker-range.component';
-import { ReservationsComponent } from './reservations/reservations.component';
-import { Appointment } from '../../shared/interfaces/user.interface';
+import {ChangeDetectionStrategy, Component, computed, inject, linkedSignal, resource, signal,} from '@angular/core';
+import {AppointmentsService} from '../../shared/data-access/appointments.service';
+import {DatepickerRangeComponent} from '../../shared/ui/datepicker-range/datepicker-range.component';
+import {ReservationsComponent} from './reservations/reservations.component';
+import {Appointment} from '../../shared/interfaces/user.interface';
 
 @Component({
   selector: 'app-browse',
@@ -19,23 +11,23 @@ import { Appointment } from '../../shared/interfaces/user.interface';
     <section>
       <div class="row">
         <div class="col text-center">
-          <app-datepicker-range (weekSelection)="onSelectWeekSig.set($event)" />
+          <app-datepicker-range (weekSelection)="onSelectWeekSig.set($event)"/>
           <input
             class="form-control form-control-lg my-3"
             placeholder="Wybierz miasto"
             value="Szczecin"
-            disabled />
+            disabled/>
           <input
             class="form-control form-control-lg my-3"
             placeholder="Wybór veta jeszcze nie dostępny :)"
-            disabled />
+            disabled/>
         </div>
 
         <div class="col-xxl-9">
           <app-reservations
             [appointments]="appointments()"
             [isLoading]="isLoading()"
-            (reserveAppointment)="onReserveAppointment($event)" />
+            (reserveAppointment)="onReserveAppointment($event)"/>
         </div>
       </div>
     </section>
@@ -47,11 +39,27 @@ export default class BrowseComponent {
   appointmentService = inject(AppointmentsService);
 
   onSelectWeekSig = signal<Date[]>([]);
-  onGetAppointmentsResource = rxResource({
-    request: this.onSelectWeekSig,
-    loader: obj =>
-      this.appointmentService.getAppointmentsForReservation(obj.request),
-  });
+  // onGetAppointmentsResource = rxResource<Appointment[], Date[]>({
+  //   params: () => this.onSelectWeekSig(),
+  //   stream: ({params: week}) => this.appointmentService.getAppointmentsForReservation(week),
+  //   defaultValue: []
+  // });
+  // onGetAppointmentsResource = resource<Appointment[], Date[]>({
+  //   // params: () => this.onSelectWeekSig(),
+  //   // loader(param: ResourceLoaderParams<Date[]>): PromiseLike<Appointment[]> {
+  //   //   return Promise.resolve([]);
+  //   // },
+  //   //
+  //   // // stream: ({params: week}) => this.appointmentService.getAppointmentsForReservation(week),
+  //   // defaultValue: []
+  // });
+  onGetAppointmentsResource = resource({
+    loader: async () => {
+      return await this.appointmentService.getAppointmentsForReservation(
+        this.onSelectWeekSig()
+      )
+    }
+  })
   appointments = computed(() => this.onGetAppointmentsResource.value() ?? []);
   isLoading = linkedSignal(() => this.onGetAppointmentsResource.isLoading());
 

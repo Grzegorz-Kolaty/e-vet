@@ -1,7 +1,7 @@
-import {ChangeDetectionStrategy, Component, computed, inject, input, resource, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, inject, resource, signal} from '@angular/core';
 import {FormControl, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
 import {AuthService} from '../../shared/data-access/auth.service';
-import {ActivatedRoute, Router, RouterLink} from "@angular/router";
+import {ActivatedRoute, RouterLink} from "@angular/router";
 
 
 @Component({
@@ -44,20 +44,19 @@ import {ActivatedRoute, Router, RouterLink} from "@angular/router";
           </div>
         } @else {
 
-        Zatwierdź nowe hasło!
+          Zatwierdź nowe hasło!
         }
       </button>
 
 
-
       <div class="mb-3">
-        @if (onErrorPasswordReset()) {
+        @if (onPasswordReset.error()) {
           <span class="text-danger">
           Wystapił błąd podczas zmiany hasła - spróbuj ponownie
         </span>
           <br>
-          <span class="text-muted">{{ onErrorPasswordReset() }}</span>
-        } @else if (onSuccessPasswordReset()) {
+          <span class="text-muted">{{ onPasswordReset.error() }}</span>
+        } @else if (onPasswordReset.status() === 'resolved') {
           <span class="text-success">Hasło zmienione!</span>
         } @else {
           <span class="invisible">Nothing</span>
@@ -82,12 +81,15 @@ export default class PasswordResetComponent {
   oobCode = signal<string | undefined>(undefined);
   newPassword = signal<string | undefined>(undefined)
   onPasswordReset = resource({
-    request: () => this.newPassword(),
-    loader: ({request}) => this.authService.confirmPasswordReset(this.oobCode()!, request)
+    loader: async () => {
+      const newPasssword = this.newPassword();
+      const oobCode = this.oobCode();
+      if (!newPasssword || !oobCode) {
+        throw new Error('brak podanego hasła lub niepoprawny link')
+      }
+      return await this.authService.confirmPasswordReset(oobCode, newPasssword)
+    }
   })
-
-  onErrorPasswordReset = computed(() => this.onPasswordReset.error());
-  onSuccessPasswordReset = computed(() => this.onPasswordReset.status() === 4)
 
   constructor() {
     const queryParams = this.route.snapshot.queryParams

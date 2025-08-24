@@ -68,8 +68,10 @@ export default class LoginComponent {
 
   login = signal<Credentials | undefined>(undefined);
   logger = resource({
-    request: () => this.login(),
-    loader: ({request}) => this.authService.login(request!)
+    params: this.login,
+    loader: async (creds) => {
+      return await this.authService.login(creds.params)
+    },
   });
 
   loginForm = this.fb.nonNullable.group({
@@ -81,7 +83,7 @@ export default class LoginComponent {
     console.log('login component constructor')
     effect(async () => {
 
-      if (this.logger.status() === 4 || this.authService.firebaseUser()) {
+      if (this.logger.status() === 'resolved' || this.authService.firebaseUser()) {
         console.log('login has user, nav to dash')
         this.router.navigate(['dashboard'])
       }

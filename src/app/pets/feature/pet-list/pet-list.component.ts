@@ -97,7 +97,8 @@ import {PetCreateComponent} from "../pet-create/pet-create.component";
               </div>
             </div>
             <div>
-              <button class="btn btn-lg btn-outline-primary w-100 w-md-auto shadow-lg rounded-4" (click)="addNewPet()"
+              <button #modalButton class="btn btn-lg btn-outline-primary w-100 w-md-auto shadow-lg rounded-4"
+                      (click)="addNewPet(modalButton)"
                       type="button">
                 Dodaj zwierzaka
                 <fa-icon class="ms-2" [icon]="['fas', 'book-medical']"></fa-icon>
@@ -345,9 +346,9 @@ export default class PetListComponent {
     return this.pets().filter(p => p.name.toLowerCase().includes(q));
   });
 
-  addNewPet() {
-    const modalRef = this.modalService.open(PetCreateComponent, {size: 'xl'});
-    modalRef.componentInstance.name = 'world'
+  addNewPet(el: HTMLButtonElement) {
+    el.blur()
+    this.modalService.open(PetCreateComponent, {size: 'xl'});
   }
 
   selectPet(pet: any) {

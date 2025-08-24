@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, computed, effect, inject, resource, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, effect, inject, resource, signal} from '@angular/core';
 import {AuthService} from '../../shared/data-access/auth.service';
 import {ActivatedRoute, Router} from "@angular/router";
 
@@ -9,7 +9,7 @@ import {ActivatedRoute, Router} from "@angular/router";
       Weryfikacja email
     </h3>
 
-    @if (isVerifying()) {
+    @if (onEmailVerification.status() === 'loading') {
       <div class="d-flex justify-content-center mb-3">
         <div class="spinner-border text-primary" role="status">
           <span class="visually-hidden">Ładowanie...</span>
@@ -17,7 +17,7 @@ import {ActivatedRoute, Router} from "@angular/router";
       </div>
     }
 
-    @if (verificationError()) {
+    @if (onEmailVerification.status() === 'error') {
       <div class="bg-danger text-danger text-center rounded-4 pulse-box p-3 mb-4">
         <span class="text-white">
           Wystąpił błąd z weryfikacją email
@@ -25,7 +25,7 @@ import {ActivatedRoute, Router} from "@angular/router";
       </div>
     }
 
-    @if (isVerificationSuccessful()) {
+    @if (onEmailVerification.status() === 'resolved') {
       <div class="bg-success text-center text-success rounded-4 pulse-box p-3 mb-4">
         <span class="text-white">
           Weryfikacja udała się!
@@ -44,13 +44,10 @@ export default class EmailVerificationComponent {
 
   oobCode = signal<string | undefined>(undefined);
   onEmailVerification = resource({
-    request: () => this.oobCode(),
-    loader: ({request}) => this.authService.verifyEmail(request)
+    loader: async () => {
+      return await this.authService.verifyEmail(this.oobCode())
+    }
   })
-
-  isVerifying = computed(() => this.onEmailVerification.isLoading());
-  verificationError = computed(() => !!this.onEmailVerification.error());
-  isVerificationSuccessful = computed(() => this.onEmailVerification.status() === 4);
 
   constructor() {
     const queryParams = this.route.snapshot.queryParams;
@@ -58,7 +55,7 @@ export default class EmailVerificationComponent {
     this.oobCode.set(oobCode)
 
     effect(() => {
-      if (this.isVerificationSuccessful() || this.authService.firebaseUser()?.emailVerified) {
+      if (this.onEmailVerification.status() === 'resolved' || this.authService.firebaseUser()?.emailVerified) {
         console.log('Verify effect verify success')
 
         this.router.navigate(['dashboard'])

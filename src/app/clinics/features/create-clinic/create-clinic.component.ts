@@ -112,7 +112,7 @@ import {CreateClinic} from "../../../shared/interfaces/clinics.interface";
       </span>
         }
 
-        @if (onCreateClinic.status() === 4) {
+        @if (onCreateClinic.status() === 'resolved') {
           <span class="text-success mt-3">
             Klinika utworzona!
           </span>
@@ -169,12 +169,15 @@ export default class CreateClinicComponent {
   // onSuccessfulCreateClinic = output()
 
   onCreateClinic = resource({
-    request: () => this.createClinic(),
-    loader: async ({request}) => {
-      // await this.auth.refreshToken(); // aktualizuj custom claims
-      // this.clinicCreated.emit(result.clinicId); // emit do rodzica
-      await this.clinicService.createNewClinic(request!);
+    loader: async () => {
+      const clinic = this.createClinic()
+      if (!clinic) {
+        throw new Error('Brak kliniki do utworzenia')
+      }
+
+      await this.clinicService.createNewClinic(clinic);
       await this.authService.reloadUser()
+      return clinic
     }
   });
 

@@ -14,6 +14,7 @@ import {user} from "rxfire/auth";
 import {httpsCallable} from "firebase/functions";
 import {jwtDecode} from "jwt-decode";
 import {AUTH, FUNCTIONS} from "../../firebase.providers";
+import {assert} from "@angular/compiler-cli/linker";
 
 
 @Injectable({
@@ -73,15 +74,18 @@ export class AuthService {
   }
 
   public async resetPassword(email: string) {
-    return sendPasswordResetEmail(this.auth, email)
+    return sendPasswordResetEmail(this.auth, email);
   }
 
   public async confirmPasswordReset(oobCode: string, newPassword: string) {
     return confirmPasswordReset(this.auth, oobCode, newPassword)
   }
 
-  public async verifyEmail(oobCode: string) {
-    await applyActionCode(this.auth, oobCode)
-    await this.reloadUser()
+  public async verifyEmail(oobCode?: string) {
+    if (!oobCode) {
+      throw new Error('Brak kodu weryfikacji email');
+    }
+    await applyActionCode(this.auth, oobCode);
+    await this.reloadUser();
   }
 }

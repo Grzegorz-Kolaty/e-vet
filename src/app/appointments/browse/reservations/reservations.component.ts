@@ -1,13 +1,9 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  input,
-  output,
-} from '@angular/core';
-import { DatePipe } from '@angular/common';
-import { NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
-import { Appointment } from '../../../shared/interfaces/user.interface';
-import { GroupByPipe } from '../../../shared/pipes/group-by.pipe';
+import {ChangeDetectionStrategy, Component, input, output} from "@angular/core";
+import {DatePipe} from "@angular/common";
+import {NgbNavModule} from "@ng-bootstrap/ng-bootstrap";
+import {GroupByPipe} from "../../../shared/pipes/group-by.pipe";
+import {Appointment} from "../../../shared/interfaces/user.interface";
+
 
 @Component({
   selector: 'app-reservations',
@@ -20,9 +16,7 @@ import { GroupByPipe } from '../../../shared/pipes/group-by.pipe';
           <span class="visually-hidden">Loading...</span>
         </div>
       </div>
-    }
-
-    @if (!isLoading()) {
+    } @if (!isLoading()) {
       @if (!appointments().length) {
         <div class="alert alert-warning" role="alert">
           Brak wizyt w tym tygodniu 😿

@@ -7,7 +7,7 @@ import {
   query,
   limit,
   where,
-  orderBy,
+  orderBy, getDocs,
 } from 'firebase/firestore';
 import {collectionData} from 'rxfire/firestore';
 
@@ -35,7 +35,7 @@ export class AppointmentsService {
     return from(deleteDoc(appointmentDocRef));
   }
 
-  getAppointmentsForVet(dayDate: Date[]) {
+  async getAppointmentsForVet(dayDate: Date[]) {
     const startOfDay = new Date(dayDate[0]);
     startOfDay.setHours(0, 0, 0, 0);
 
@@ -52,14 +52,17 @@ export class AppointmentsService {
       orderBy('dateTimeFrom')
     );
 
-    return collectionData(appointmentsCollection, {idField: 'id'}).pipe(
-      map(appointmentsData => {
-        return appointmentsData as Appointment[];
-      })
-    );
+    const querySnapshot = await getDocs(appointmentsCollection);
+
+    const appointments: Appointment[] = [];
+    querySnapshot.forEach(doc => {
+      appointments.push({ id: doc.id, ...doc.data() } as Appointment);
+    });
+
+    return appointments;
   }
 
-  getReservedAppointmentsForVet(userId: string) {
+  async getReservedAppointmentsForVet(userId: string) {
     const appointmentsCollection = query(
       collection(this.firestore, 'appointments'),
       where('vetId', '==', userId),
@@ -67,15 +70,23 @@ export class AppointmentsService {
       orderBy('dateTimeFrom')
     );
 
-    return collectionData(appointmentsCollection, {idField: 'id'}).pipe(
-      map(appointmentsData => {
-        console.log(appointmentsData)
-        return appointmentsData as Appointment[];
-      })
-    );
+    const querySnapshot = await getDocs(appointmentsCollection);
+
+    const appointments: Appointment[] = [];
+    querySnapshot.forEach(doc => {
+      appointments.push({ id: doc.id, ...doc.data() } as Appointment);
+    });
+
+    return appointments;
+    // return collectionData(appointmentsCollection, {idField: 'id'}).pipe(
+    //   map(appointmentsData => {
+    //     console.log(appointmentsData)
+    //     return appointmentsData as Appointment[];
+    //   })
+    // );
   }
 
-  getAppointmentsForReservation(dayDate: Date[]) {
+  async getAppointmentsForReservation(dayDate: Date[]) {
     const startOfDay = new Date(dayDate[0]);
     startOfDay.setHours(0, 0, 0, 0);
 
@@ -91,11 +102,16 @@ export class AppointmentsService {
       limit(20)
     );
 
-    return collectionData(appointmentsCollection, {idField: 'id'}).pipe(
-      map(appointmentsData => {
-        return appointmentsData as Appointment[];
-      })
-    );
+    // Pobieramy dokumenty jako Promise
+    const querySnapshot = await getDocs(appointmentsCollection);
+
+    // Mapujemy snapshot do tablicy obiektów Appointment
+    const appointments: Appointment[] = [];
+    querySnapshot.forEach(doc => {
+      appointments.push({ id: doc.id, ...doc.data() } as Appointment);
+    });
+
+    return appointments;
   }
 
   reserveAppointment(appointment: Appointment) {

@@ -1,12 +1,11 @@
-import {ChangeDetectionStrategy, Component, computed, inject, input, resource} from '@angular/core';
+import {ChangeDetectionStrategy, Component, inject, input, resource} from '@angular/core';
 import {ClinicService} from "../../shared/data-access/clinic.service";
-import {MapComponent} from "../features/map/map.component";
 import {LoaderComponent} from "../../shared/ui/loader/loader.component";
 
 
 @Component({
   selector: 'app-vet-clinic',
-  imports: [MapComponent, LoaderComponent],
+  imports: [LoaderComponent],
   template: `
     <!--    <main class="row h-100">-->
     <!--      <div class="flex-fill">-->
@@ -48,7 +47,7 @@ import {LoaderComponent} from "../../shared/ui/loader/loader.component";
         <app-loader></app-loader>
       }
 
-      @if (onSuccessGetVetClinic()) {
+      @if (onGetVetClinic.status() === 'resolved') {
         @let clinic = onGetVetClinic.value();
         <div class="row row-cols-lg-2">
 
@@ -67,7 +66,7 @@ import {LoaderComponent} from "../../shared/ui/loader/loader.component";
         </div>
       }
 
-      @if (onErrorGetVetClinic()) {
+      @if (onGetVetClinic.error()) {
         <span>Wystąpił błąd przy pobieraniu Twojej kliniki</span>
       }
 
@@ -81,14 +80,12 @@ export class VetClinicComponent {
 
   clinicId = input<string | undefined>(undefined)
   onGetVetClinic = resource({
-    request: () => this.clinicId(),
-    loader: ({request}) => this.clinicService.getVetClinicById(request)
+    loader: async () => {
+      const clinicId = this.clinicId()
+      if (!clinicId) {
+        throw new Error('Brak kliniki')
+      }
+      return await this.clinicService.getVetClinicById(clinicId)
+    }
   })
-
-  onSuccessGetVetClinic = computed(() => this.onGetVetClinic.status() === 4)
-  onErrorGetVetClinic = computed(() => this.onGetVetClinic.error())
-
-  constructor() {
-  }
-
 }

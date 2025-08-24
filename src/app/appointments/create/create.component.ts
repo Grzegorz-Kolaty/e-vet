@@ -3,11 +3,10 @@ import {
   Component,
   computed,
   inject,
-  linkedSignal,
+  linkedSignal, resource,
   signal,
 } from '@angular/core';
 import {AppointmentsService} from '../../shared/data-access/appointments.service';
-import {rxResource} from '@angular/core/rxjs-interop';
 import {AuthService} from '../../shared/data-access/auth.service';
 import {User} from 'firebase/auth';
 import {Appointment} from "../../shared/interfaces/user.interface";
@@ -55,8 +54,8 @@ import {Appointment} from "../../shared/interfaces/user.interface";
       @if (userProfile) {
         <div class="row mx-5">
           <div class="col text-center">
-<!--            <app-datepicker-range-->
-<!--              (weekSelection)="onSetWeekSelection($event)"/>-->
+            <!--            <app-datepicker-range-->
+            <!--              (weekSelection)="onSetWeekSelection($event)"/>-->
           </div>
 
           <!--          <button class="btn btn-outline-info" type="button" (click)="onConfirmUpdateAppointments()">-->
@@ -64,12 +63,12 @@ import {Appointment} from "../../shared/interfaces/user.interface";
           <!--          </button>-->
 
           <div class="col-xxl-9">
-<!--            <app-appointments-table-->
-<!--              [weekData]="onSelectWeekSig()"-->
-<!--              [existingAppointments]="appointments()"-->
-<!--              (addAppointment)="onAddAppointment($event, userProfile)"-->
-<!--              (removeAppointment)="onRemoveAppointment($event, userProfile)"-->
-<!--              [isLoading]="isLoading()"/>-->
+            <!--            <app-appointments-table-->
+            <!--              [weekData]="onSelectWeekSig()"-->
+            <!--              [existingAppointments]="appointments()"-->
+            <!--              (addAppointment)="onAddAppointment($event, userProfile)"-->
+            <!--              (removeAppointment)="onRemoveAppointment($event, userProfile)"-->
+            <!--              [isLoading]="isLoading()"/>-->
           </div>
         </div>
       }
@@ -84,9 +83,10 @@ export default class CreateComponent {
   user = this.authService.firebaseUser;
 
   onSelectWeekSig = signal<Date[]>([]);
-  onGetAppointmentsResource = rxResource({
-    request: () => this.onSelectWeekSig(),
-    loader: ({request}) => this.appointmentService.getAppointmentsForVet(request)
+  onGetAppointmentsResource = resource({
+    loader: async () => {
+      return await this.appointmentService.getAppointmentsForVet(this.onSelectWeekSig());
+    }
   });
 
   appointments = computed(() => this.onGetAppointmentsResource.value() ?? []);

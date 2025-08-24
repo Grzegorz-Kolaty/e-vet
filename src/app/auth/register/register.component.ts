@@ -19,7 +19,7 @@ import {AuthService} from '../../shared/data-access/auth.service';
       </div>
     }
 
-    @if (registration.status() === 4) {
+    @if (registration.status() === 'resolved') {
       <div class="bg-success text-center rounded-4 p-3 mb-4">
         <span class="text-white">
           Rejestracja udana!
@@ -110,19 +110,22 @@ import {AuthService} from '../../shared/data-access/auth.service';
 export default class RegisterComponent {
   public authService = inject(AuthService);
   protected readonly Role = Role;
-
-  isVet = signal<Role>(Role.User)
-  register = signal<RegisterCredentials | undefined>(undefined);
-  registration = resource({
-    request: () => this.register(),
-    loader: ({request}) =>
-      this.authService.register(request!)
-  });
   private fb = inject(FormBuilder);
+
   registerForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.pattern(/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/)]],
     displayName: ['', Validators.required],
     password: ['', Validators.required],
+  });
+
+  isVet = signal<Role>(Role.User);
+
+  register = signal<RegisterCredentials | undefined>(undefined);
+  registration = resource({
+    params: this.register,
+    loader: async (creds) => {
+      return await this.authService.register(creds.params)
+    }
   });
 
   constructor() {
