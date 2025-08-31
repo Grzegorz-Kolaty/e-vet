@@ -1,7 +1,6 @@
 import {ChangeDetectionStrategy, Component, inject, signal} from "@angular/core";
 import {httpResource} from "@angular/common/http";
 import {NgbActiveModal} from "@ng-bootstrap/ng-bootstrap";
-import {NgSelectComponent} from "@ng-select/ng-select";
 import {FormsModule} from "@angular/forms";
 import {TitleCasePipe} from "@angular/common";
 
@@ -33,7 +32,7 @@ interface INaturalistResponse {
 
 @Component({
   selector: 'app-pet-create',
-  imports: [NgSelectComponent, FormsModule, TitleCasePipe],
+  imports: [FormsModule, TitleCasePipe],
   template: `
     <div class="container p-3">
       <div class="modal-header">
@@ -55,15 +54,15 @@ interface INaturalistResponse {
         <!--          }-->
         <!--        </select>-->
 
-<!--        <ng-select-->
-<!--          [items]="taxaOptions"-->
-<!--          bindLabel="label"-->
-<!--          bindValue="value"-->
-<!--          [clearable]="false"-->
-<!--          [searchable]="true"-->
-<!--          [ngModel]="iconicTaxa()"-->
-<!--          (ngModelChange)="iconicTaxa.set($event)">-->
-<!--        </ng-select>-->
+        <!--        <ng-select-->
+        <!--          [items]="taxaOptions"-->
+        <!--          bindLabel="label"-->
+        <!--          bindValue="value"-->
+        <!--          [clearable]="false"-->
+        <!--          [searchable]="true"-->
+        <!--          [ngModel]="iconicTaxa()"-->
+        <!--          (ngModelChange)="iconicTaxa.set($event)">-->
+        <!--        </ng-select>-->
 
 
         <!-- Ładowanie -->
@@ -108,10 +107,10 @@ interface INaturalistResponse {
 
       </div>
       <div class="modal-footer">
-<!--        <button type="button"  class="btn btn-outline-secondary"-->
-<!--                (click)="activeModal.close('Close click')">-->
-<!--          Zamknij-->
-<!--        </button>-->
+        <!--        <button type="button"  class="btn btn-outline-secondary"-->
+        <!--                (click)="activeModal.close('Close click')">-->
+        <!--          Zamknij-->
+        <!--        </button>-->
       </div>
 
     </div>

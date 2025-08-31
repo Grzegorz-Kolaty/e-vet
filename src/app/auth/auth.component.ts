@@ -6,9 +6,9 @@ import {RouterOutlet} from "@angular/router";
   selector: 'app-auth',
   imports: [RouterOutlet],
   template: `
-    <section class="background__paws h-100 pt-5">
-      <div class="container col-12 col-md-6 col-lg-4 p-0">
-        <div class="p-4 p-xl-5 rounded-5 glass shadow-lg border border-1">
+    <section class="background__paws h-100 row g-0 justify-content-center align-items-center">
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="p-4 rounded-5 glass shadow-sm">
           <router-outlet/>
         </div>
       </div>
