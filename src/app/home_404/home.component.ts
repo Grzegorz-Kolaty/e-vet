@@ -5,10 +5,8 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   template: `
     <section class="d-flex flex-column flex-nowrap h-100">
 
-      <div class="flex-fill d-flex flex-column flex-nowrap justify-content-center dog__background">
-
+      <div class="flex-fill d-flex flex-column flex-nowrap justify-content-lg-center dog__background">
         <div class="d-inline-flex flex-nowrap justify-content-between glass text-black shadow-lg p-4">
-
           <div class="text-start">
             <h5>Dla właścicieli zwierząt</h5>
             <h6 class="fw-light">Śledź historię leczenia, zalecenia i wizyty swoich pupili</h6>
@@ -20,13 +18,10 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
           </div>
 
         </div>
-
-
       </div>
 
       <!-- Footer -->
       <footer class="row row-cols-1 row-cols-md-3 align-items-start text-white bg-dark p-3 m-0">
-
         <div class="col">
           <h5>O nas</h5>
           <h6 class="fw-light">

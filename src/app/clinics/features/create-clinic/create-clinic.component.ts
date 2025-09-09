@@ -13,8 +13,8 @@ import {CreateClinic} from "../../../shared/interfaces/clinics.interface";
   selector: 'app-create-clinic',
   imports: [ReactiveFormsModule, NgxMaskDirective, NgClass],
   template: `
-    <div class="row">
-      <form class="col-8 p-4" [formGroup]="clinicForm">
+    <div class="row m-0">
+      <form class="col-12 col-lg-8 p-4" [formGroup]="clinicForm">
 
         <h5 class="mb-3">🏥 Twoja klinika</h5>
 

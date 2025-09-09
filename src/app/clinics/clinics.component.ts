@@ -5,6 +5,7 @@ import {AuthService} from "../shared/data-access/auth.service";
 import CreateClinicComponent from "./features/create-clinic/create-clinic.component";
 import BrowseClinicsComponent from "./user-browse-clinics/browse-clinics.component";
 import {VetClinicComponent} from "./vet-clinic/vet-clinic.component";
+import {MapComponent} from "./features/map/map.component";
 
 
 @Component({
@@ -12,10 +13,11 @@ import {VetClinicComponent} from "./vet-clinic/vet-clinic.component";
   imports: [
     CreateClinicComponent,
     BrowseClinicsComponent,
-    VetClinicComponent
+    VetClinicComponent,
+    MapComponent
   ],
   template: `
-    <section class="p-5 h-100">
+    <section class="h-100">
       @if (user()?.role === Role.User) {
         <app-browse-clinics/>
       }
@@ -24,8 +26,10 @@ import {VetClinicComponent} from "./vet-clinic/vet-clinic.component";
         @if (user()?.clinicId) {
           <app-vet-clinic [clinicId]="user()!.clinicId"/>
         } @else {
-          <app-create-clinic />
 <!--          <app-create-clinic/>-->
+          <app-map>
+
+          </app-map>
         }
       }
     </section>
@@ -35,8 +39,8 @@ import {VetClinicComponent} from "./vet-clinic/vet-clinic.component";
 })
 export default class ClinicsComponent {
   protected readonly Role = Role;
-  private authService = inject(AuthService)
-  private router = inject(Router)
+  private readonly authService = inject(AuthService)
+  private readonly router = inject(Router)
 
   user = this.authService.user
 

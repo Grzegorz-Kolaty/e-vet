@@ -8,8 +8,8 @@ import {RouterOutlet} from "@angular/router";
   template: `
     <section class="background__paws h-100 row g-0 justify-content-center align-items-center">
       <div class="col-12 col-md-6 col-lg-4">
-        <div class="p-4 rounded-5 glass shadow-sm">
-          <router-outlet/>
+        <div class="p-5 rounded-5 glass shadow-sm">
+          <router-outlet></router-outlet>
         </div>
       </div>
     </section>
