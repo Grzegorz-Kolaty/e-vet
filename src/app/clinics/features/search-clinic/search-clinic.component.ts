@@ -1,65 +1,53 @@
-import {ChangeDetectionStrategy, Component, computed, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, effect, signal} from '@angular/core';
 import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 import {toObservable, toSignal} from "@angular/core/rxjs-interop";
-import {debounceTime, distinctUntilChanged} from "rxjs";
+import {debounceTime, distinctUntilChanged, Subject} from "rxjs";
 import {httpResource} from "@angular/common/http";
 import {LocationResult} from "../map/map.component";
+import {NgOptionTemplateDirective, NgSelectComponent} from "@ng-select/ng-select";
+import {FormsModule} from "@angular/forms";
+import {JsonPipe} from "@angular/common";
 
 @Component({
   selector: 'app-search-clinic',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, NgSelectComponent, FormsModule, NgOptionTemplateDirective, JsonPipe],
   template: `
-    <fieldset class="search-box m-3 shadow-lg rounded-5"
-              [class.list-open]="filteredResults().length">
 
-      <div class="d-inline-flex align-items-center px-4 py-3 gap-3">
-        <fa-icon [icon]="['fas', 'map']" size="lg"></fa-icon>
+    <fieldset class="p-3 w-100">
+      <ng-select
+        [items]="filteredResultsStream()"
+        bindLabel="display_name"
+        placeholder="Wpisz adres (np. Maciejewicza 23 Szczecin)"
+        [loading]="!addressResultsStream.hasValue()"
+        [typeahead]="query$"
+        [(ngModel)]="selectedLocationValue"
+        dropdownPosition="bottom"
+        class="custom">
 
-        <input class="flex-fill border-0 outline-none"
-               #cityInput
-               type="text"
-               placeholder="Wpisz adres (np. Maciejewicza 23 Szczecin)"
-               (input)="query.set(cityInput.value)"/>
+        <ng-template ng-option-tmp let-item="item">
+          <div class="d-flex align-items-center">
+            <fa-icon [icon]="['fas', 'location-dot']" class="me-2"></fa-icon>
+            <span class="text-truncate">
+              {{ item.display_name }}
+            </span>
+          </div>
+        </ng-template>
 
-        <fa-icon [icon]="['fas', 'magnifying-glass']" size="lg"></fa-icon>
-      </div>
-
-      @if (filteredResults().length) {
-        <div class="border-top">
-          @for (item of filteredResults(); track item.display_name) {
-            <button class="d-inline-flex gap-3 btn btn-sm btn-light px-4 py-2 w-100"
-                    type="button"
-                    (click)="selectedLocation.set(item)">
-
-                <span class="align-self-center">
-                  <fa-icon [icon]="['fas', 'location-dot']" size="xl"></fa-icon>
-                </span>
-
-              <span class="text-start">
-                  <b>
-                    {{ item.address.road }},
-                    {{ item.address.house_number }}
-                  </b>
-                  <br>
-                  <span class="fw-light">
-                  {{ item.address.city || item.address.town || item.address.village }}
-                    </span>
-                </span>
-            </button>
-          }
-        </div>
-      }
-
+      </ng-select>
     </fieldset>
+    <pre> {{ selectedLocationValue | json }}</pre>
+
   `,
   styles: ``,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SearchClinicComponent {
 
-  API_BASE_URL = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&countrycodes=pl&q=`
+  API_BASE_URL = `https://nominatim.openstreetmap.org/search?polygon_geojson=1&format=jsonv2&q=`;
 
   query = signal<string>('');
+
+  query$ = new Subject<string>();
 
   debouncedQuery = toSignal(toObservable(this.query)
     .pipe(
@@ -67,17 +55,46 @@ export class SearchClinicComponent {
       distinctUntilChanged()
     ), {initialValue: ''})
 
+  debouncedQuery$ = toSignal(
+    this.query$.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ),
+    { initialValue: '' }
+  );
+
   addressResults = httpResource<LocationResult[]>(() =>
       `${this.API_BASE_URL}${encodeURIComponent(this.debouncedQuery())}`
     , {defaultValue: []}
   )
 
+  addressResultsStream = httpResource<LocationResult[]>(
+    () => `${this.API_BASE_URL}${encodeURIComponent(this.debouncedQuery$())}`,
+    { defaultValue: [] }
+  );
+
+  filteredResultsStream = computed(() =>
+    this.addressResultsStream.value().filter((item) => !!item.display_name)
+  );
+
   filteredResults = computed(() =>
     (this.addressResults.value().filter((item: LocationResult) =>
-      !!item.address?.house_number) ?? [])
+      !!item.display_name) ?? [])
   );
 
   selectedLocation = signal<LocationResult | undefined>(undefined)
 
+  selectedLocationValue?: LocationResult;
+
+
+  constructor() {
+    effect(() => {
+      console.log(this.filteredResults())
+    })
+
+    effect(() => {
+      console.log('selected:', this.selectedLocationValue);
+    });
+  }
 
 }

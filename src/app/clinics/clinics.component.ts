@@ -2,36 +2,26 @@ import {ChangeDetectionStrategy, Component, effect, inject, signal} from '@angul
 import {Role} from "../shared/interfaces/user.interface";
 import {Router} from "@angular/router";
 import {AuthService} from "../shared/data-access/auth.service";
-import CreateClinicComponent from "./features/create-clinic/create-clinic.component";
-import BrowseClinicsComponent from "./user-browse-clinics/browse-clinics.component";
-import {VetClinicComponent} from "./vet-clinic/vet-clinic.component";
+import {SearchClinicComponent} from "./features/search-clinic/search-clinic.component";
 import {MapComponent} from "./features/map/map.component";
 
 
 @Component({
   selector: 'app-clinics',
   imports: [
-    CreateClinicComponent,
-    BrowseClinicsComponent,
-    VetClinicComponent,
+    SearchClinicComponent,
     MapComponent
   ],
   template: `
-    <section class="h-100">
-      @if (user()?.role === Role.User) {
-        <app-browse-clinics/>
-      }
+    <section class="row h-100">
+      <div class="col-4">
+        <app-search-clinic></app-search-clinic>
+      </div>
 
-      @if (user()?.role === Role.Vet) {
-        @if (user()?.clinicId) {
-          <app-vet-clinic [clinicId]="user()!.clinicId"/>
-        } @else {
-<!--          <app-create-clinic/>-->
-          <app-map>
+<!--      <div class="col-8 h-100">-->
+<!--        <app-map></app-map>-->
+<!--      </div>-->
 
-          </app-map>
-        }
-      }
     </section>
   `,
   styles: ``,
