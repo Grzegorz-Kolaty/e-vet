@@ -12,7 +12,6 @@ import {JsonPipe} from "@angular/common";
   selector: 'app-search-clinic',
   imports: [FaIconComponent, NgSelectComponent, FormsModule, NgOptionTemplateDirective, JsonPipe],
   template: `
-
     <fieldset class="p-3 w-100">
       <ng-select
         [items]="filteredResultsStream()"
@@ -21,12 +20,11 @@ import {JsonPipe} from "@angular/common";
         [loading]="!addressResultsStream.hasValue()"
         [typeahead]="query$"
         [(ngModel)]="selectedLocationValue"
-        dropdownPosition="bottom"
-        class="custom">
+        dropdownPosition="bottom">
 
         <ng-template ng-option-tmp let-item="item">
           <div class="d-flex align-items-center">
-            <fa-icon [icon]="['fas', 'location-dot']" class="me-2"></fa-icon>
+            <fa-icon [icon]="['fas', 'location-dot']" size="1x"></fa-icon>
             <span class="text-truncate">
               {{ item.display_name }}
             </span>
@@ -36,7 +34,6 @@ import {JsonPipe} from "@angular/common";
       </ng-select>
     </fieldset>
     <pre> {{ selectedLocationValue | json }}</pre>
-
   `,
   styles: ``,
   changeDetection: ChangeDetectionStrategy.OnPush

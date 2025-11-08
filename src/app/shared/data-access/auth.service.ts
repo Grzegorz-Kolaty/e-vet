@@ -14,7 +14,6 @@ import {user} from "rxfire/auth";
 import {httpsCallable} from "firebase/functions";
 import {jwtDecode} from "jwt-decode";
 import {AUTH, FUNCTIONS} from "../../firebase.providers";
-import {assert} from "@angular/compiler-cli/linker";
 
 
 @Injectable({

@@ -14,13 +14,13 @@ import {MapComponent} from "./features/map/map.component";
   ],
   template: `
     <section class="row h-100">
-      <div class="col-4">
+      <div class="col">
+        <h1>Search clinic component</h1>
         <app-search-clinic></app-search-clinic>
       </div>
 
-<!--      <div class="col-8 h-100">-->
-<!--        <app-map></app-map>-->
-<!--      </div>-->
+
+        <app-map></app-map>
 
     </section>
   `,

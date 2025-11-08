@@ -1,4 +1,4 @@
-import {Component, ChangeDetectionStrategy, inject} from '@angular/core';
+import {Component, ChangeDetectionStrategy, inject, effect} from '@angular/core';
 import {RouterOutlet} from '@angular/router';
 import {AuthService} from './shared/data-access/auth.service';
 import {FaIconLibrary} from "@fortawesome/angular-fontawesome";
@@ -60,18 +60,20 @@ export class AppComponent {
       faGear, faBars, faUserGear, faLocationDot, faMap, faMagnifyingGlass, faBookMedical
     );
 
-    this.authService.user$.pipe(takeUntilDestroyed()).subscribe(async (user) => {
-      if (user) {
-        const token = await user.getIdToken()
-        const userDeserialized = this.authService.deserializeUserToken(token)
-        this.authService.user.set(userDeserialized)
-        this.authService.firebaseUser.set(user)
-      } else {
-        this.authService.user.set(null)
-        this.authService.firebaseUser.set(null)
-      }
-    })
+    this.authService.user$.pipe(takeUntilDestroyed()).subscribe(
+      async (user) => {
+        if (user) {
+          const token = await user.getIdToken()
+          const userDeserialized = this.authService.deserializeUserToken(token)
+          this.authService.user.set(userDeserialized)
+          this.authService.firebaseUser.set(user)
+        } else {
+          this.authService.user.set(null)
+          this.authService.firebaseUser.set(null)
+        }
+      })
 
+    effect(() => console.log(this.authService.user()))
   }
 
 }

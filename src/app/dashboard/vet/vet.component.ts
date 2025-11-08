@@ -67,16 +67,16 @@ import {Router} from "@angular/router";
   styleUrl: './vet.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export default class VetComponent {
-  public readonly authService = inject(AuthService);
-  private readonly router = inject(Router)
+export class VetComponent {
+  // public readonly authService = inject(AuthService);
+  // private readonly router = inject(Router)
 
-  constructor() {
-    effect(() => {
-      if (!this.authService.firebaseUser()) {
-        this.router.navigate(['auth'])
-      }
-    });
-  }
+  // constructor() {
+  //   effect(() => {
+  //     if (!this.authService.firebaseUser()) {
+  //       this.router.navigate(['auth'])
+  //     }
+  //   });
+  // }
 
 }

@@ -31,6 +31,9 @@
   border-left: 0 solid black;
 }
 
+img, svg {
+  vertical-align: middle !important;
+}
 
 :root {
   //--bs-body-font-size: 1.25rem; /* 20px */
