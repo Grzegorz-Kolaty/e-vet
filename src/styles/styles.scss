@@ -6,30 +6,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Edu+NSW+ACT+Cursive:wght@400..700&display=swap');
 @import "@ng-select/ng-select/themes/default.theme.css";
 
-//.ng-select.custom .ng-select-container {
-//  border: none !important;
-//  box-shadow: var(--bs-box-shadow-lg) !important;
-//  background: white !important;
-//  border-radius: 20px !important;
-//}
-
-.ng-select-container {
-  border: none !important;
-  box-shadow: var(--bs-box-shadow-lg) !important;
-  background: white !important;
-  border-radius: 20px !important;
-}
-
-.ng-select-opened > .ng-select-container {
-  border-radius: 20px 20px 0 0 !important;
-}
-
-.ng-dropdown-panel {
-  border-top: 1px solid black;
-  border-right: 0 solid black;
-  border-bottom: 0 solid black;
-  border-left: 0 solid black;
-}
 
 img, svg {
   vertical-align: middle !important;
@@ -107,14 +83,6 @@ html, body {
 
 .w-30 {
   width: 30%;
-}
-
-.text-shadow {
-  text-shadow: 1px 1px 2px #0000008c;
-}
-
-.invalid-feedback {
-  text-shadow: 1px 1px 2px #0000008c, 1px 1px 3px #0000008c;
 }
 
 .cursor-pointer {

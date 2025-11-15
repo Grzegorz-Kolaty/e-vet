@@ -12,7 +12,6 @@ import {JsonPipe} from "@angular/common";
   selector: 'app-search-clinic',
   imports: [FaIconComponent, NgSelectComponent, FormsModule, NgOptionTemplateDirective, JsonPipe],
   template: `
-    <fieldset class="p-3 w-100">
       <ng-select
         [items]="filteredResultsStream()"
         bindLabel="display_name"
@@ -32,7 +31,6 @@ import {JsonPipe} from "@angular/common";
         </ng-template>
 
       </ng-select>
-    </fieldset>
     <pre> {{ selectedLocationValue | json }}</pre>
   `,
   styles: ``,

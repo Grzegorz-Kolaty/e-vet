@@ -5,7 +5,7 @@ import {FaIconLibrary} from "@fortawesome/angular-fontawesome";
 import {
   faBars, faBookMedical,
   faCalendarDays,
-  faGear, faLocationDot, faMagnifyingGlass, faMap,
+  faGear, faImage, faLocationDot, faMagnifyingGlass, faMap,
   faNotesMedical,
   faPaw,
   faStore,
@@ -57,7 +57,7 @@ export class AppComponent {
   constructor() {
     this.library.addIcons(
       faPaw, faStore, faUser, faNotesMedical, faCalendarDays,
-      faGear, faBars, faUserGear, faLocationDot, faMap, faMagnifyingGlass, faBookMedical
+      faGear, faBars, faUserGear, faLocationDot, faMap, faMagnifyingGlass, faBookMedical, faImage
     );
 
     this.authService.user$.pipe(takeUntilDestroyed()).subscribe(
