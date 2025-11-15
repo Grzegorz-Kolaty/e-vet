@@ -44,9 +44,9 @@ interface UploadedImage {
                       formControlName="clinicName">
             </textarea>
 
-            @if (clinicName?.invalid) {
-              <div class="invalid-feedback">Nazwa kliniki jest wymagana.</div>
-            }
+<!--            @if (clinicForm.?.invalid) {-->
+<!--              <div class="invalid-feedback">Nazwa kliniki jest wymagana.</div>-->
+<!--            }-->
           </div>
 
           <div class="mb-3">
@@ -61,9 +61,9 @@ interface UploadedImage {
                    required
                    minlength="13"
                    formControlName="phoneNumber">
-            @if (phoneNumber?.dirty) {
-              <div class="invalid-feedback">Wymagany pełny numer (+48 xxx xxx xxx).</div>
-            }
+<!--            @if (phoneNumber?.dirty) {-->
+<!--              <div class="invalid-feedback">Wymagany pełny numer (+48 xxx xxx xxx).</div>-->
+<!--            }-->
           </div>
 
           <div class="mb-3">
@@ -197,11 +197,11 @@ export default class ClinicsComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService)
   private readonly router = inject(Router)
-   clinicForm = new FormBuilder().nonNullable
-  clinicName = this.clinicForm.group({who: new FormControl('')})
+   clinicForm = this.fb.group({
+  clinicName : ['', Validators.required, Validators.minLength(13)],
     phoneNumber: ['', Validators.required, Validators.minLength(13)],
     description: ['', Validators.required, Validators.minLength(10)],
-  // });
+  });
 
   // get clinicName() {
   //   return this.clinicForm.get('clinicName')
