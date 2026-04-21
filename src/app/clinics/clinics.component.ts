@@ -2,11 +2,14 @@ import {ChangeDetectionStrategy, Component, effect, ElementRef, inject, signal, 
 import {Role} from "../shared/interfaces/user.interface";
 import {Router} from "@angular/router";
 import {AuthService} from "../shared/data-access/auth.service";
-import {LocationResult, MapComponent} from "./features/map/map.component";
-import {FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
+import {MapComponent} from "./features/map/map.component";
+import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
 import {NgxMaskDirective, provideNgxMask} from "ngx-mask";
-import {DragDropFile} from "../shared/directives/drag-drop-file";
 import {FaIconComponent} from "@fortawesome/angular-fontawesome";
+import {LocationResult, Voivodeship} from "../shared/data-access/geo.service";
+import {SelectVoivodenship} from "./features/select-voivodenship/select-voivodenship";
+import {SelectLocation} from "./features/select-location/select-location";
+
 
 interface UploadedImage {
   file: File;
@@ -20,175 +23,185 @@ interface UploadedImage {
     FormsModule,
     FaIconComponent,
     NgxMaskDirective,
-    DragDropFile,
     ReactiveFormsModule,
+    SelectVoivodenship,
+    SelectLocation,
   ],
   providers: [provideNgxMask()],
   template: `
-    <main class="container-lg py-4">
-      <h2 class="text-center mb-3">Utwórz nową klinikę</h2>
-      <p class="text-center text-muted mb-5">Wypełnij poniższe pola, aby zarejestrować swoją klinikę
-        weterynaryjną.</p>
+    <main class="map-container h-100 position-relative">
 
-      <form class="row justify-content-center" [formGroup]="clinicForm">
-        <div class="col-md-4">
+      <div class="map-wrapper w-100 h-100 position-absolute top-0 start-0 z-1">
+        <app-map [clinicLocationSelected]="clinicAddress()"
+                 [voivodeshipSelected]="clinicVoivodenshipLocation()"></app-map>
+      </div>
 
-          <div class="mb-3">
-            <label class="form-label fw-bold" for="clinic-name">Nazwa kliniki</label>
-            <textarea rows="2"
-                      class="form-control"
-                      placeholder="np. Zdrowa Łapka"
-                      name="clinicName"
-                      required
-                      id="clinicName"
-                      formControlName="clinicName">
-            </textarea>
+      <div class="floating-panel col-11 col-sm-8 col-md-5 col-lg-4 col-xl-3
+              position-absolute top-50 start-0 translate-middle-y m-3
+              bg-white rounded-3 shadow-lg z-2
+              d-flex flex-column">
 
-<!--            @if (clinicForm.?.invalid) {-->
-<!--              <div class="invalid-feedback">Nazwa kliniki jest wymagana.</div>-->
-<!--            }-->
+        <div class="p-4 pb-0">
+          <h3 class="mb-1 fw-bold">Nowa Klinika</h3>
+          <p class="text-muted small mb-3">Wypełnij dane, aby zarejestrować placówkę.</p>
+        </div>
+
+        <form [formGroup]="clinicForm" (ngSubmit)="submitClinic()" class="p-4 pt-2 overflow-y-auto flex-grow-1">
+
+          <div class="mb-2">
+            <label class="form-label fw-bold">Wskaż województwo</label>
+            <app-select-voivodenship (voivodenshipLocation)="clinicVoivodenshipLocation.set($event)"
+                                     (voivodenshipSelected)="clinicVoivodenship.set($event)"/>
           </div>
 
-          <div class="mb-3">
+          @if (clinicVoivodenship() && clinicVoivodenshipLocation()) {
+            <div class="mb-2">
+              <label class="form-label fw-bold">Wyszukaj adres</label>
+              <app-select-location (addressSelected)="clinicAddress.set($event)"
+                                   [voivodeship]="clinicVoivodenship()"
+              />
+            </div>
+          }
+
+          @if (clinicAddress(); as loc) {
+            <div class="mb-2">
+              <label class="form-label fw-bold">Ulica</label>
+              <input class="form-control form-control-sm bg-light"
+                     [value]="loc.address.road || ''"
+                     [disabled]="!!loc.address.road">
+            </div>
+
+            <div class="row mb-2">
+              <div class="col">
+              <label class="form-label fw-bold">Numer budynku</label>
+              <input type="text"
+                     class="form-control form-control-sm"
+                     [class.is-invalid]="!loc.address.house_number"
+                     [disabled]="!!loc.address.house_number"
+                     [value]="loc.address.house_number || ''"
+                     #houseNum
+                     (input)="updateHouseNumber(houseNum.value)"
+                     placeholder="Wpisz nr">
+
+              @if (!loc.address.house_number) {
+                <div class="invalid-feedback d-block">
+                  Nie znaleziono numeru. Wpisz go ręcznie.
+                </div>
+              }
+            </div>
+              <div class="col">
+                <label class="form-label fw-bold">Kod pocztowy</label>
+                <input type="text"
+                       class="form-control form-control-sm"
+                       [class.is-invalid]="!loc.address.house_number"
+                       [disabled]="!!loc.address.house_number"
+                       [value]="loc.address.house_number || ''"
+                       #houseNum
+                       (input)="updateHouseNumber(houseNum.value)"
+                       placeholder="Wpisz nr">
+
+                @if (!loc.address.house_number) {
+                  <div class="invalid-feedback d-block">
+                    Nie znaleziono numeru. Wpisz go ręcznie.
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <div class="mb-2">
+            <label class="form-label fw-bold">Nazwa kliniki</label>
+            <textarea rows="1" class="form-control form-control-sm" formControlName="clinicName"
+                      placeholder="np. Zdrowa Łapka"></textarea>
+          </div>
+
+          <div class="mb-2">
             <label class="form-label fw-bold">Numer telefonu</label>
-            <input type="tel"
-                   class="form-control"
-                   placeholder="np. 532 175 660"
-                   mask="000 000 000"
-                   prefix="+48 "
-                   [dropSpecialCharacters]="false"
-                   name="phoneNumber"
-                   required
-                   minlength="13"
+            <input type="tel" class="form-control form-control-sm" mask="000 000 000" prefix="+48 "
                    formControlName="phoneNumber">
-<!--            @if (phoneNumber?.dirty) {-->
-<!--              <div class="invalid-feedback">Wymagany pełny numer (+48 xxx xxx xxx).</div>-->
-<!--            }-->
           </div>
 
-          <div class="mb-3">
-            <label class="form-label fw-bold">Godziny otwarcia &nbsp;</label>
-            <div class="d-flex flex-column align-items-center gap-2">
-              <label class="form-label mb-0">Pon-Pt:</label>
-              <input type="time" class="form-control" name="openTime" required>
-              <input type="time" class="form-control" name="closeTime" required>
+          <div class="mb-2">
+            <label class="form-label fw-bold">Godziny (Pon-Pt)</label>
+            <div class="d-flex gap-2">
+              <input type="time" class="form-control form-control-sm" formControlName="openTime">
+              <input type="time" class="form-control form-control-sm" formControlName="closeTime">
             </div>
           </div>
-        </div>
 
-        <div class="col-8 map-column">
-          <app-map (streetAddressSelected)="handleSelection($event)"></app-map>
-        </div>
-
-
-        <div class="col-12 mt-4">
-          <label class="form-label fw-bold">Opis</label>
-          <textarea class="form-control"
-                    rows="4"
-                    placeholder="Opowiedz nam o swojej klinice..."
-                    name="description"
-                    required
-                    formControlName="description">
-<!--                    [class.is-valid]="description.valid && description.dirty"-->
-<!--                    [class.is-invalid]="description.invalid && description.dirty"-->
-          </textarea>
-        </div>
-
-        <input class="invisible"
-               type="file"
-               #fileInput
-               multiple
-               accept="image/png, image/jpeg, image/gif"
-               (change)="onFileInputChange($event)">
-
-        <div class="col-12 my-4 p-4 text-center file-drop-area"
-             #dragDropFile="appDragDropFile"
-             [class.drag-over]="dragDropFile.isDragging()"
-             appDragDropFile
-             (fileDropped)="onFilesDropped($event)"
-             (click)="openFileDialog()">
-
-          <div class="d-flex flex-wrap justify-content-center gap-3">
-            @for (image of uploadedFiles(); track image.url) {
-              <div class="thumbnail-container">
-                <img [src]="image.url" alt="Miniatura zdjęcia" class="img-thumbnail">
-                <button type="button"
-                        class="btn-remove"
-                        (click)="$event.stopPropagation(); removeFile(image.url)">
-                  &times;
-                </button>
-              </div>
-            }
-
-            @if (!uploadedFiles().length) {
-              <fa-icon [icon]="['fas', 'image']" size="2x"></fa-icon>
-              <p class="mt-2">
-                <span class="text-success">Prześlij plik</span> lub przeciągnij i upuść
-              </p>
-            }
+          <div class="mb-2">
+            <label class="form-label fw-bold">Opis</label>
+            <textarea class="form-control form-control-sm" rows="1" formControlName="description"></textarea>
           </div>
 
-          <small class="text-muted mt-3">PNG, JPG, GIF do 10MB</small>
+          <div class="">
+            <label class="form-label fw-bold">Zdjęcia</label>
+            <div class="file-drop-area p-3 text-center rounded" (click)="openFileDialog()">
+              <fa-icon [icon]="['fas', 'image']" class="text-muted me-2"></fa-icon>
+              <span>Dodaj zdjęcia ({{ uploadedFiles().length }})</span>
+            </div>
+          </div>
 
-        </div>
+          <div class="d-grid mt-4  bg-white pt-2 z-1">
+            <button type="submit" class="btn btn-success w-100">Utwórz klinikę</button>
+          </div>
+        </form>
+      </div>
 
-        <div class="col-12 d-grid">
-          <button type="submit" class="btn btn-lg btn-success">Utwórz klinikę</button>
-        </div>
-      </form>
     </main>
   `,
   styles: `
-    .map-column {
-      //min-height: 50vh;
-      transition: transform 0.3s ease-in-out;
+    /* Kontener główny */
+    .map-container {
+      height: calc(100vh - 98px);
     }
-    .map-column:hover {
-      transform: scale(1.05);
+
+    /* Pływający panel (formularz) */
+    .floating-panel {
+      /* Maksymalna wysokość, żeby panel nie wyszedł poza ekran na laptopach */
+      max-height: calc(100vh - 98px); /* 2rem na marginesy m-md-4 */
+
+      /* Płynne pojawianie się na mobile */
+      transition: all 0.3s ease-out;
     }
-    /* Styl dla walidacji mapy */
-    .is-invalid-border {
-      border: 2px solid var(--bs-form-invalid-color);
-      padding: 0;
-      border-radius: 0.375rem; /* Zaokrąglenie Bootstrapa */
+
+    /* Mobile-first: na bardzo małych ekranach panel na dole */
+    @media (max-width: 575.98px) {
+      .floating-panel {
+        margin: 0 !important;
+        top: auto !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 1rem 1rem 0 0 !important; /* Zaokrąglone tylko górne rogi */
+        max-height: 70vh; /* Zajmuje max 70% wysokości ekranu */
+      }
     }
+
+    /* Estetyczny scrollbar dla formularza wewnątrz panelu */
+    .overflow-y-auto::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .overflow-y-auto::-webkit-scrollbar-thumb {
+      background: #e0e0e0;
+      border-radius: 10px;
+    }
+
+    .overflow-y-auto::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    /* Twój stary styl dla drop-area, lekko pomniejszony */
     .file-drop-area {
-      border: 2px dashed #ccc;
-      transition: border-color 0.2s ease, background-color 0.2s ease;
+      border: 1px dashed #ccc;
       cursor: pointer;
+      background-color: #f8f9fa;
     }
-    .file-drop-area.drag-over {
+
+    .file-drop-area:hover {
       border-color: var(--bs-success);
-      background-color: #e9f7ed;
-    }
-    .thumbnail-container {
-      position: relative;
-      width: 100px;
-      height: 100px;
-      margin: 5px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    .img-thumbnail {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .btn-remove {
-      position: absolute;
-      top: -10px;
-      right: -10px;
-      background: red;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 25px;
-      height: 25px;
-      line-height: 1;
-      text-align: center;
-      padding: 0;
-      cursor: pointer;
-      z-index: 10;
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -197,30 +210,24 @@ export default class ClinicsComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService)
   private readonly router = inject(Router)
-   clinicForm = this.fb.group({
-  clinicName : ['', Validators.required, Validators.minLength(13)],
+  clinicForm = this.fb.group({
+    voivodeship: ['', Validators.required],
+    address: ['', Validators.required],
+    openTime: ['', Validators.required],
+    closeTime: ['', Validators.required],
+    clinicName: ['', Validators.required, Validators.minLength(13)],
     phoneNumber: ['', Validators.required, Validators.minLength(13)],
     description: ['', Validators.required, Validators.minLength(10)],
   });
 
-  // get clinicName() {
-  //   return this.clinicForm.get('clinicName')
-  // }
-
-  // get phoneNumber() {
-  //   return this.clinicForm.get('phoneNumber')
-  // }
-  // ViewChild dla ukrytego inputu
   @ViewChild('fileInput') fileInputElement!: ElementRef<HTMLInputElement>;
 
   user = this.authService.user
-  selectedAddress = signal<LocationResult | null>(null);
-  uploadedFiles = signal<UploadedImage[]>([]);
 
-  // Obsługa wyboru adresu na mapie
-  handleSelection(address: LocationResult | null) {
-    this.selectedAddress.set(address);
-  }
+  clinicVoivodenship = signal<Voivodeship | null>(null);
+  clinicVoivodenshipLocation = signal<LocationResult | null>(null)
+  clinicAddress = signal<LocationResult | null>(null);
+  uploadedFiles = signal<UploadedImage[]>([]);
 
   // Symuluje kliknięcie na ukryty input
   openFileDialog() {
@@ -291,9 +298,12 @@ export default class ClinicsComponent {
   submitClinic() {
     this.clinicForm.markAllAsTouched();
 
-    if (this.clinicForm.invalid || !this.selectedAddress()) return;
+    if (this.clinicForm.invalid || !this.clinicAddress()) return;
 
     console.log('✅ Wysłano formularz:', this.clinicForm.value);
   }
 
+  protected updateHouseNumber(value: string) {
+
+  }
 }
