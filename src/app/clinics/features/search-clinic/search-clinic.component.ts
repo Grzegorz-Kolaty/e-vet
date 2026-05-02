@@ -3,7 +3,6 @@ import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 import {toObservable, toSignal} from "@angular/core/rxjs-interop";
 import {debounceTime, distinctUntilChanged, Subject} from "rxjs";
 import {httpResource} from "@angular/common/http";
-import {LocationResult} from "../map/map.component";
 import {NgOptionTemplateDirective, NgSelectComponent} from "@ng-select/ng-select";
 import {FormsModule} from "@angular/forms";
 import {JsonPipe} from "@angular/common";
@@ -88,7 +87,7 @@ export class SearchClinicComponent {
     })
 
     effect(() => {
-      console.log('selected:', this.selectedLocationValue);
+      console.log('clinicLocationSelection:', this.selectedLocationValue);
     });
   }
 

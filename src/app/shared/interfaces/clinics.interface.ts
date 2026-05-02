@@ -1,26 +1,26 @@
-import {GeoPoint} from "firebase/firestore";
-
-export interface Address {
-  city: string;
-  street: string;
-  houseNumber: string;
-  zipCode: string;
-}
+import {Role, UserInterface} from "./user.interface";
+import {LocationResult, Voivodeship} from "../data-access/geo.service";
 
 export interface Clinic {
-  name: string;
-  address: Address;
-  id?: string;
-  description: string;
-  geo: GeoPoint
-}
-
-export interface ClinicMember {
-  vetId: string;
-  name: string;
-  email: string;
-}
-
-export interface CreateClinic extends Clinic {
-  member: ClinicMember;
+  clinicName: string;
+  phoneNumber: string;
+  street: string;
+  houseNumber: string;
+  apartmentNumber?: string;
+  postcode: string;
+  city: string;
+  voivodenship: Voivodeship | null;
+  rawGeoData: LocationResult;
+  latitude: number;
+  longitude: number;
+  geojson: any;
+  clinicCreator: {
+    uid: string,
+    name: string,
+    email: string,
+    email_verified: boolean,
+    pic?: string,
+    role: Role,
+    clinicId?: string,
+  }
 }

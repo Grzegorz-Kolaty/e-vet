@@ -1,16 +1,19 @@
-import {ChangeDetectionStrategy, Component, inject, output, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, inject, input, model, output, signal} from '@angular/core';
 import {GeoService, LocationResult, Voivodeship} from "../../../shared/data-access/geo.service";
 import {toObservable, toSignal} from "@angular/core/rxjs-interop";
 import {distinctUntilChanged, filter, switchMap, tap} from "rxjs";
+
 
 @Component({
   selector: 'app-select-voivodenship',
   imports: [],
   template: `
     <fieldset class="search-box">
+      <label for="voivodeshipSelector" class="form-label">Wybierz województwo</label>
       <div class="position-relative z-3">
         <div class="input-group">
           <input class="form-control form-control-sm"
+                 id="voivodeshipSelector"
                  readonly
                  [value]="selected() || 'Wybierz z listy...'"
                  (click)="open.set(!open())"
@@ -21,7 +24,7 @@ import {distinctUntilChanged, filter, switchMap, tap} from "rxjs";
         </div>
 
         @if (open()) {
-          <div class="list-open border mt-1 position-absolute w-100 bg-white shadow-lg overflow-auto">
+          <div class="list-open border position-absolute w-100 bg-white shadow-lg overflow-auto">
             @for (v of voivodeships; track v) {
               <button type="button"
                       class="btn btn-sm btn-light w-100 text-start border-bottom py-2"
@@ -59,37 +62,35 @@ export class SelectVoivodenship {
   private readonly geoService = inject(GeoService);
 
 // Stan
-voivodeships = Object.values(Voivodeship);
-open = signal(false);
-selected = signal<Voivodeship | null>(null);
+  voivodeships = Object.values(Voivodeship);
+  open = signal(false);
+  selected = signal<Voivodeship | null>(null);
 
 // Event wyjściowy dla rodzica
-voivodenshipLocation = output<LocationResult>();
-voivodenshipSelected = output<Voivodeship>();
+  voivodenshipSelected = output<Voivodeship | null>();
+  voivodenshipLocation = output<LocationResult | null>();
 
+// Reaktywne pobieranie danych po zmianie sygnału 'clinicLocationSelection'
+  private selected$ = toObservable(this.selected);
 
-// Reaktywne pobieranie danych po zmianie sygnału 'selected'
-private selected$ = toObservable(this.selected);
+// Strumień wyników - automatycznie odpala się gdy 'clinicLocationSelection' się zmieni
+  private locationData$ = this.selected$.pipe(
+    filter((v): v is Voivodeship => !!v),
+    distinctUntilChanged(),
+    tap(v => this.voivodenshipSelected.emit(v)),
+    switchMap(v => this.geoService.loadVoivodenshipGeo(v)),
+    tap(results => {
+      if (results) {
+        this.voivodenshipLocation.emit(results);
+      }
+    })
+  );
 
-// Strumień wyników - automatycznie odpala się gdy 'selected' się zmieni
-private locationData$ = this.selected$.pipe(
-  filter((v): v is Voivodeship => !!v),
-  distinctUntilChanged(),
-  tap(v => this.voivodenshipSelected.emit(v)),
-  switchMap(v => this.geoService.loadVoivodenshipGeo(v)),
-  tap(results => {
-    if (results) {
-      this.voivodenshipLocation.emit(results);
-    }
-  })
-);
+  results = toSignal(this.locationData$);
 
-// Rejestrujemy subskrypcję strumienia przez toSignal (uruchamia strumień)
-results = toSignal(this.locationData$);
-
-select(v: Voivodeship) {
-  this.selected.set(v);
-  this.open.set(false);
-}
+  select(v: Voivodeship) {
+    this.selected.set(v);
+    this.open.set(false);
+  }
 
 }

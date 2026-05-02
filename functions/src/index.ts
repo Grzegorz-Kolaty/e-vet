@@ -1,22 +1,12 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
-
 import {HttpsError, onCall} from "firebase-functions/v2/https";
 import {getAuth} from "firebase-admin/auth";
 import {initializeApp} from 'firebase-admin/app';
-import {getFirestore, Firestore, FieldValue, GeoPoint} from 'firebase-admin/firestore';
+import {getFirestore, FieldValue, GeoPoint} from 'firebase-admin/firestore';
 import {sendVerificationEmail} from './mailer';
-
 
 initializeApp();
 const auth = getAuth();
-
+const db = getFirestore();
 
 export const createUser = onCall(
   {enforceAppCheck: true},
@@ -56,68 +46,68 @@ export const createUser = onCall(
   }
 );
 
-
 export const createNewClinic = onCall(
-  {
-    enforceAppCheck: true,
-  },
+  {enforceAppCheck: true},
   async (request) => {
-    if (!request.auth || !request.auth.token || !request.auth.token.email) {
-      throw new HttpsError("failed-precondition", "The function must be called while authenticated.");
+    if (!request.auth) {
+      throw new HttpsError("failed-precondition", "Użytkownik musi być zalogowany.");
     }
 
-    const db: Firestore = getFirestore();
     const vetId = request.auth.uid;
-    const {name, description, address} = request.data;
-    const vetName = request.data.member.name;
-    const vetEmail = request.data.member.email;
-    const geo = new GeoPoint(request.data.geo.latitude, request.data.geo.longitude)
+    const data = request.data;
 
-    //
-    // const {latitude, longitude} = geo;
-    //
-    // if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-    //   throw new HttpsError("invalid-argument", "Współrzędne są poza dopuszczalnym zakresem.");
-    // }
-    //
-    // const geoPoint = new GeoPoint(latitude, longitude);
-
-    if (!name || !address || !vetName || !vetEmail) {
-      throw new HttpsError("invalid-argument", "Missing clinic or vet information.", request.data);
+    // Podstawowa walidacja pól tekstowych
+    if (!data.clinicName || !data.street || !data.houseNumber) {
+      throw new HttpsError("invalid-argument", "Brak wymaganych danych adresowych kliniki.");
     }
-    
+
+    // Walidacja i rzutowanie współrzędnych
+    const lat = Number(data.latitude);
+    const lng = Number(data.longitude);
+
+    if (isNaN(lat) || isNaN(lng)) {
+      throw new HttpsError("invalid-argument", "Błędne współrzędne geograficzne.");
+    }
 
     try {
-      const clinicRef = db.collection("clinics").doc(); // create new clinic doc
-      const membersRef = clinicRef.collection("members").doc(vetId); // add vet as member
-
+      const clinicRef = db.collection("clinics").doc();
       const batch = db.batch();
 
       batch.set(clinicRef, {
-        name,
-        description: description || null,
-        address,
-        createdAt: FieldValue.serverTimestamp(),
-        ownerId: vetId,
-        geo: geo
-      });
+        clinicName: data.clinicName,
+        phoneNumber: data.phoneNumber || null,
+        street: data.street,
+        houseNumber: data.houseNumber,
+        apartmentNumber: data.apartmentNumber || null,
+        postcode: data.postcode,
+        city: data.city,
+        voivodenship: data.voivodenship,
 
-      batch.set(membersRef, {
-        name: vetName,
-        email: vetEmail,
-        isAdmin: true,
-        joinedAt: FieldValue.serverTimestamp(),
+        // GeoPoint wymaga czystych liczb (numbers)
+        geo: new GeoPoint(lat, lng),
+
+        geojson: data.geojson || null,
+        rawGeoData: data.rawGeoData || null,
+
+        ownerId: vetId,
+        clinicCreator: data.clinicCreator,
+        createdAt: FieldValue.serverTimestamp(),
       });
 
       await batch.commit();
 
-      const user = await auth.getUser(request.auth.uid)
-      await auth.setCustomUserClaims(request.auth.uid, {...user.customClaims, clinicId: clinicRef.id});
-
+      // Aktualizacja uprawnień (Claims)
+      const user = await auth.getUser(vetId);
+      await auth.setCustomUserClaims(vetId, {
+        ...(user.customClaims ?? {}),
+        clinicId: clinicRef.id
+      });
 
       return {clinicId: clinicRef.id};
+
     } catch (error) {
-      throw new HttpsError("internal", "Failed to create clinic", request.data);
+      console.error("Błąd Cloud Functions:", error);
+      throw new HttpsError("internal", "Wystąpił błąd podczas rejestracji kliniki.");
     }
   }
 );
