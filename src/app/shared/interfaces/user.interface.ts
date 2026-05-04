@@ -1,10 +1,10 @@
 export interface UserInterface {
-  uid: string;
+  user_id: string;
   email: string;
-  name: string;
+  displayName: string;
   role: Role;
-  clinicId?: string
-  picture?: string;
+  createdAt: string;
+  clinicId: string;
   email_verified: boolean;
 }
 

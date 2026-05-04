@@ -3,12 +3,13 @@ import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angula
 import {AuthService} from "../../../shared/data-access/auth.service";
 import {NgxMaskDirective, provideNgxMask} from "ngx-mask";
 import ClinicService from "../../../shared/data-access/clinic.service";
-import {SelectVoivodenship} from "../select-voivodenship/select-voivodenship";
 import {SelectLocation} from "../select-location/select-location";
 import {Router} from "@angular/router";
 import {LocationResult, Voivodeship} from "../../../shared/data-access/geo.service";
-import {Clinic} from "../../../shared/interfaces/clinics.interface";
+import {Clinic, ClinicLocation} from "../../../shared/interfaces/clinics.interface";
 import {MapComponent} from "../map/map.component";
+import {SelectVoivodeship} from "../select-voivodenship/select-voivodeship.component";
+import {JsonPipe} from "@angular/common";
 
 
 @Component({
@@ -17,14 +18,33 @@ import {MapComponent} from "../map/map.component";
     FormsModule,
     NgxMaskDirective,
     ReactiveFormsModule,
-    SelectVoivodenship,
     SelectLocation,
     MapComponent,
+    SelectVoivodeship,
+    JsonPipe,
   ],
   providers: [provideNgxMask()],
   template: `
-    <app-map [clinicLocationSelected]="onSelectClinicLocation()"
-             [voivodeshipSelected]="onSelectVoivodenshipLocation()"/>
+    <div class="row">
+      <div class="col"></div>
+      <p>onSelectVoivodeship</p>
+      {{ onSelectVoivodeship() | json }}
+
+      <div class="col">
+
+        <p>voivodeshipLocation</p>
+        <pre>      {{ !!voivodeshipLocation() }}</pre>
+      </div>
+
+      <div class="col">
+
+        <p>Formdata</p>
+        <pre>{{ clinicForm.getRawValue() | json }}</pre>
+      </div>
+    </div>
+    <app-map [clinicLocationSelected]="clinicLocation()"
+             [voivodeshipSelected]="voivodeshipLocation()"/>
+
 
     <div class="floating-panel col-11 col-sm-8 col-md-5 col-lg-4 col-xl-3
               position-absolute top-50 start-0 translate-middle-y my-auto ms-2
@@ -41,23 +61,33 @@ import {MapComponent} from "../map/map.component";
       <form [formGroup]="clinicForm" (ngSubmit)="submitClinic()" class="p-4 pt-2">
 
         <div class="mb-2">
-          <app-select-voivodenship
-            (voivodenshipSelected)="onSelectVoivodenship.set($event)"
-            (voivodenshipLocation)="onSelectVoivodenshipLocation.set($event)"/>
+
+          <app-select-voivodeship (voivodeshipSelected)="onSelectVoivodeship.set($event)"
+                                  (voivodeshipLocation)="voivodeshipLocation.set($event)"/>
+
         </div>
 
-        @if (onSelectVoivodenship()) {
+        @if (onSelectVoivodeship()) {
           <div class="mb-2">
             <label class="form-label fw-bold small">Wyszukaj dokładny adres</label>
             <app-select-location
-              (clinicLocationSelection)="onSelectClinicLocation.set($event)"
-              [voivodeship]="onSelectVoivodenship()"/>
+              (clinicLocationSelection)="clinicLocation.set($event)"
+              [voivodeship]="onSelectVoivodeship()"/>
           </div>
         }
 
-        @if (onSelectClinicLocation(); as loc) {
+        @if (clinicLocation(); as loc) {
+
           <div class="mb-2">
-            <label class="form-label fw-bold small">Ulica / Lokalizacja</label>
+            <label class="form-label fw-bold small">Miasto</label>
+            <input class="form-control form-control-sm bg-light"
+                   [value]="loc.city"
+                   readonly>
+          </div>
+
+
+          <div class="mb-2">
+            <label class="form-label fw-bold small">Ulica</label>
             <input class="form-control form-control-sm bg-light"
                    formControlName="street"
                    readonly>
@@ -71,7 +101,7 @@ import {MapComponent} from "../map/map.component";
                      formControlName="houseNumber"
                      [class.is-invalid]="clinicForm.get('houseNumber')?.invalid"
                      placeholder="Wpisz nr">
-              @if (!loc.address.house_number) {
+              @if (!loc.houseNumber) {
                 <div class="small text-warning">
                   Mapa nie podała numeru, wpisz go ręcznie.
                 </div>
@@ -118,10 +148,28 @@ import {MapComponent} from "../map/map.component";
                  [class.is-invalid]="clinicForm.get('phoneNumber')?.touched && clinicForm.get('phoneNumber')?.invalid">
         </div>
 
+        <div class="row mb-3">
+          <div class="col-auto">
+            <label class="form-label fw-bold small">Godziny rozpoczęcia</label>
+            <input type="time"
+                   class="form-control form-control-sm"
+                   formControlName="timeOpen"
+                   [class.is-invalid]="clinicForm.get('timeOpen')?.touched && clinicForm.get('timeOpen')?.invalid">
+          </div>
+
+          <div class="col-auto">
+            <label class="form-label fw-bold small">Godziny zamknięcia</label>
+            <input type="time"
+                   class="form-control form-control-sm"
+                   formControlName="timeClose"
+                   [class.is-invalid]="clinicForm.get('timeClose')?.touched && clinicForm.get('timeClose')?.invalid">
+          </div>
+        </div>
+
         <div class="d-grid mt-4 bg-white pt-2">
           <button type="submit"
                   class="btn btn-success w-100 fw-bold"
-                  [disabled]="clinicForm.invalid || !onSelectClinicLocation()">
+                  [disabled]="clinicForm.invalid || !clinicLocation()">
             Utwórz klinikę
           </button>
         </div>
@@ -185,10 +233,10 @@ export default class CreateClinicComponent {
   private readonly clinicService = inject(ClinicService);
 
   user = this.authService.user;
-  onSelectClinicLocation = signal<LocationResult | null>(null);
+  clinicLocation = signal<ClinicLocation | null>(null);
 
-  onSelectVoivodenship = signal<Voivodeship | null>(null);
-  onSelectVoivodenshipLocation = signal<LocationResult | null>(null);
+  onSelectVoivodeship = signal<Voivodeship | null>(null);
+  voivodeshipLocation = signal<LocationResult | null>(null);
 
   clinicForm = this.fb.nonNullable.group({
     clinicName: ['', Validators.required],
@@ -197,78 +245,83 @@ export default class CreateClinicComponent {
     apartmentNumber: [''],
     postcode: ['', Validators.required],
     street: ['', Validators.required],
+    timeOpen: ['', Validators.required],
+    timeClose: ['', Validators.required],
   });
 
 
   constructor() {
     effect(() => {
-      if (!this.user()) this.router.navigate(['auth']);
+      if (!this.user) this.router.navigate(['auth']);
     });
 
     effect(() => {
-      const loc = this.onSelectClinicLocation();
+      const loc = this.clinicLocation();
       if (loc) {
         this.clinicForm.patchValue({
-          street: loc.address.road || loc.address.village || loc.address.city || '',
-          postcode: loc.address.postcode?.replace('-', '') || '', // maska ngx-mask może tego wymagać
-          houseNumber: loc.address.house_number || ''
+          street: loc.street || loc.city || '',
+          postcode: loc.postcode.replace('-', '') || '', // maska ngx-mask może tego wymagać
+          houseNumber: loc.houseNumber || ''
         });
 
-        if (loc.address.house_number) {
+        if (loc.houseNumber) {
           this.clinicForm.get('houseNumber')?.markAsTouched();
         }
       }
     });
 
     effect(() => {
-      const voivo = this.onSelectVoivodenship()
-      if (voivo) {
-        this.onSelectVoivodenshipLocation.set(null)
-        this.clinicForm.reset()
+      const changeVoivo = this.onSelectVoivodeship()
+      if (changeVoivo) {
+        this.voivodeshipLocation.set(null);
+        this.clinicLocation.set(null);
+        this.clinicForm.reset();
       }
-    })
+    });
+
+    effect(() => {
+      console.log(this.user())
+    });
   }
 
 
   protected combineAllData(): Clinic {
     const form = this.clinicForm.getRawValue();
-    const loc = this.onSelectClinicLocation();
-    const voivo = this.onSelectVoivodenship();
+    const loc = this.clinicLocation();
+    const voivo = this.onSelectVoivodeship();
     const profile = this.user()
 
     if (!loc || !profile) throw new Error("No location clinicLocationSelection");
 
     return {
-      rawGeoData: loc,
-      clinicCreator: {
-        uid: profile.uid,
-        name: profile.name,
-        email: profile.email,
-        email_verified: profile.email_verified,
-        pic: profile.picture,
-        role: profile.role,
-        clinicId: profile.clinicId
-      },
       clinicName: form.clinicName.trim(),
-      phoneNumber: form.phoneNumber ?? null,
-      voivodenship: voivo,
-      latitude: loc.lat,
-      longitude: loc.lon,
-      geojson: loc.geojson || "",
-      city: loc.address.city || loc.address.village || loc.address.town || "",
-      street: loc.address.road || loc.address.village || "",
+      id: "",
+      ownerId: profile.user_id,
+      phoneNumber: form.phoneNumber?.trim() ?? '',
+      voivodeship: voivo,
+      latitude: Number(loc.latitude),
+      longitude: Number(loc.longitude),
+      geojson: loc.geojson,
+      city: loc.city || "",
+      street: loc.street || "",
       houseNumber: form.houseNumber,
       postcode: form.postcode,
       apartmentNumber: form.apartmentNumber,
+      timeClose: form.timeClose,
+      timeOpen: form.timeOpen,
+      coverImage: {
+        url: "",
+      }
     }
   }
 
   async submitClinic() {
-    if (this.clinicForm.invalid || !this.onSelectVoivodenshipLocation()) return;
+    if (this.clinicForm.invalid || !this.voivodeshipLocation()) return;
 
     const dto = this.combineAllData();
 
+    console.log(dto);
+
     await this.clinicService.createClinic(dto);
   }
-
 }

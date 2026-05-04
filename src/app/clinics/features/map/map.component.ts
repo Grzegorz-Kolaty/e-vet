@@ -1,8 +1,9 @@
-import {ChangeDetectionStrategy, Component, effect, input} from '@angular/core';
+import {ChangeDetectionStrategy, Component, effect, input, output} from '@angular/core';
 import {FormsModule} from "@angular/forms";
 import {LeafletDirective, LeafletLayersDirective} from "@bluehalo/ngx-leaflet";
 import {LocationResult} from "../../../shared/data-access/geo.service";
 import {control, geoJSON, latLng, LatLngTuple, Layer, Map as LeafletMap, marker, tileLayer} from "leaflet";
+import { ClinicLocation} from "../../../shared/interfaces/clinics.interface";
 
 
 @Component({
@@ -10,12 +11,12 @@ import {control, geoJSON, latLng, LatLngTuple, Layer, Map as LeafletMap, marker,
   imports: [FormsModule, LeafletDirective, LeafletLayersDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-      <div class="map h-100"
-           leaflet
-           [leafletOptions]="options"
-           [leafletLayers]="markers"
-           (leafletMapReady)="onMapReady($event)">
-      </div>
+    <div class="map h-100"
+         leaflet
+         [leafletOptions]="options"
+         [leafletLayers]="markers"
+         (leafletMapReady)="onMapReady($event)">
+    </div>
   `,
   styles: `
     .map {
@@ -26,6 +27,7 @@ import {control, geoJSON, latLng, LatLngTuple, Layer, Map as LeafletMap, marker,
 export class MapComponent {
   markers: Layer[] = []
   map: LeafletMap | null = null
+  mapReady = output()
   options = {
     layers: [
       tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -36,62 +38,78 @@ export class MapComponent {
     center: latLng([53.4046675, 14.4991249]),
     zoomControl: false
   };
-
-  clinicLocationSelected = input<LocationResult | null>(null)
+  clinicLocationSelected = input<ClinicLocation | null>(null)
   voivodeshipSelected = input<LocationResult | null>(null)
 
 
   constructor() {
     effect(() => {
-      const clinicLocationSelected = this.clinicLocationSelected()
-      const map = this.map
-      if (clinicLocationSelected && map) {
-        this.targetLocation(clinicLocationSelected)
-      }
-    })
+      const map = this.map;
+      const location = this.clinicLocationSelected();
+      console.log(map, location)
+
+      if (!map || !location) return;
+      console.log("sent target")
+
+      this.targetLocation(location);
+    });
 
     effect(() => {
-      const voivodeshipSelected = this.voivodeshipSelected()
       const map = this.map
-      if (voivodeshipSelected && map) {
-        this.targetLocation(voivodeshipSelected)
-      }
+      const voivodeship = this.voivodeshipSelected()
+
+      if (!map || !voivodeship) return;
+      console.log("sent target")
+      this.targetVoivodeship(voivodeship)
+
     })
   }
 
   onMapReady(map: LeafletMap) {
     control.zoom({
       position: 'bottomleft'
-    }).addTo(map)
+    }).addTo(map);
 
     this.map = map;
+    this.mapReady.emit()
   }
 
-  targetLocation(location: LocationResult) {
-    if (!this.map) {
-      console.log('target location has no map, return');
-      return;
-    }
+  targetLocation(location: ClinicLocation) {
+    const map = this.map;
+    if (!map) return;
 
-    const coords: LatLngTuple = [Number(location.lat), Number(location.lon)];
+    console.log(location);
+
+    const coords: LatLngTuple = [
+      Number(location.latitude),
+      Number(location.longitude)
+    ];
+
     const newMarker = marker(coords);
-    const layers: Layer[] = [newMarker];
 
-    if (location.geojson) {
-      const boundaryLayer = geoJSON(location.geojson,
-        {
-          style:
-            {color: '#ff7800', weight: 5, opacity: 0.65}
-        });
-      layers.push(boundaryLayer);
-      this.map.fitBounds(boundaryLayer.getBounds());
-    } else {
-      layers.push(newMarker);
-      this.map.setView(coords, 13);
-    }
+    // 🔥 reset zamiast push (ważne!)
+    this.markers = [newMarker];
 
-    this.markers = layers;
-    console.log("markery zdane")
+    map.setView(coords, 13);
+  }
+
+
+  private targetVoivodeship(voivodeshipLocation: LocationResult) {
+    const map = this.map;
+    if (!map) return;
+    const localLayers: Layer[] = []
+
+    const geojson = voivodeshipLocation.geojson
+
+    console.log("location geojson detected", geojson)
+    const boundaryLayer = geoJSON(geojson, {
+      style: {color: '#ff7800', weight: 5, opacity: 0.65}
+    });
+
+    localLayers.push(boundaryLayer);
+    map.fitBounds(boundaryLayer.getBounds());
+
+    this.markers = localLayers;
 
   }
 }

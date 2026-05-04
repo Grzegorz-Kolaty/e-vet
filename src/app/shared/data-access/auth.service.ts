@@ -57,16 +57,16 @@ export class AuthService {
     await signOut(this.auth);
   }
 
-  public async updateProfileData(profileData: { displayName?: string | null; photoURL?: string | null }, user: User) {
-    return updateProfile(user, profileData);
-  }
+  // public async updateProfileData(profileData: UserInterface) {
+  //   return updateProfile(profileData);
+  // }
 
-  public async updateProfiles(username: string) {
-    const user = this.firebaseUser();
-    if (user) {
-      return updateProfile(user, {displayName: username});
-    }
-  }
+  // public async updateProfiles(profile: UserInterface) {
+  //   const user = this.firebaseUser();
+  //   if (user) {
+  //     return updateProfile(user, {displayName: username});
+  //   }
+  // }
 
   public async initiateEmail(user: User) {
     await sendEmailVerification(user)

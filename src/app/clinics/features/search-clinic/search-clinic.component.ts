@@ -6,30 +6,31 @@ import {httpResource} from "@angular/common/http";
 import {NgOptionTemplateDirective, NgSelectComponent} from "@ng-select/ng-select";
 import {FormsModule} from "@angular/forms";
 import {JsonPipe} from "@angular/common";
+import {LocationResult} from "../../../shared/data-access/geo.service";
 
 @Component({
   selector: 'app-search-clinic',
   imports: [FaIconComponent, NgSelectComponent, FormsModule, NgOptionTemplateDirective, JsonPipe],
   template: `
-      <ng-select
-        [items]="filteredResultsStream()"
-        bindLabel="display_name"
-        placeholder="Wpisz adres (np. Maciejewicza 23 Szczecin)"
-        [loading]="!addressResultsStream.hasValue()"
-        [typeahead]="query$"
-        [(ngModel)]="selectedLocationValue"
-        dropdownPosition="bottom">
+    <ng-select
+      [items]="filteredResultsStream()"
+      bindLabel="display_name"
+      placeholder="Wpisz adres (np. Maciejewicza 23 Szczecin)"
+      [loading]="!addressResultsStream.hasValue()"
+      [typeahead]="query$"
+      [(ngModel)]="selectedLocationValue"
+      dropdownPosition="bottom">
 
-        <ng-template ng-option-tmp let-item="item">
-          <div class="d-flex align-items-center">
-            <fa-icon [icon]="['fas', 'location-dot']" size="1x"></fa-icon>
-            <span class="text-truncate">
+      <ng-template ng-option-tmp let-item="item">
+        <div class="d-flex align-items-center">
+          <fa-icon [icon]="['fas', 'location-dot']" size="1x"></fa-icon>
+          <span class="text-truncate">
               {{ item.display_name }}
             </span>
-          </div>
-        </ng-template>
+        </div>
+      </ng-template>
 
-      </ng-select>
+    </ng-select>
     <pre> {{ selectedLocationValue | json }}</pre>
   `,
   styles: ``,
@@ -54,7 +55,7 @@ export class SearchClinicComponent {
       debounceTime(300),
       distinctUntilChanged()
     ),
-    { initialValue: '' }
+    {initialValue: ''}
   );
 
   addressResults = httpResource<LocationResult[]>(() =>
@@ -64,7 +65,7 @@ export class SearchClinicComponent {
 
   addressResultsStream = httpResource<LocationResult[]>(
     () => `${this.API_BASE_URL}${encodeURIComponent(this.debouncedQuery$())}`,
-    { defaultValue: [] }
+    {defaultValue: []}
   );
 
   filteredResultsStream = computed(() =>

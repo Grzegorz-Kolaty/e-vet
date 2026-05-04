@@ -1,7 +1,7 @@
 import {inject, Injectable, OnDestroy, signal} from '@angular/core';
 import {Profile} from '../interfaces/user.interface';
 import {doc, getDoc, setDoc, onSnapshot, DocumentData} from 'firebase/firestore';
-import {from, map} from 'rxjs';
+import {from, map, switchMap} from 'rxjs';
 import {FIRESTORE} from "../../firebase.providers";
 import {Clinic} from "../interfaces/clinics.interface";
 
@@ -22,16 +22,47 @@ export class FirestoreService implements OnDestroy {
     }
   )
 
+  async getVet(uid: string) {
+    return from(getDoc(doc(this.firestore, `vets/${uid}`))).pipe(
+      map(snap => snap.data())
+    );
+  }
+
+  async getMyClinic(uid: string) {
+    return (await this.getVet(uid)).pipe(
+      map(vet => vet?.["clinicId"]),
+      switchMap(clinicId => {
+        if (!clinicId) throw new Error('Vet nie ma kliniki');
+
+        return from(getDoc(doc(this.firestore, `clinics/${clinicId}`)));
+      }),
+      map(snap => snap.data() as Clinic)
+    );
+  }
+
   async getVetClinicById(id: string): Promise<Clinic> {
-    const docRef = doc(this.firestore, 'clinics', id);
-    const snap = await getDoc(docRef);
+    const snap = await getDoc(doc(this.firestore, 'clinics', id));
 
     if (!snap.exists()) {
       throw new Error('Klinika nie istnieje');
     }
 
-    return snap.data() as Clinic;
+    const data = snap.data() as any;
+
+    return {
+      ...data,
+      geojson: JSON.parse(data.geojson),
+    };
   }
+
+  async updateClinic(id: string, partial: Partial<Clinic>) {
+    const ref = doc(this.firestore, 'clinics', id);
+
+    const promise = setDoc(ref, partial, {merge: true});
+
+    return from(promise)
+  }
+
 
   // steamData = rxResource({
   //   request: this.uid,

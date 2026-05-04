@@ -4,10 +4,10 @@ import {AuthService} from './shared/data-access/auth.service';
 import {FaIconLibrary} from "@fortawesome/angular-fontawesome";
 import {
   faBars, faBookMedical,
-  faCalendarDays,
+  faCalendarDays, faClock,
   faGear, faImage, faLocationDot, faMagnifyingGlass, faMap,
   faNotesMedical,
-  faPaw,
+  faPaw, faPhone,
   faStore,
   faUser, faUserGear
 } from "@fortawesome/free-solid-svg-icons";
@@ -57,7 +57,7 @@ export class AppComponent {
   constructor() {
     this.library.addIcons(
       faPaw, faStore, faUser, faNotesMedical, faCalendarDays,
-      faGear, faBars, faUserGear, faLocationDot, faMap, faMagnifyingGlass, faBookMedical, faImage
+      faGear, faBars, faUserGear, faLocationDot, faMap, faMagnifyingGlass, faBookMedical, faImage, faPhone, faClock
     );
 
     this.authService.user$.pipe(takeUntilDestroyed()).subscribe(
@@ -65,6 +65,7 @@ export class AppComponent {
         if (user) {
           const token = await user.getIdToken()
           const userDeserialized = this.authService.deserializeUserToken(token)
+          console.log(userDeserialized)
           this.authService.user.set(userDeserialized)
           this.authService.firebaseUser.set(user)
         } else {

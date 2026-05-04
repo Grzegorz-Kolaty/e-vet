@@ -1,14 +1,14 @@
-import {ChangeDetectionStrategy, Component, computed, input, output, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, effect, input, output, signal} from '@angular/core';
 import {LocationResult, Voivodeship} from "../../../shared/data-access/geo.service";
 import {toObservable, toSignal} from "@angular/core/rxjs-interop";
 import {debounceTime, distinctUntilChanged} from "rxjs";
 import {httpResource} from "@angular/common/http";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
+import {ClinicLocation} from "../../../shared/interfaces/clinics.interface";
 
 
 @Component({
   selector: 'app-select-location',
-  standalone: true,
   imports: [FormsModule, ReactiveFormsModule],
   template: `
     <fieldset class="search-box">
@@ -37,14 +37,10 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 
                 <div class="d-flex flex-column">
                   <span>
-                    {{ location.address.road }}, {{ location.address.house_number }}
-                    , {{ location.address.village || location.address.town || location.address.city }}
-
+                    {{ formatAddress(location.address) }}
                   </span>
                   <small class="text-muted">
-                    {{ location.address.road ? (location.address.city || location.address.town || location.address.village) : (location.address.municipality || location.address.county) }}
-                    ,
-                    {{ location.address.state }}
+                    {{ formatSubtitle(location.address) }}
                   </small>
                 </div>
               </button>
@@ -75,9 +71,10 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 })
 export class SelectLocation {
   voivodeship = input<Voivodeship | null>(null);
-  clinicLocationSelection = output<LocationResult | null>()
+  clinicLocationSelection = output<ClinicLocation | null>()
 
   query = signal("");
+  city = signal("");
   resultsOpen = signal(false);
 
   private readonly API_URL = `https://nominatim.openstreetmap.org/search?format=jsonv2&polygon_geojson=1&addressdetails=1&q=`;
@@ -99,24 +96,73 @@ export class SelectLocation {
 
   groupedLocations = computed(() => {
     const raw = this.locationsResults.value() ?? [];
+
     return raw.filter(item => {
       const addr = item.address;
-      const hasStreetOrHouse = !!(addr.road || addr.house_number);
-      const hasCity = !!(addr.city || addr.town || addr.village);
 
-      return hasStreetOrHouse && hasCity;
+      const hasCityLike =
+        !!(addr.city || addr.town || addr.village || addr.municipality);
+
+      const hasAnySpatialInfo =
+        !!(addr.road || addr.house_number || addr.county || addr.state);
+
+      console.log(addr, hasCityLike, hasAnySpatialInfo);
+
+      return hasCityLike && hasAnySpatialInfo;
     });
   });
 
+  constructor() {
+    effect(() => {
+      const voivo = this.voivodeship();
+
+      if (voivo) {
+        this.query.set('');
+        this.resultsOpen.set(false);
+        this.clinicLocationSelection.emit(null);
+      }
+    });
+  }
+
   selectAddress(location: LocationResult) {
     const addr = location.address;
-    const streetPart = addr.road || addr.village || addr.town || addr.city;
-    const housePart = addr.house_number ? ` ${addr.house_number}` : '';
 
-    const displayValue = `${streetPart}${housePart}`.trim();
+    const clinic: ClinicLocation = {
+      longitude: Number(location.lon),
+      latitude: Number(location.lat),
+      geojson: location.geojson,
+      city: addr.city || addr.town || addr.village || "",
+      street: addr.road || "",
+      houseNumber: addr.house_number || "",
+      postcode: addr.postcode || "",
+    }
 
+    const displayValue = `${clinic.street} ${clinic.houseNumber}`.trim()
+
+    this.city.set(clinic.city)
     this.query.set(displayValue);
-    this.clinicLocationSelection.emit(location);
     this.resultsOpen.set(false);
+
+    this.clinicLocationSelection.emit(clinic);
+  }
+
+  formatAddress(addr: any): string {
+    return [
+      addr.road,
+      addr.house_number,
+      addr.village || addr.town || addr.city
+    ]
+      .filter(Boolean)
+      .join(', ');
+  }
+
+  formatSubtitle(addr: any): string {
+    return [
+      addr.city || addr.town || addr.village,
+      addr.municipality || addr.county,
+      addr.state
+    ]
+      .filter(Boolean)
+      .join(', ');
   }
 }

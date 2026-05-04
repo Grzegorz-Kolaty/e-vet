@@ -1,4 +1,10 @@
-import {ChangeDetectionStrategy, Component, effect, ElementRef, inject, signal, ViewChild} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject
+} from '@angular/core';
 import {Role} from "../shared/interfaces/user.interface";
 import {Router} from "@angular/router";
 import {AuthService} from "../shared/data-access/auth.service";
@@ -6,7 +12,7 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {provideNgxMask} from "ngx-mask";
 import CreateClinicComponent from "./features/create-clinic/create-clinic.component";
 import {VetClinicComponent} from "./vet-clinic/vet-clinic.component";
-
+import {VetService} from "../shared/data-access/vet.service";
 
 
 @Component({
@@ -22,21 +28,18 @@ import {VetClinicComponent} from "./vet-clinic/vet-clinic.component";
     <main class="map-container h-100 position-relative">
       <div class="w-100 h-100 position-absolute top-0 start-0 z-1">
 
-        @if (user()!.role === Role.Vet && !user()?.clinicId) {
-          <app-create-clinic/>
-
-        } @else if (user()!.role === Role.Vet && user()?.clinicId) {
-          @let clinicId = user()?.clinicId;
-
-          @if (clinicId) {
-            <app-vet-clinic [clinicId]="clinicId"/>
-          }
+        @if (state().isVet && !state().clinicId) {
+          <app-create-clinic />
         }
+
+        @if (state().isVet && state().clinicId) {
+          <app-vet-clinic [clinicVets]="vets()" [clinic]="clinic()"/>
+        }
+
       </div>
     </main>
   `,
   styles: `
-    /* Kontener główny */
     .map-container {
       height: calc(100vh - 98px);
     }
@@ -44,28 +47,52 @@ import {VetClinicComponent} from "./vet-clinic/vet-clinic.component";
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export default class ClinicsComponent {
-  private readonly authService = inject(AuthService)
-  private readonly router = inject(Router)
+  private authService = inject(AuthService);
+  private vetService = inject(VetService);
+  private router = inject(Router);
 
-  @ViewChild('fileInput') fileInputElement!: ElementRef<HTMLInputElement>;
+  user = this.authService.user;
+  vet = this.vetService.vet;
+  clinic = this.vetService.clinic;
+  vets = this.vetService.vets;
 
-  user = this.authService.user
-  protected readonly Role = Role;
+  state = computed(() => {
+    const user = this.user();
+    const vet = this.vet();
+
+    return {
+      isLogged: !!user,
+      isVet: vet?.role === Role.Vet,
+      clinicId: vet?.clinicId,
+    };
+  });
+
+
 
   constructor() {
     effect(() => {
-      const user = this.user()
+      const user = this.user();
+
       if (!user) {
-        this.router.navigate(['auth'])
+        this.router.navigate(['auth']);
+        return;
       }
-      if (user && user.role === Role.Vet && !user.clinicId) {
-        console.log('Weterynarz bez kliniki: Pokaż formularz tworzenia/dołączania.');
+
+      // 🔥 INIT ONLY (ważne!)
+      if (user?.role === Role.Vet) {
+        this.vetService.init(user.user_id);
       }
+    });
+
+    effect(() => {
+      console.log(this.state());
     })
 
     effect(() => {
-      console.log(this.user()?.clinicId)
-    })
+      const clinicId = this.state().clinicId;
+      if (clinicId) {
+        this.vetService.getVetsByClinic(clinicId, )
+      }
+    });
   }
-
 }

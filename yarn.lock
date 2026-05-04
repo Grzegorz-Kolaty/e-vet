@@ -3876,7 +3876,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/geojson@npm:*":
+"@types/geojson@npm:*, @types/geojson@npm:^7946.0.16":
   version: 7946.0.16
   resolution: "@types/geojson@npm:7946.0.16"
   checksum: 10c0/1ff24a288bd5860b766b073ead337d31d73bdc715e5b50a2cee5cb0af57a1ed02cc04ef295f5fa68dc40fe3e4f104dd31282b2b818a5ba3231bc1001ba084e3c
@@ -5650,6 +5650,7 @@ __metadata:
     "@ng-bootstrap/ng-bootstrap": "npm:^19.0.1"
     "@ng-select/ng-select": "npm:^20.1.1"
     "@popperjs/core": "npm:^2.11.8"
+    "@types/geojson": "npm:^7946.0.16"
     "@types/jasmine": "npm:^5.1.8"
     "@types/leaflet": "npm:^1.9.20"
     bootstrap: "npm:^5.3.7"

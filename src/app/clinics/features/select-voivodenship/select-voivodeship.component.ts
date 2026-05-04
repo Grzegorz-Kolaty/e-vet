@@ -1,11 +1,11 @@
-import {ChangeDetectionStrategy, Component, inject, input, model, output, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, inject, output, signal} from '@angular/core';
 import {GeoService, LocationResult, Voivodeship} from "../../../shared/data-access/geo.service";
 import {toObservable, toSignal} from "@angular/core/rxjs-interop";
 import {distinctUntilChanged, filter, switchMap, tap} from "rxjs";
 
 
 @Component({
-  selector: 'app-select-voivodenship',
+  selector: 'app-select-voivodeship',
   imports: [],
   template: `
     <fieldset class="search-box">
@@ -58,7 +58,7 @@ import {distinctUntilChanged, filter, switchMap, tap} from "rxjs";
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SelectVoivodenship {
+export class SelectVoivodeship {
   private readonly geoService = inject(GeoService);
 
 // Stan
@@ -67,8 +67,8 @@ export class SelectVoivodenship {
   selected = signal<Voivodeship | null>(null);
 
 // Event wyjściowy dla rodzica
-  voivodenshipSelected = output<Voivodeship | null>();
-  voivodenshipLocation = output<LocationResult | null>();
+  voivodeshipSelected = output<Voivodeship | null>();
+  voivodeshipLocation = output<LocationResult | null>();
 
 // Reaktywne pobieranie danych po zmianie sygnału 'clinicLocationSelection'
   private selected$ = toObservable(this.selected);
@@ -77,11 +77,11 @@ export class SelectVoivodenship {
   private locationData$ = this.selected$.pipe(
     filter((v): v is Voivodeship => !!v),
     distinctUntilChanged(),
-    tap(v => this.voivodenshipSelected.emit(v)),
-    switchMap(v => this.geoService.loadVoivodenshipGeo(v)),
+    tap(v => this.voivodeshipSelected.emit(v)),
+    switchMap(v => this.geoService.loadVoivodeshipGeo(v)),
     tap(results => {
       if (results) {
-        this.voivodenshipLocation.emit(results);
+        this.voivodeshipLocation.emit(results);
       }
     })
   );

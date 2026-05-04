@@ -1,5 +1,5 @@
-import { inject, Injectable } from '@angular/core';
-import { from } from 'rxjs';
+import {inject, Injectable} from '@angular/core';
+import {from} from 'rxjs';
 import {
   getDownloadURL,
   ref,
@@ -19,19 +19,23 @@ export interface UploadFile {
 export class StorageService {
   private storage = inject(STORAGE);
 
-  getStorageReference(path: string) {
+  private ref(path: string) {
     return ref(this.storage, path);
   }
 
-  uploadFileResult(data: UploadFile) {
-    const storageRef = this.getStorageReference(data.path);
-    const promise = uploadBytes(storageRef, data.file).then(() =>
-      getDownloadURL(storageRef)
+  uploadAndGetUrl(file: File, path: string) {
+    const storageRef = this.ref(path);
+
+    return from(
+      uploadBytes(storageRef, file).then(() =>
+        getDownloadURL(storageRef)
+      )
     );
-    return from(promise);
   }
 
   getUrl(data: StorageReference) {
     return from(getDownloadURL(data));
   }
+
+
 }

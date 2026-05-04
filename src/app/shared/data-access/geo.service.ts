@@ -1,13 +1,13 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from "@angular/common/http";
-
+import {GeoJsonObject} from "geojson";
 
 export interface LocationResult {
   display_name: string;
   place_id: string;
   lat: number;
   lon: number;
-  geojson: any;
+  geojson: GeoJsonObject;
   boundingbox?: [string, string, string, string];
   name: string;
   address: {
@@ -56,7 +56,7 @@ export class GeoService {
   constructor(private http: HttpClient) {
   }
 
-  loadVoivodenshipGeo(v: Voivodeship | null) {
+  loadVoivodeshipGeo(v: Voivodeship | null) {
     console.log(`returning of ${v} from service`)
     return this.http.get<LocationResult>(`assets/geo/voivodeships/${v}.json`)
   }
