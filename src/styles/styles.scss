@@ -7,18 +7,28 @@
 @import "@ng-select/ng-select/themes/default.theme.css";
 
 
-img, svg {
-  vertical-align: middle !important;
+:root {
+  --bg-main: #08110c;
+  --bg-surface: #122019;
+  --bg-surface-2: #1b2d24;
+
+  --border-soft: rgba(255,255,255,0.05);
+
+  --text-muted: rgba(255,255,255,0.65);
+
+  --primary: #67e8a5;
+
+
 }
 
-:root {
-  //--bs-body-font-size: 1.25rem; /* 20px */
-}
 
 body::-webkit-scrollbar {
   display: none;
 }
 
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2a323c; border-radius: 10px; }
 
 .title {
   font-family: "Edu NSW ACT Cursive", cursive !important;
@@ -85,6 +95,10 @@ html, body {
   width: 30%;
 }
 
+.w-35 {
+  width: 35%
+}
+
 .h-35 {
   height: 35%
 }
@@ -146,4 +160,8 @@ html, body {
   --bs-btn-disabled-color: #adb5bd;
   --bs-btn-disabled-bg: #fff;
   --bs-btn-disabled-border-color: #dee2e6;
+}
+
+img, svg {
+  vertical-align: middle !important;
 }

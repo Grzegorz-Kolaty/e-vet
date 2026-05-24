@@ -1,157 +1,168 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed, effect,
   inject,
-  OnInit,
+  input,
   output,
   ViewEncapsulation,
 } from '@angular/core';
 import {
-  NgbCalendar,
   NgbDate,
   NgbDatepicker,
+  NgbDatepickerMonth,
+  NgbDateStruct,
 } from '@ng-bootstrap/ng-bootstrap';
-import { FormsModule } from '@angular/forms';
-import { NgClass } from '@angular/common';
 import { CalendarService } from '../../data-access/calendar.service';
 
 @Component({
   selector: 'app-datepicker-range',
-  imports: [FormsModule, NgbDatepicker, NgClass],
-  encapsulation: ViewEncapsulation.None,
+  imports: [NgbDatepicker, NgbDatepickerMonth],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
   template: `
-    <ngb-datepicker
-      [(ngModel)]="model"
-      #dp
-      (dateSelect)="onDateSelection($event)"
-      [displayMonths]="1"
-      [dayTemplate]="t"
-      outsideDays="hidden"
-      class="border-0" />
-
-    <ng-template #t let-date>
-      <span
-        class="custom-day"
-        [ngClass]="{ 'custom-focus': model && model.equals(date) }"
-        [class.range]="isRange(date)"
-        (mouseenter)="hoveredDate = date"
-        (mouseleave)="hoveredDate = null">
-        {{ date.day }}
-      </span>
+    <ng-template #c let-dp>
+      @for (month of dp.state.months; track $index) {
+        <ngb-datepicker-month [month]="month">
+        </ngb-datepicker-month>
+      }
     </ng-template>
+
+    @if (availableDays().length > 0 && !!selectSingleDay()) {
+      <ngb-datepicker
+        [firstDayOfWeek]="7"
+        (dateSelect)="onSingleDaySelection($event)"
+        [displayMonths]="1"
+        [contentTemplate]="c"
+        outsideDays="collapsed"
+        navigation="arrows"
+        [markDisabled]="markDisabled">
+
+        <ng-template ngbDatepickerDay let-date>
+          <span class="custom-day">
+            {{ date.day }}
+          </span>
+        </ng-template>
+      </ngb-datepicker>
+    } @else if (!selectSingleDay()) {
+      <ngb-datepicker
+        [firstDayOfWeek]="7"
+        (dateSelect)="onWeekSelection($event)"
+        [displayMonths]="1"
+        [contentTemplate]="c"
+        outsideDays="collapsed"
+        navigation="arrows"
+        [markDisabled]="markDisabled">
+
+        <ng-template ngbDatepickerDay let-date>
+          <span class="custom-day">
+            {{ date.day }}
+          </span>
+        </ng-template>
+      </ngb-datepicker>
+    }
   `,
   styles: `
-    .ngb-dp-week {
-      justify-content: space-between;
+    ngb-datepicker {
+      border: none !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      display: block !important;
     }
-
-    .ngb-dp-day {
-      height: 2.5rem !important;
-      width: 2.5rem !important;
+    ngb-datepicker .ngb-dp-week,
+    .ngb-dp-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, auto);
+      background-color: transparent;
+      border-bottom: none;
+      border-radius: 0;
+      justify-items: center;
     }
-
-    .ngb-dp-weekday {
-      color: black !important;
+    ngb-datepicker .ngb-dp-week > div:first-child,
+    ngb-datepicker .ngb-dp-weekdays > div:first-child {
+      color: #b5b5b5;
     }
-
-    .ngb-dp-arrow {
-      flex: 1 !important;
+    ngb-datepicker .ngb-dp-week > div:last-child,
+    ngb-datepicker .ngb-dp-weekdays > div:last-child {
+      color: #b5b5b5;
     }
-
-    .form-select {
-      border: none;
+    ngb-datepicker .ngb-dp-weekday, .ngb-dp-week-number {
+      font-style: normal;
     }
-
-    .custom-day {
-      padding: 0.185rem 0.25rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      width: 100%;
+    ngb-datepicker .ngb-dp-header {
+      border-bottom: 0;
+      border-radius: 0;
+      padding-top: 0;
+      padding-bottom: 0;
     }
-
-    .custom-focus {
-      background-color: rgba(2, 117, 216) !important;
+    ngb-datepicker .ngb-dp-header,
+    .ngb-dp-month-name {
+      background-color: transparent;
     }
-
-    .custom-day:hover {
-      background-color: rgba(2, 117, 216);
-      color: white;
-    }
-
-    .custom-day:active {
-      background-color: rgb(98, 53, 228);
-      color: white;
-    }
-
-    .custom-day.range {
-      background-color: rgba(2, 117, 216, 0.7);
-      color: white;
+    ngb-datepicker .ngb-dp-month-name {
+      background-color: transparent;
     }
   `,
 })
-export class DatepickerRangeComponent implements OnInit {
-  calendarService = inject(CalendarService);
+export class DatepickerRangeComponent {
+  private calendarService = inject(CalendarService);
 
-  today = inject(NgbCalendar).getToday();
-  model: NgbDate | null = null;
+  daySelection = output<Date>();
+  weekSelection = output<{ start: Date; end: Date }>();
 
-  hoveredDate: NgbDate | null = null;
-  fromDate: NgbDate | null = null;
-  toDate: NgbDate | null = null;
+  private weekStart: Date | null = null;
+  private weekEnd: Date | null = null;
 
-  daySelectionEvent = output<Date>();
-  weekSelection = output<Date[]>();
+  availableDays = input<string[]>([]);
+  selectSingleDay = input(false);
 
-  onSelectToday() {
-    this.onDateSelection(this.today);
+  availableDaysSet = computed(() => {
+    if (!this.selectSingleDay()) {
+      return new Set<string>();
+    }
+    return new Set<string>(this.availableDays());
+  });
+
+  constructor() {
+    effect(() => {
+      console.log(this.availableDays())
+      console.log(this.availableDaysSet())
+    });
   }
 
-  ngOnInit() {
-    if (this.model === null) this.onSelectToday();
+  markDisabled = (date: NgbDateStruct): boolean => {
+    if (!this.selectSingleDay()) {
+      return false;
+    }
+
+    const key = [
+      date.year,
+      String(date.month).padStart(2, '0'),
+      String(date.day).padStart(2, '0')
+    ].join('-');
+
+    return !this.availableDaysSet().has(key);
+  };
+
+  onWeekSelection(date: NgbDate) {
+    const selected = this.toDate(date);
+    const week = this.calendarService.getWeekDayRange(selected);
+
+    this.weekStart = week[0];
+    this.weekEnd = week[week.length - 1];
+
+    this.weekSelection.emit({
+      start: this.weekStart,
+      end: this.weekEnd,
+    });
   }
 
-  onDateSelection(date: NgbDate) {
-    const dateFormatted = this.convertFromNgbDateToDate(date);
-    this.model = date;
-    const week = this.calendarService.getWeekDayRange(dateFormatted);
-    this.fromDate = this.convertFromDateToNgbDate(week[0]);
-    this.toDate = this.convertFromDateToNgbDate(week[week.length - 1]);
-
-    this.daySelectionEvent.emit(dateFormatted);
-    this.weekSelection.emit(week);
+  onSingleDaySelection(date: NgbDate) {
+    const selected = this.toDate(date);
+    this.daySelection.emit(selected);
   }
 
-  convertFromDateToNgbDate(date: Date): NgbDate {
-    return new NgbDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
-  }
-
-  convertFromNgbDateToDate(date: NgbDate): Date {
+  private toDate(date: NgbDate): Date {
     return new Date(date.year, date.month - 1, date.day);
-  }
-
-  isHovered(date: NgbDate) {
-    return (
-      this.fromDate &&
-      !this.toDate &&
-      this.hoveredDate &&
-      date.after(this.fromDate) &&
-      date.before(this.hoveredDate)
-    );
-  }
-
-  isInside(date: NgbDate) {
-    return this.toDate && date.after(this.fromDate) && date.before(this.toDate);
-  }
-
-  isRange(date: NgbDate) {
-    return (
-      date.equals(this.fromDate) ||
-      (this.toDate && date.equals(this.toDate)) ||
-      this.isInside(date) ||
-      this.isHovered(date)
-    );
   }
 }

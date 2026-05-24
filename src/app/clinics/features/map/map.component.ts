@@ -1,10 +1,9 @@
-import {ChangeDetectionStrategy, Component, effect, input, output} from '@angular/core';
-import {FormsModule} from "@angular/forms";
-import {LeafletDirective, LeafletLayersDirective} from "@bluehalo/ngx-leaflet";
-import {LocationResult} from "../../../shared/data-access/geo.service";
-import {control, geoJSON, latLng, LatLngTuple, Layer, Map as LeafletMap, marker, tileLayer} from "leaflet";
-import { ClinicLocation} from "../../../shared/interfaces/clinics.interface";
-
+import { ChangeDetectionStrategy, Component, computed, effect, input, signal } from '@angular/core';
+import { FormsModule } from "@angular/forms";
+import { LeafletDirective, LeafletLayersDirective } from "@bluehalo/ngx-leaflet";
+import { LocationResult } from "../../../shared/data-access/geo.service";
+import { control, geoJSON, latLng, LatLngTuple, Layer, Map as LeafletMap, marker, tileLayer, featureGroup } from "leaflet";
+import { ClinicLocation } from "../../../shared/interfaces/clinics.interface";
 
 @Component({
   selector: 'app-map',
@@ -14,7 +13,7 @@ import { ClinicLocation} from "../../../shared/interfaces/clinics.interface";
     <div class="map h-100"
          leaflet
          [leafletOptions]="options"
-         [leafletLayers]="markers"
+         [leafletLayers]="layers()"
          (leafletMapReady)="onMapReady($event)">
     </div>
   `,
@@ -25,9 +24,26 @@ import { ClinicLocation} from "../../../shared/interfaces/clinics.interface";
   `,
 })
 export class MapComponent {
-  markers: Layer[] = []
-  map: LeafletMap | null = null
-  mapReady = output()
+  map = signal<LeafletMap | null>(null);
+  mapReady = signal(false);
+
+  markers = signal<Layer[]>([]);
+  voivodeshipLayer = signal<Layer | null>(null);
+
+  layers = computed(() => {
+    const result: Layer[] = [];
+    const marker = this.markers();
+    const voivodeship = this.voivodeshipLayer();
+
+    result.push(...marker);
+
+    if (voivodeship) {
+      result.push(voivodeship);
+    }
+
+    return result;
+  });
+
   options = {
     layers: [
       tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -38,78 +54,91 @@ export class MapComponent {
     center: latLng([53.4046675, 14.4991249]),
     zoomControl: false
   };
-  clinicLocationSelected = input<ClinicLocation | null>(null)
-  voivodeshipSelected = input<LocationResult | null>(null)
 
+  clinicLocation = input<ClinicLocation | null>(null)
+  voivodeshipLocation = input<LocationResult | null>(null)
+
+  clinicsList = input<ClinicLocation[] | null>(null)
 
   constructor() {
     effect(() => {
-      const map = this.map;
-      const location = this.clinicLocationSelected();
-      console.log(map, location)
+      const map = this.map();
+      const ready = this.mapReady();
+      const location = this.clinicLocation();
 
-      if (!map || !location) return;
-      console.log("sent target")
+      if (!ready || !map || !location) return;
 
       this.targetLocation(location);
     });
 
     effect(() => {
-      const map = this.map
-      const voivodeship = this.voivodeshipSelected()
+      const map = this.map();
+      const ready = this.mapReady();
+      const voivodeship = this.voivodeshipLocation();
 
-      if (!map || !voivodeship) return;
-      console.log("sent target")
-      this.targetVoivodeship(voivodeship)
+      if (!ready || !map || !voivodeship) return;
 
-    })
+      this.targetVoivodeship(voivodeship);
+    });
+
+    effect(() => {
+      const map = this.map();
+      const ready = this.mapReady();
+      const clinics = this.clinicsList();
+
+      if (!ready || !map || !clinics || clinics.length === 0) return;
+
+      this.targetMultipleClinics(clinics);
+    });
   }
 
   onMapReady(map: LeafletMap) {
-    control.zoom({
-      position: 'bottomleft'
-    }).addTo(map);
-
-    this.map = map;
-    this.mapReady.emit()
+    control.zoom({position: 'bottomleft'}).addTo(map);
+    this.map.set(map);
+    this.mapReady.set(true);
   }
 
   targetLocation(location: ClinicLocation) {
-    const map = this.map;
+    const map = this.map();
     if (!map) return;
 
-    console.log(location);
-
     const coords: LatLngTuple = [
-      Number(location.latitude),
-      Number(location.longitude)
+      location.latitude,
+      location.longitude
     ];
 
     const newMarker = marker(coords);
-
-    // 🔥 reset zamiast push (ważne!)
-    this.markers = [newMarker];
-
+    this.markers.set([newMarker]);
     map.setView(coords, 13);
   }
 
-
   private targetVoivodeship(voivodeshipLocation: LocationResult) {
-    const map = this.map;
+    const map = this.map();
     if (!map) return;
-    const localLayers: Layer[] = []
 
-    const geojson = voivodeshipLocation.geojson
+    const geojson = voivodeshipLocation.geojson;
 
-    console.log("location geojson detected", geojson)
     const boundaryLayer = geoJSON(geojson, {
-      style: {color: '#ff7800', weight: 5, opacity: 0.65}
+      style: { color: '#ff7800', weight: 5, opacity: 0.65 }
     });
 
-    localLayers.push(boundaryLayer);
+    this.voivodeshipLayer.set(boundaryLayer);
     map.fitBounds(boundaryLayer.getBounds());
+  }
 
-    this.markers = localLayers;
+  private targetMultipleClinics(locations: ClinicLocation[]) {
+    const map = this.map();
+    if (!map) return;
 
+    const newMarkers = locations.map(loc => {
+      return marker([loc.latitude, loc.longitude]);
+    });
+
+    this.markers.set(newMarkers);
+
+    if (newMarkers.length > 0) {
+      const group = featureGroup(newMarkers);
+      map.fitBounds(group.getBounds().pad(0.1)); // pad(0.1) dodaje estetyczny margines wokół pinezek
+    }
   }
 }

@@ -1,8 +1,9 @@
 import {Component, effect, inject, resource, signal} from '@angular/core';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {AuthService} from '../../shared/data-access/auth.service';
-import {Credentials} from '../../shared/interfaces/user.interface';
+import {Credentials} from '../../shared/interfaces/userProfile';
 import {Router, RouterLink} from "@angular/router";
+
 
 @Component({
   selector: 'app-login',
@@ -80,15 +81,14 @@ export default class LoginComponent {
   });
 
   constructor() {
-    console.log('login component constructor')
-    effect(async () => {
-
-      if (this.logger.status() === 'resolved' || this.authService.firebaseUser()) {
-        console.log('login has user, nav to dash')
-        this.router.navigate(['dashboard'])
+    effect(() => {
+      const user = this.authService.user()
+      if (user) {
+        this.router.navigate(['dashboard']);
       }
-    })
+    });
   }
+
 
   onSubmit() {
     const form = this.loginForm.getRawValue();

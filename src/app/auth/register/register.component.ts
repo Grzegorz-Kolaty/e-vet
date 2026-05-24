@@ -1,7 +1,7 @@
-import {ChangeDetectionStrategy, Component, inject, resource, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, effect, inject, resource, signal} from '@angular/core';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
-import {RouterLink} from "@angular/router";
-import {RegisterCredentials, Role} from '../../shared/interfaces/user.interface';
+import {Router, RouterLink} from "@angular/router";
+import {RegisterCredentials, Role} from '../../shared/interfaces/userProfile';
 import {AuthService} from '../../shared/data-access/auth.service';
 
 
@@ -111,6 +111,7 @@ export default class RegisterComponent {
   public authService = inject(AuthService);
   protected readonly Role = Role;
   private fb = inject(FormBuilder);
+  private router = inject(Router);
 
   registerForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.pattern(/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/)]],
@@ -130,6 +131,13 @@ export default class RegisterComponent {
 
   constructor() {
     this.setRandomData();
+
+    effect(() => {
+      const user = this.authService.user()
+      if (user) {
+        this.router.navigate(['dashboard']);
+      }
+    });
   }
 
   onSubmit(role: Role): void {

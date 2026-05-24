@@ -1,6 +1,5 @@
-import {Component, ChangeDetectionStrategy, inject, effect} from '@angular/core';
+import {Component, ChangeDetectionStrategy, inject} from '@angular/core';
 import {RouterOutlet} from '@angular/router';
-import {AuthService} from './shared/data-access/auth.service';
 import {FaIconLibrary} from "@fortawesome/angular-fontawesome";
 import {
   faBars, faBookMedical,
@@ -11,7 +10,6 @@ import {
   faStore,
   faUser, faUserGear
 } from "@fortawesome/free-solid-svg-icons";
-import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 import {HeaderComponent} from "./shared/ui/header/header.component";
 
 
@@ -50,31 +48,13 @@ import {HeaderComponent} from "./shared/ui/header/header.component";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {
-  readonly authService = inject(AuthService);
-  private readonly library = inject(FaIconLibrary);
-
+  private library = inject(FaIconLibrary);
 
   constructor() {
     this.library.addIcons(
       faPaw, faStore, faUser, faNotesMedical, faCalendarDays,
-      faGear, faBars, faUserGear, faLocationDot, faMap, faMagnifyingGlass, faBookMedical, faImage, faPhone, faClock
+      faGear, faBars, faUserGear, faLocationDot, faMap,
+      faMagnifyingGlass, faBookMedical, faImage, faPhone, faClock
     );
-
-    this.authService.user$.pipe(takeUntilDestroyed()).subscribe(
-      async (user) => {
-        if (user) {
-          const token = await user.getIdToken()
-          const userDeserialized = this.authService.deserializeUserToken(token)
-          console.log(userDeserialized)
-          this.authService.user.set(userDeserialized)
-          this.authService.firebaseUser.set(user)
-        } else {
-          this.authService.user.set(null)
-          this.authService.firebaseUser.set(null)
-        }
-      })
-
-    effect(() => console.log(this.authService.user()))
   }
-
 }

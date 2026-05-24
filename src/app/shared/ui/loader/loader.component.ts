@@ -16,4 +16,8 @@ import {ChangeDetectionStrategy, Component} from '@angular/core';
 })
 export class LoaderComponent {
 
+  constructor() {
+    console.log('Loading...');
+  }
+
 }

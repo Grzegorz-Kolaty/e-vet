@@ -9,7 +9,7 @@ export class FormatHourPipe implements PipeTransform {
 
     if (hasDecimal) {
       const [whole, decimal] = hour.toString().split('.');
-      const formattedDecimal = decimal.padEnd(2, '0');
+      const formattedDecimal = decimal.padEnd(0, '0');
       return `${whole}:${formattedDecimal}`;
     } else {
       const formattedHour = hour < 10 ? `0${hour}` : hour.toString();

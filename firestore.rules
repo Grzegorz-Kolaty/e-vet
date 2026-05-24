@@ -2,45 +2,50 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-  match /clinics/{clinicId}/appointments/{appointmentId} {
-    allow read, write: if isVetInClinic(clinicId);
-  }
-    match /clinics/{clinicId} {
-      allow read, write: if request.auth != null
-    }
-
-
-  function isVetInClinic(clinicId) {
-    return exists(/databases/$(database)/documents/clinics/$(clinicId)) &&
-      request.auth != null &&
-      request.auth.uid in get(/databases/$(database)/documents/clinics/$(clinicId)).data.members;
-  }
-
-
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    function isOwner() {
-      return request.resource.data.vetId == request.auth.uid;
+    function isCreateOwner() {
+      return request.auth != null
+        && request.resource.data.vetId == request.auth.uid;
     }
 
-    match /appointments/{appointment} {
+    function isVetInClinic(clinicId) {
+      return isAuthenticated()
+        && exists(/databases/$(database)/documents/clinics/$(clinicId))
+        && request.auth.uid in get(/databases/$(database)/documents/clinics/$(clinicId)).data.members;
+    }
+
+    // ---------------- CLINICS ----------------
+    match /clinics/{clinicId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // ---------------- APPOINTMENTS ----------------
+    match /appointments/{appointmentId} {
       allow read: if isAuthenticated();
-      allow create: if isOwner();
+      allow create: if isCreateOwner();
       allow update: if isAuthenticated();
       allow delete: if isAuthenticated();
     }
 
+    // ---------------- USERS ----------------
     match /users/{userId} {
-      allow read, write: if request.auth != null
+      allow read, write: if isAuthenticated();
     }
 
+    // ---------------- VETS ----------------
     match /vets/{vetId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == vetId;
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated()
+        && request.auth.uid == vetId;
+    }
+
+    // ---------------- METADATA (NOWOŚĆ) ----------------
+    match /metadata/{documentId} {
+      allow read, write: if isAuthenticated();
     }
 
   }
-
 }

@@ -1,41 +1,34 @@
 import {CanActivateFn, Router} from '@angular/router';
 import {inject} from '@angular/core';
 import {AuthService} from "../data-access/auth.service";
-import {map} from "rxjs";
 
 
-export const authGuard: CanActivateFn = (route, state) => {
-  const authService = inject(AuthService);
-  const router = inject(Router);
+export const isAuthenticatedGuard = (): CanActivateFn => {
+  return () => {
+    const authService = inject(AuthService);
+    const router = inject(Router);
 
-  return authService.user$.pipe(
-    map(user => {
-      if (user) {
-        console.log('AuthGuard user exist, letting in')
-        return true
-      } else {
-        console.log('AuthGuard no user, navigate to login')
+    if (authService.user()) {
+      console.log('user is logged in');
+      return true;
+    }
 
-        return router.parseUrl('/auth/login');
-      }
-    })
-  )
+    console.log('isAuthg login')
+    return router.parseUrl('auth/login');
+  };
 };
 
+export const emailVerificationGuard = (): CanActivateFn => {
+  return () => {
+    const authService = inject(AuthService);
+    const router = inject(Router);
 
-export const emailVerifiedGuard: CanActivateFn = (route, state) => {
-  const authService = inject(AuthService);
-  const router = inject(Router);
+    if (!!authService.user()?.email_verified) {
+      console.log('user email verified');
+      return true;
+    }
 
-  return authService.user$.pipe(
-    map(user => {
-      if (user?.emailVerified) {
-        return true
-      } else {
-        return router.parseUrl('/auth/login');
-      }
-    })
-  )
+    console.log('email verification guard to dash')
+    return router.parseUrl('dashboard');
+  };
 };
-
-

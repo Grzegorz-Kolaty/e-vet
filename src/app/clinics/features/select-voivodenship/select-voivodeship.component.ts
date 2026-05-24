@@ -1,7 +1,5 @@
-import {ChangeDetectionStrategy, Component, inject, output, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, effect, inject, output, resource, signal} from '@angular/core';
 import {GeoService, LocationResult, Voivodeship} from "../../../shared/data-access/geo.service";
-import {toObservable, toSignal} from "@angular/core/rxjs-interop";
-import {distinctUntilChanged, filter, switchMap, tap} from "rxjs";
 
 
 @Component({
@@ -9,88 +7,75 @@ import {distinctUntilChanged, filter, switchMap, tap} from "rxjs";
   imports: [],
   template: `
     <fieldset class="search-box">
-      <label for="voivodeshipSelector" class="form-label">Wybierz województwo</label>
-      <div class="position-relative z-3">
-        <div class="input-group">
-          <input class="form-control form-control-sm"
-                 id="voivodeshipSelector"
-                 readonly
-                 [value]="selected() || 'Wybierz z listy...'"
-                 (click)="open.set(!open())"
-                 placeholder="Wybierz województwo"/>
-          <button class="btn btn-sm btn-outline-secondary" (click)="open.set(!open())">
-            {{ open() ? '▲' : '▼' }}
-          </button>
-        </div>
 
-        @if (open()) {
-          <div class="list-open border position-absolute w-100 bg-white shadow-lg overflow-auto">
-            @for (v of voivodeships; track v) {
-              <button type="button"
-                      class="btn btn-sm btn-light w-100 text-start border-bottom py-2"
-                      [class.active]="selected() === v"
-                      (click)="select(v)">
-                {{ v }}
-              </button>
-            }
-          </div>
-        }
+      <label class="form-label fw-bold small">Wybierz województwo</label>
+      <div class="input-group">
+        <input
+          class="form-control form-control-sm"
+          readonly
+          [value]="voivodeshipSelected() || 'Wybierz z listy...'"
+          (click)="open.set(!open())"
+        />
+
+        <button
+          class="btn btn-sm btn-outline-secondary"
+          (click)="open.set(!open())">
+          {{ open() ? '▲' : '▼' }}
+        </button>
       </div>
+
+      @if (open()) {
+        <div class="list-open bg-white shadow-lg">
+          @for (v of voivodeships; track v) {
+            <button
+              type="button"
+              class="btn btn-sm btn-light w-100 text-start border-bottom py-2"
+              [class.active]="voivodeshipSelected() === v"
+              (click)="onSelect(v)">
+              {{ v }}
+            </button>
+          }
+        </div>
+      }
+
     </fieldset>
   `,
-  styles: `
-    .search-box {
-      display: flex;
-      flex-flow: column nowrap;
-      background: white;
-      border: transparent;
-    }
-
-    .search-input {
-      padding: 11px 106px 11px 64px;
-    }
-
-    .list-open {
-      font-size: 14px;
-      border-bottom: 1px solid #e3e3e3;
-      box-shadow: 0 0 2px rgb(0 0 0 / 20%), 0 -1px 0 rgb(0 0 0 / 2%);
-    }
-  `,
+  styles: ``,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SelectVoivodeship {
   private readonly geoService = inject(GeoService);
 
-// Stan
   voivodeships = Object.values(Voivodeship);
+
   open = signal(false);
-  selected = signal<Voivodeship | null>(null);
+  voivodeshipSelected = signal<Voivodeship | null>(null);
+  voivodeshipLocationChange = output<LocationResult | null>();
+  voivodeship = output<Voivodeship | null>();
 
-// Event wyjściowy dla rodzica
-  voivodeshipSelected = output<Voivodeship | null>();
-  voivodeshipLocation = output<LocationResult | null>();
+  locationResource = resource({
+    params: () => this.voivodeshipSelected(),
+    loader: async ({ params }) => {
+      if (!params) return null;
+      return await this.geoService.loadVoivodeshipGeo(params);
+    }
+  });
 
-// Reaktywne pobieranie danych po zmianie sygnału 'clinicLocationSelection'
-  private selected$ = toObservable(this.selected);
+  constructor() {
+    effect(() => {
+      const value = this.locationResource.value();
+      if (!value) return;
 
-// Strumień wyników - automatycznie odpala się gdy 'clinicLocationSelection' się zmieni
-  private locationData$ = this.selected$.pipe(
-    filter((v): v is Voivodeship => !!v),
-    distinctUntilChanged(),
-    tap(v => this.voivodeshipSelected.emit(v)),
-    switchMap(v => this.geoService.loadVoivodeshipGeo(v)),
-    tap(results => {
-      if (results) {
-        this.voivodeshipLocation.emit(results);
-      }
-    })
-  );
+      const name = this.voivodeshipSelected();
+      if (!name) return;
 
-  results = toSignal(this.locationData$);
-
-  select(v: Voivodeship) {
-    this.selected.set(v);
-    this.open.set(false);
+      this.voivodeship.emit(name)
+      this.voivodeshipLocationChange.emit(value);
+    });
   }
 
+  onSelect(v: Voivodeship) {
+    this.voivodeshipSelected.set(v);
+    this.open.set(false);
+  }
 }

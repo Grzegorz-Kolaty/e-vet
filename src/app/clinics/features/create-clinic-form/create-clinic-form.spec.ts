@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AppImageUpload } from './app-image-upload';
+import { CreateClinicForm } from './create-clinic-form';
 
-describe('AppImageUpload', () => {
-  let component: AppImageUpload;
-  let fixture: ComponentFixture<AppImageUpload>;
+describe('CreateClinicForm', () => {
+  let component: CreateClinicForm;
+  let fixture: ComponentFixture<CreateClinicForm>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AppImageUpload]
+      imports: [CreateClinicForm]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(AppImageUpload);
+    fixture = TestBed.createComponent(CreateClinicForm);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

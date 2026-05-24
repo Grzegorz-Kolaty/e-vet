@@ -1,71 +1,147 @@
 import {HttpsError, onCall} from "firebase-functions/v2/https";
 import {getAuth} from "firebase-admin/auth";
-import {initializeApp} from 'firebase-admin/app';
-import {getFirestore, FieldValue, GeoPoint} from 'firebase-admin/firestore';
-import {sendVerificationEmail} from './mailer';
+import {initializeApp} from "firebase-admin/app";
+import {
+  getFirestore,
+  FieldValue,
+  GeoPoint,
+} from "firebase-admin/firestore";
+import {sendVerificationEmail} from "./mailer";
 
 initializeApp();
+
 const auth = getAuth();
 const db = getFirestore();
 
+/* --------------------------------------------------
+   SAFE CLEANER (IMPORTANT)
+-------------------------------------------------- */
+const clean = (obj: Record<string, any>) =>
+  Object.fromEntries(
+    Object.entries(obj).filter(([_, v]) => v !== undefined)
+  );
 
+/* --------------------------------------------------
+   CREATE USER
+-------------------------------------------------- */
 export const createUser = onCall(
   {enforceAppCheck: true},
   async (request) => {
-    const user = request.data;
-    let uid: string;
+    const data = request.data ?? {};
 
+    const email = data.email;
+    const password = data.password;
+    const displayName = data.displayName ?? "";
+    const role = data.role ?? "user";
+
+    if (!email || !password) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Email i hasło są wymagane."
+      );
+    }
+
+    let user_id: string;
+
+    /* ---------------- CREATE AUTH USER ---------------- */
     try {
       const userCreation = await auth.createUser({
-        displayName: user.displayName,
-        email: user.email,
+        displayName,
+        email,
         emailVerified: false,
-        password: user.password,
+        password,
       });
-      uid = userCreation.uid;
+
+      user_id = userCreation.uid;
     } catch (err: any) {
-      if (err.code === 'auth/email-already-exists') {
-        throw new HttpsError("already-exists", "Ten adres email jest już zarejestrowany.", err);
+      if (err?.code === "auth/email-already-exists") {
+        throw new HttpsError(
+          "already-exists",
+          "Ten adres email jest już zarejestrowany.",
+          err
+        );
       }
-      throw new HttpsError("internal", "Błąd tworzenia konta użytkownika", err);
+
+      throw new HttpsError(
+        "internal",
+        "Błąd tworzenia konta użytkownika",
+        err
+      );
     }
 
+    /* ---------------- CUSTOM CLAIMS ---------------- */
     try {
-      await auth.setCustomUserClaims(uid, {role: user.role});
+      await auth.setCustomUserClaims(user_id, {
+        role,
+      });
     } catch (err) {
-      throw new HttpsError("internal", "Błąd przy ustawianiu ról", err);
+      throw new HttpsError(
+        "internal",
+        "Błąd przy ustawianiu ról",
+        err
+      );
     }
 
+    /* ---------------- EMAIL VERIFICATION ---------------- */
     try {
-      const verificationLink = await auth.generateEmailVerificationLink(user.email);
-      await sendVerificationEmail(user.email, verificationLink);
+      const verificationLink =
+        await auth.generateEmailVerificationLink(email);
+
+      await sendVerificationEmail(email, verificationLink);
     } catch (err) {
-      throw new HttpsError("internal", "Błąd wysyłania maila weryfikacyjnego", err);
+      throw new HttpsError(
+        "internal",
+        "Błąd wysyłania maila weryfikacyjnego",
+        err
+      );
     }
 
-    if (user.role === "vet") {
-      try {
-        await db.collection("vets").doc(uid).set({
-          user_id: uid,
-          displayName: user.displayName,
-          email: user.email,
-          role: user.role,
-          clinicId: "",
-          createdAt: FieldValue.serverTimestamp(),
-          email_verified: false,
-        })
-      } catch (error) {
-        console.error("Błąd Cloud Functions:", error);
-        throw new HttpsError("internal", "Wystąpił błąd podczas tworzenia konta weterynarza.");
+    /* ---------------- FIRESTORE WRITE ---------------- */
+    try {
+      if (role === "vet") {
+        await db.collection("vets").doc(user_id).set(
+          clean({
+            user_id: user_id,
+            name: displayName,
+            email,
+            role,
+            clinicId: "",
+            createdAt: FieldValue.serverTimestamp(),
+            email_verified: false,
+            photoUrl: "",
+          })
+        );
+      } else {
+        await db.collection("users").doc(user_id).set(
+          clean({
+            user_id: user_id,
+            name: displayName,
+            email,
+            role,
+            createdAt: FieldValue.serverTimestamp(),
+            email_verified: false,
+            photoUrl: "",
+          })
+        );
       }
+    } catch (error) {
+      console.error("Firestore error:", error);
+      throw new HttpsError(
+        "internal",
+        "Błąd zapisu użytkownika w Firestore",
+        error
+      );
     }
 
-    return {success: true};
+    return {success: true, user_id};
   }
 );
 
+/* --------------------------------------------------
+   CREATE CLINIC
+-------------------------------------------------- */
 export const createNewClinic = onCall(
-  { enforceAppCheck: true },
+  {enforceAppCheck: true},
   async (request) => {
     if (!request.auth) {
       throw new HttpsError(
@@ -77,24 +153,40 @@ export const createNewClinic = onCall(
     const vetId = request.auth.uid;
     const data = request.data;
 
-    if (!data.clinicName || !data.street || !data.houseNumber) {
+    if (!data) {
       throw new HttpsError(
         "invalid-argument",
-        "Brak wymaganych danych adresowych kliniki."
+        "Brak danych kliniki"
       );
     }
 
-    const lat = Number(data.latitude);
-    const lng = Number(data.longitude);
+    const clinicAddress = request.data.address;
 
-    if (isNaN(lat) || isNaN(lng)) {
+    if (!clinicAddress) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Brak danych adresowych kliniki"
+      );
+    }
+
+    const clinicName = data.clinicName;
+
+    if (!clinicName) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Brak nazwy kliniki."
+      );
+    }
+
+    const lat = Number(data.address.latitude);
+    const lng = Number(data.address.longitude);
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
       throw new HttpsError(
         "invalid-argument",
         "Błędne współrzędne geograficzne."
       );
     }
-
-    const geo = JSON.stringify(data.geojson);
 
     try {
       const clinicRef = db.collection("clinics").doc();
@@ -102,54 +194,71 @@ export const createNewClinic = onCall(
 
       const batch = db.batch();
 
-      // 1. CREATE CLINIC
-      batch.set(clinicRef, {
-        id: clinicRef.id,
-        clinicName: data.clinicName,
-        phoneNumber: data.phoneNumber || null,
-        street: data.street,
-        houseNumber: data.houseNumber,
-        apartmentNumber: data.apartmentNumber || null,
-        postcode: data.postcode,
-        city: data.city,
-        voivodeship: data.voivodeship,
-        latitude: lat,
-        longitude: lng,
-        timeOpen: data.timeOpen,
-        timeClose: data.timeClose,
-        geo: new GeoPoint(lat, lng),
-        geojson: geo,
-        ownerId: vetId,
-        coverImage: {
-          url: data.coverImage.url || "",
-        },
-        createdAt: FieldValue.serverTimestamp(),
-      });
+      /* ---------------- CREATE CLINIC ---------------- */
+      batch.set(
+        clinicRef,
+        clean({
+          id: clinicRef.id,
+          clinicName,
+          ownerId: vetId,
+          vetIds: [vetId],
+          phoneNumber: data.phoneNumber,
+          address: {
+            city: clinicAddress.city,
+            town: clinicAddress.town,
+            village: clinicAddress.village,
+            municipality: clinicAddress.municipality,
+            searchCity: clinicAddress.searchCity,
+            voivodeship: clinicAddress.voivodeship,
 
-      // 2. UPDATE VET (spójność danych!)
+            street: clinicAddress.street,
+            house_number: clinicAddress.house_number,
+            postal_code: clinicAddress.postal_code,
+            apartment_number: clinicAddress.apartment_number,
+
+            geojson: JSON.stringify(clinicAddress.geojson),
+            latitude: clinicAddress.latitude,
+            longitude: clinicAddress.longitude,
+          },
+          timeOpen: data.timeOpen,
+          timeClose: data.timeClose,
+          geo: new GeoPoint(lat, lng),
+          coverImage: {
+            url: ""
+          },
+          createdAt: FieldValue.serverTimestamp(),
+        })
+      );
+
+      /* ---------------- UPDATE VET ---------------- */
       batch.update(vetRef, {
         clinicId: clinicRef.id,
       });
 
       await batch.commit();
 
-      // 3. UPDATE CUSTOM CLAIMS (osobno – Firebase limitation)
-      const user = await auth.getUser(vetId);
-
-      await auth.setCustomUserClaims(vetId, {
-        ...(user.customClaims ?? {}),
-        clinicId: clinicRef.id,
-      });
+      /* ---------------- UPDATE CLAIMS ---------------- */
+      try {
+        await auth.setCustomUserClaims(vetId, {
+          role: "vet",
+          clinicId: clinicRef.id,
+        });
+      } catch (err) {
+        console.error("Claims error:", err);
+      }
 
       return {
         clinicId: clinicRef.id,
       };
-
     } catch (error) {
-      console.error("Błąd Cloud Functions:", error);
+      console.error("Cloud Function error:", error);
+
+      const message =
+        error instanceof Error ? error.message : String(error);
+
       throw new HttpsError(
         "internal",
-        "Wystąpił błąd podczas rejestracji kliniki."
+        `Wystąpił błąd podczas rejestracji kliniki: ${message}`
       );
     }
   }

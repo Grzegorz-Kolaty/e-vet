@@ -6,163 +6,185 @@ import {httpResource} from "@angular/common/http";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {ClinicLocation} from "../../../shared/interfaces/clinics.interface";
 
+interface LocationOption {
+  raw: LocationResult;
+  main: string;
+  subtitle: string;
+}
 
 @Component({
   selector: 'app-select-location',
   imports: [FormsModule, ReactiveFormsModule],
   template: `
     <fieldset class="search-box">
-      <div class="position-relative z-2">
 
-        <div class="input-group">
-          <input class="form-control form-control-sm"
-                 type="text"
-                 [disabled]="!voivodeship()"
-                 [placeholder]="voivodeship() ? 'Np. Ostrowska 3' : 'Wybierz województwo powyżej'"
-                 [ngModel]="query()"
-                 (ngModelChange)="query.set($event); resultsOpen.set(true)"
-                 (click)="resultsOpen.set(true)"/>
-          <button class="btn btn-sm btn-outline-secondary" (click)="resultsOpen.set(true)">
-            {{ resultsOpen() ? '▲' : '▼' }}
-          </button>
-        </div>
+      <label class="form-label fw-bold small">Wprowadź adres</label>
+      <div class="input-group">
+        <input class="form-control form-control-sm"
+               type="text"
+               id="adress-input"
+               [ngModel]="query()"
+               (ngModelChange)="query.set($event); resultsOpen.set(true)"
+               (click)="resultsOpen.set(!resultsOpen())"/>
 
+        <button class="btn btn-sm btn-outline-secondary"
+                (click)="resultsOpen.set(true)">
+          {{ resultsOpen() ? '▲' : '▼' }}
+        </button>
+      </div>
 
-        @if (resultsOpen() && groupedLocations().length > 0) {
-          <div class="border position-absolute w-100 bg-white shadow-lg overflow-auto">
-            @for (location of groupedLocations(); track location) {
+      <div>
+        @if (resultsOpen() && groupedLocations().length > 0 && voivodeship()) {
+          <div class="border bg-white shadow-lg">
+            @for (location of groupedLocations(); track location.raw.place_id) {
               <button type="button"
+                      [class.active]="location.raw.place_id === selectedPlace()?.place_id"
                       class="btn btn-sm btn-light w-100 text-start border-bottom py-2"
-                      (click)="selectAddress(location)">
+                      (click)="selectAddress(location.raw, voivodeship()!)">
 
                 <div class="d-flex flex-column">
-                  <span>
-                    {{ formatAddress(location.address) }}
-                  </span>
-                  <small class="text-muted">
-                    {{ formatSubtitle(location.address) }}
-                  </small>
+                  <span>{{ location.main }}</span>
+                  <small class="text-muted">{{ location.subtitle }}</small>
                 </div>
+
               </button>
             }
           </div>
         }
+
       </div>
     </fieldset>
   `,
-  styles: `
-    .search-box {
-      display: flex;
-      flex-flow: column nowrap;
-      background: white;
-      border: transparent;
-    }
-
-    .search-input {
-      padding: 11px 106px 11px 64px;
-    }
-
-    .search-box.list-open {
-      border-bottom: 1px solid #e3e3e3;
-      box-shadow: 0 0 2px rgb(0 0 0 / 20%), 0 -1px 0 rgb(0 0 0 / 2%);
-    }
-  `,
+  styles: ``,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SelectLocation {
+  voivodeshipLocation = input<LocationResult | null>(null);
   voivodeship = input<Voivodeship | null>(null);
+
   clinicLocationSelection = output<ClinicLocation | null>()
 
+  selectedPlace = signal<LocationResult | null>(null);
   query = signal("");
-  city = signal("");
   resultsOpen = signal(false);
 
   private readonly API_URL = `https://nominatim.openstreetmap.org/search?format=jsonv2&polygon_geojson=1&addressdetails=1&q=`;
 
   private debouncedQuery = toSignal(
-    toObservable(this.query).pipe(debounceTime(400), distinctUntilChanged()),
+    toObservable(this.query).pipe(debounceTime(400),
+      distinctUntilChanged()),
     {initialValue: ''}
   );
 
   locationsResults = httpResource<LocationResult[]>(() => {
-    const q = this.debouncedQuery(); // np. "Ostrowska 3"
-    const v = this.voivodeship();
+    const q = this.debouncedQuery();
+    const voivodeship = this.voivodeshipLocation();
 
-    if (q.length < 3 || !v) return undefined;
+    if (q.length < 3 || !voivodeship) return undefined;
 
-    const fullQuery = `${q}, ${v}, Poland`;
+    const state =
+      voivodeship.address.state ||
+      voivodeship.display_name;
+
+    const fullQuery = `${q}, ${state}, Poland`;
+
     return `${this.API_URL}${encodeURIComponent(fullQuery)}`;
   }, {defaultValue: []});
 
-  groupedLocations = computed(() => {
+  groupedLocations = computed<LocationOption[]>(() => {
     const raw = this.locationsResults.value() ?? [];
 
-    return raw.filter(item => {
-      const addr = item.address;
+    const seenCities = new Set<string>();
 
-      const hasCityLike =
-        !!(addr.city || addr.town || addr.village || addr.municipality);
 
-      const hasAnySpatialInfo =
-        !!(addr.road || addr.house_number || addr.county || addr.state);
+    return raw
+      .filter((item) => {
 
-      console.log(addr, hasCityLike, hasAnySpatialInfo);
+        if (item.addresstype === 'county') {
+          return false;
+        }
 
-      return hasCityLike && hasAnySpatialInfo;
-    });
+        const addr = item.address;
+
+        const city =
+          addr.city ||
+          addr.town ||
+          addr.village ||
+          addr.municipality ||
+          'unknown';
+
+        if (seenCities.has(city)) return false;
+
+        seenCities.add(city);
+        return true;
+      })
+      .map(item => {
+        const addr = item.address;
+
+        const main = [
+          addr.village || addr.town || addr.city || addr.municipality,
+          addr.road,
+          addr.house_number,
+        ]
+          .filter(Boolean)
+          .join(', ');
+
+        const subtitle = [
+          addr.city || addr.town || addr.village,
+          addr.municipality || addr.county,
+          addr.state
+        ]
+          .filter(Boolean)
+          .join(', ');
+
+        return {
+          raw: item,
+          main,
+          subtitle
+        };
+      });
   });
 
   constructor() {
     effect(() => {
-      const voivo = this.voivodeship();
-
-      if (voivo) {
-        this.query.set('');
-        this.resultsOpen.set(false);
-        this.clinicLocationSelection.emit(null);
+      if (this.voivodeshipLocation()) {
+        this.query.set('')
       }
     });
   }
 
-  selectAddress(location: LocationResult) {
-    const addr = location.address;
 
+  selectAddress(location: LocationResult, voivo: Voivodeship) {
     const clinic: ClinicLocation = {
-      longitude: Number(location.lon),
-      latitude: Number(location.lat),
       geojson: location.geojson,
-      city: addr.city || addr.town || addr.village || "",
-      street: addr.road || "",
-      houseNumber: addr.house_number || "",
-      postcode: addr.postcode || "",
+      city: location.address.city || "",
+      town: location.address.town || "",
+      village: location.address.village || "",
+      municipality: location.address.municipality || "",
+      searchCity: location.address.city || location.address.town || location.address.village || "",
+      voivodeship: voivo,
+
+      street: location.address.road || "",
+      house_number: location.address.house_number || "",
+      postal_code: location.address.postcode || "",
+      apartment_number: "",
+      latitude: location.lat,
+      longitude: location.lon
     }
 
-    const displayValue = `${clinic.street} ${clinic.houseNumber}`.trim()
+    const streetOrTown = `${!!clinic.street.length
+      ? clinic.street
+      : clinic.city || clinic.town || clinic.village}`
 
-    this.city.set(clinic.city)
-    this.query.set(displayValue);
+
+    const streetNum = ` ${clinic.house_number}`
+
+    this.query.set(streetOrTown + `${streetNum}`);
+    this.selectedPlace.set(location);
     this.resultsOpen.set(false);
 
+    console.log(clinic)
+
     this.clinicLocationSelection.emit(clinic);
-  }
-
-  formatAddress(addr: any): string {
-    return [
-      addr.road,
-      addr.house_number,
-      addr.village || addr.town || addr.city
-    ]
-      .filter(Boolean)
-      .join(', ');
-  }
-
-  formatSubtitle(addr: any): string {
-    return [
-      addr.city || addr.town || addr.village,
-      addr.municipality || addr.county,
-      addr.state
-    ]
-      .filter(Boolean)
-      .join(', ');
   }
 }

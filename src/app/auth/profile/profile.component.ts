@@ -33,7 +33,7 @@
 //
 //       <!--        <app-profile-form-->
 //       <!--          [firebaseUser]="authService.firebaseUser()"-->
-//       <!--          [role]="Role.User"-->
+//       <!--          [role]="Role.UserService"-->
 //       <!--          (userName)="displayNameSig.set($event)"-->
 //       <!--          [status]="displayNameChangeStatus()"-->
 //       <!--        />-->
@@ -94,7 +94,7 @@
 //   }
 //
 //
-//   // updateAuthDisplayName(name: string, firebaseUser: User) {
+//   // updateAuthDisplayName(name: string, firebaseUser: UserService) {
 //   //   this.isLoading.set(true);
 //   //   this.authService.updateProfileData({displayName: name}, firebaseUser).subscribe({
 //   //     next: () => {

@@ -1,83 +1,86 @@
-import {inject, Injectable, signal} from '@angular/core';
-import {Credentials, RegisterCredentials, UserInterface} from '../interfaces/user.interface';
+import {effect, inject, Injectable, signal} from '@angular/core';
+import {Credentials, RegisterCredentials, Role, UserProfile} from '../interfaces/userProfile';
 import {
   applyActionCode,
   confirmPasswordReset,
   sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
-  signOut,
-  updateProfile,
-  User
+  User,
+  onAuthStateChanged
 } from 'firebase/auth';
-import {user} from "rxfire/auth";
 import {httpsCallable} from "firebase/functions";
-import {jwtDecode} from "jwt-decode";
 import {AUTH, FUNCTIONS} from "../../firebase.providers";
+import {UserService} from "./user.service";
+import {jwtDecode} from "jwt-decode";
 
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private readonly auth = inject(AUTH);
+  readonly auth = inject(AUTH);
   private readonly functions = inject(FUNCTIONS);
+  private readonly userService = inject(UserService);
 
-  // sources
-  user$ = user(this.auth)
+  firebaseUser = signal<User | null>(null);
+  user = signal<UserProfile | null>(null);
 
-  // selectors
-  user = signal<UserInterface | null>(null)
-  firebaseUser = signal<User | null>(null)
+  init(): Promise<void> {
+    console.log('init proc')
+    return new Promise((resolve) => {
 
-  public async reloadUser() {
-    if (this.auth.currentUser) {
-      try {
-        await this.auth.currentUser.getIdToken(true);
-        await this.auth.currentUser.reload();
-      } catch (error) {
-        console.error('verify email err', error);
-      }
-    }
+      let resolved = false;
+
+      const unsub = onAuthStateChanged(this.auth, async (user) => {
+        this.firebaseUser.set(user);
+
+        if (user) {
+          const token = await user.getIdToken()
+          const data = this.deserializeUserToken(token)
+          const role = data.role;
+
+
+          const profile = await this.userService.loadProfile(user.uid, role);
+          this.user.set(profile ?? null);
+        } else {
+          this.user.set(null);
+        }
+
+        if (!resolved) {
+          resolved = true;
+          resolve();
+        }
+      });
+    });
   }
 
-  public deserializeUserToken(token: string): UserInterface {
+  public deserializeUserToken(token: string): UserProfile {
     return jwtDecode(token)
   }
 
-  public async register(registerForm: RegisterCredentials) {
-    return httpsCallable(this.functions, 'createUser')(registerForm)
-  }
-
-  public login(credentials: Credentials) {
-    return signInWithEmailAndPassword(this.auth, credentials.email, credentials.password);
-  }
-
   public async logout() {
-    await signOut(this.auth);
+    await this.auth.signOut();
   }
 
-  // public async updateProfileData(profileData: UserInterface) {
-  //   return updateProfile(profileData);
-  // }
+  public async register(registerForm: RegisterCredentials) {
+    await httpsCallable(this.functions, 'createUser')(registerForm)
+  }
 
-  // public async updateProfiles(profile: UserInterface) {
-  //   const user = this.firebaseUser();
-  //   if (user) {
-  //     return updateProfile(user, {displayName: username});
-  //   }
-  // }
+  public async login(credentials: Credentials) {
+    await signInWithEmailAndPassword(this.auth, credentials.email, credentials.password);
+  }
 
   public async initiateEmail(user: User) {
     await sendEmailVerification(user)
   }
 
   public async resetPassword(email: string) {
-    return sendPasswordResetEmail(this.auth, email);
+    await sendPasswordResetEmail(this.auth, email);
   }
 
   public async confirmPasswordReset(oobCode: string, newPassword: string) {
-    return confirmPasswordReset(this.auth, oobCode, newPassword)
+    await confirmPasswordReset(this.auth, oobCode, newPassword)
   }
 
   public async verifyEmail(oobCode?: string) {
@@ -85,6 +88,5 @@ export class AuthService {
       throw new Error('Brak kodu weryfikacji email');
     }
     await applyActionCode(this.auth, oobCode);
-    await this.reloadUser();
   }
 }

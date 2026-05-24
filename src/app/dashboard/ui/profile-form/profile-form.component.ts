@@ -1,15 +1,17 @@
-import {ChangeDetectionStrategy, Component, input, output, ResourceStatus} from '@angular/core';
+import {ChangeDetectionStrategy, Component, effect, input, model, output, ResourceStatus} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {User} from 'firebase/auth';
-import {Role} from '../../../shared/interfaces/user.interface';
-import {NgClass} from '@angular/common';
+import {UserProfile} from '../../../shared/interfaces/userProfile';
+import {NgClass} from "@angular/common";
+import {UploadableImagesComponent} from "../../../shared/ui/uploadable-images/uploadable-images.component";
+
 
 @Component({
   selector: 'app-profile-form',
-  imports: [ReactiveFormsModule, NgClass, FormsModule],
+  standalone: true,
+  imports: [ReactiveFormsModule, FormsModule, NgClass, UploadableImagesComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="row m-5 justify-content-center my-5 shadow-lg">
+    <div class="row justify-content-center p-5">
       <!-- Main Content -->
       <div class="col-12">
         <div class="card border-0 rounded-3">
@@ -17,7 +19,7 @@ import {NgClass} from '@angular/common';
             <div class="row g-0">
               <!-- Sidebar -->
               <div class="col-lg-3">
-                <div class="p-4">
+                <div class="p-5">
                   <div class="nav flex-column nav-pills">
                     <a class="nav-link active"><i class="fas fa-user me-2"></i>Twoje dane</a>
                     <a class="nav-link" disabled=""><i class="fas fa-lock me-2"></i>Zabezpieczenia</a>
@@ -28,46 +30,64 @@ import {NgClass} from '@angular/common';
                 </div>
               </div>
               <!-- Content Area -->
-              <div class="col-lg-9 p-4">
+              <div class="col-lg-9 p-5">
                 <!-- Personal Information -->
-                <form class="mb-4">
-                  <h5 class="mb-4">Twoje dane</h5>
-                  <div class="row g-3">
-                    <div class="col-md-6">
+                <div class="row g-3">
+                  <div class="col-6">
+
+                    <h5>Twoje dane</h5>
+
+                    <form class="col-12 py-3" #ngForm (ngSubmit)="onConfirmNewName()">
                       <label class="form-label">Nazwa użytkownika</label>
                       <div class="input-group">
-                        <input #displayNameInput
-                               type="text"
-                               class="form-control"
-                               id="username"
-                               name="username"
-                               [value]="user()?.displayName">
+                        <input
+                          #nameInput="ngModel"
+                          [(ngModel)]="displayName"
+                          name="first"
+                          class="form-control"
+                          [ngClass]="{
+                          'is-valid': ngForm['submitted'] && uploadNewProfileResource() === 'resolved',
+                          'is-invalid': nameInput.dirty && uploadNewProfileResource() === 'error'
+                          }"/>
 
-                        <button #userNameButton
-                                [ngClass]="status() === 2 ? 'disabled' : ''"
-                                (click)="userName.emit(displayNameInput.value)"
-                                type="button"
+                        <button type="submit"
                                 class="btn btn-outline-dark"
-                                aria-describedby="username">
-                          💾
+                                [disabled]="uploadNewProfileResource() === 'loading'">
+                          @if (uploadNewProfileResource() === 'loading') {
+                            <span class="spinner-border spinner-border-sm"></span>
+                          } @else {
+                            💾
+                          }
                         </button>
-                      </div>
-                    </div>
 
-                    <div class="col-md-6">
-                      <label class="form-label">Email</label>
-                      <input type="email" class="form-control" disabled [value]="user()?.email">
-                    </div>
-                    <div class="col-md-6">
-                      <label class="form-label">Telefon</label>
-                      <input type="tel" class="form-control" value="+48 500 600 700" disabled>
-                    </div>
-                    <div class="col-12">
-                      <label class="form-label">Bio</label>
-                      <textarea class="form-control" disabled rows="4">Jeszcze niedostępne</textarea>
-                    </div>
+                      </div>
+
+                    </form>
                   </div>
-                </form>
+
+                  <div class="col-6 text-center">
+                    <label class="form-label">Zdjęcie profilowe</label>
+                    <app-uploadable-images
+                      [photoUrl]="user()?.photoUrl"
+                      (photoFile)="userPhotoFile.emit($event)"
+                    />
+                  </div>
+
+
+                  <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" disabled [value]="user()?.email">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Telefon</label>
+                    <input type="tel" class="form-control" value="+48 500 600 700" disabled>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">Bio</label>
+                    <textarea class="form-control" disabled rows="4">Jeszcze niedostępne</textarea>
+                  </div>
+
+                </div>
 
                 <!-- Settings Cards -->
                 <div class="row g-4 mb-4">
@@ -126,12 +146,40 @@ import {NgClass} from '@angular/common';
           </div>
         </div>
       </div>
-    </div>`,
+    </div>
+  `,
   styles: ``,
 })
-export class ProfileFormComponent {
-  user = input<User | null>(null);
-  role = input<Role | null>(null);
-  status = input<ResourceStatus | null>(null);
+export default class ProfileFormComponent {
+  user = input<UserProfile | null>();
+
+  uploadPhotoResourceStatus =
+    input<ResourceStatus | undefined>();
+
+  uploadNewProfileResource =
+    input<ResourceStatus | undefined>();
+
+  userPhotoFile = output<File>();
+
   userName = output<string>();
+
+  displayName = '';
+
+  constructor() {
+    effect(() => {
+      const user = this.user();
+
+      if (user) {
+        this.displayName = user.name;
+      }
+    });
+  }
+
+  onConfirmNewName() {
+    const trimmed = this.displayName.trim();
+
+    if (!trimmed) return;
+
+    this.userName.emit(trimmed);
+  }
 }

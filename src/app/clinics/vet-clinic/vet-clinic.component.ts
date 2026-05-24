@@ -1,168 +1,196 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  effect,
-  inject,
-  Input,
-  input,
-  resource,
-  signal
-} from '@angular/core';
-import {Voivodeship} from "../../shared/data-access/geo.service";
-import {FirestoreService} from "../../shared/data-access/firestore.service";
+import {ChangeDetectionStrategy, Component, computed, effect, inject, resource, signal} from '@angular/core';
 import {MapComponent} from "../features/map/map.component";
 import {Clinic} from "../../shared/interfaces/clinics.interface";
 import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 import ClinicService from "../../shared/data-access/clinic.service";
-import {AppImageUpload} from "../features/app-image-upload/app-image-upload";
-import {UserInterface} from "../../shared/interfaces/user.interface";
+import {UploadableImagesComponent} from "../../shared/ui/uploadable-images/uploadable-images.component";
+import {ActivatedRoute, Router} from "@angular/router";
+import {toSignal} from "@angular/core/rxjs-interop";
+import {map} from "rxjs";
+import {AuthService} from "../../shared/data-access/auth.service";
+import {GetAppointmentsForVet} from "../features/get-appointments-for-vet/get-appointments-for-vet";
 
+
+export interface ClinicPayload {
+  file: File;
+  clinic: Clinic;
+}
 
 @Component({
   selector: 'app-vet-clinic',
   imports: [
     MapComponent,
     FaIconComponent,
-    AppImageUpload,
+    UploadableImagesComponent,
+    GetAppointmentsForVet,
   ],
   template: `
-    <div class="container-fluid p-5 h-100">
+    <div class="container h-100 pt-4">
+      @let clinicData = clinic();
 
-      @if (clinicData(); as clinic) {
-        <div class="mb-4">
-          <h2 class="fw-bold">Przychodnia Weterynaryjna {{ clinic.clinicName }}</h2>
+      @if (clinicData) {
+        <div class="row mb-3">
+          <div class="col">
+            <h2 class="fw-bold">
+              Przychodnia Weterynaryjna {{ clinicData?.clinicName }}
+            </h2>
+          </div>
         </div>
 
-        <div class="row gx-5">
+        <div class="row gy-4 justify-content-between">
+          <div class="col-lg-9 d-flex flex-column gap-3">
+            <app-uploadable-images
+              [photoUrl]="clinicData.coverImage.url"
+              (photoFile)="onPhotoUpload($event, clinicData)"
+              [widerSize]=true
+            />
 
-          <div class="col">
-            <div class="h-35 shadow-lg rounded-3 mb-3">
+            <h4 class="my-2">Dostępni weterynarze i terminy</h4>
 
-              <app-image-upload
-                [imageUrl]="clinic.coverImage.url || null"
-                (fileSelected)="onImageSelected($event)">
-              </app-image-upload>
-
-            </div>
-
-            <h3>Dostępni lekarze i wizyty</h3>
-            <div class="row">
-              <div class="col">
-                @for (vet of clinicVets(); track vet.user_id) {
-                  <p>{{vet.user_id}}</p>
-                  <p>{{vet.displayName}}</p>
-
-                }
-              </div>
-              <div class="col">1sza</div>
-
-              <div class="col">1sza</div>
-
-            </div>
+            @for (vet of veterinariesOfClinic(); track vet.user_id) {
+              <app-get-appointments-for-vet [veterinary]="vet" [clinicId]="clinicData.id"/>
+            }
           </div>
 
 
-          <div class="col-4 d-flex flex-column gap-3 p-4 shadow-lg bg-light-subtle rounded-3">
-            <h5 class="">
-              Informacje o klinice
-            </h5>
+          <div class="col-lg-3">
+            <div class="p-4 shadow-lg rounded-4 bg-opacity-25 bg-light d-flex flex-column gap-4 ">
 
-            <div class="d-flex gap-3 align-items-start">
-              <div class="pt-1 align-self-center">
-                <fa-icon [icon]="['fas', 'location-dot']" size="xl"/>
+              <h5>Informacje o klinice</h5>
+
+              <div class="d-flex gap-3">
+                <fa-icon [icon]="['fas', 'location-dot']" size="lg"/>
+                <div>
+                  <h6 class="fw-semibold mb-1">Adres</h6>
+                  <div>
+                    {{ clinicData.address.city || clinicData.address.town || clinicData.address.village }},
+                    {{ clinicData.address.street }}
+                    {{ clinicData.address.house_number }}
+                    {{ clinicData.address.apartment_number }}
+                    {{ clinicData.address.postal_code }}
+                  </div>
+                </div>
               </div>
 
-              <div class="d-flex flex-column">
-                <h6 class="fw-semibold">Adres</h6>
-                <span>
-                  {{ clinic.city }},
-                  {{ clinic.street }}
-                  {{ ',' }}
-                  {{ clinic.houseNumber }}
-                  {{ clinic.apartmentNumber }}
-                </span>
-              </div>
-            </div>
-
-            <div class="d-flex gap-3 align-items-start">
-              <div class="pt-1 align-self-center">
-                <fa-icon [icon]="['fas', 'phone']" size="xl"/>
+              <!-- PHONE -->
+              <div class="d-flex gap-3">
+                <fa-icon [icon]="['fas', 'phone']" size="lg"/>
+                <div>
+                  <h6 class="fw-semibold mb-1">Telefon</h6>
+                  <div>{{ clinicData?.phoneNumber }}</div>
+                </div>
               </div>
 
-              <div class="d-flex flex-column">
-                <h6 class="fw-semibold">Telefon</h6>
-
-                <span>{{ clinic.phoneNumber }}</span>
-              </div>
-            </div>
-
-            <div class="d-flex gap-3 align-items-start">
-              <div class="pt-1 align-self-center">
-                <fa-icon [icon]="['fas', 'clock']" size="xl"/>
+              <div class="d-flex gap-3">
+                <fa-icon [icon]="['fas', 'clock']" size="lg"/>
+                <div>
+                  <h6 class="fw-semibold mb-1">Godziny przyjęć</h6>
+                  <div>{{ clinicData?.timeOpen }} - {{ clinicData?.timeClose }}</div>
+                </div>
               </div>
 
-              <div class="d-flex flex-column">
-                <h6 class="fw-semibold">Godziny przyjęć</h6>
-
-                <span>{{ clinic.timeOpen }} - {{ clinic.timeClose }}</span>
-              </div>
-            </div>
-
-            @if (clinicData()) {
-              <div class="small-map">
-                <app-map (mapReady)="onSelectClinicLocation.set(clinicData())"
-                         [clinicLocationSelected]="onSelectClinicLocation()">
+              <div class="small-map rounded-3">
+                <app-map [clinicLocation]="onSelectClinicLocation()">
                 </app-map>
               </div>
-            }
 
+            </div>
           </div>
-        </div>
-      }
 
+        </div>
+
+      }
     </div>
   `,
   styles: `
     .small-map {
       height: 350px;
       width: 100%;
-    }`,
+    }
+
+    .cursor-pointer {
+      cursor: pointer;
+    }
+  `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VetClinicComponent {
+export default class VetClinicComponent {
+  private readonly authService = inject(AuthService);
   public readonly clinicService = inject(ClinicService)
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
-  clinicVets = input<UserInterface[]>([])
-  clinic = input<Clinic | null>(null)
-  clinicData = computed(() => {
-    return this.clinic() || null;
+  clinicId = toSignal(
+    this.route.paramMap.pipe(
+      map(params => params.get('id'))
+    ),
+    {
+      initialValue: null
+    }
+  );
+
+  clinic = signal<Clinic | undefined | null>(undefined);
+  onSelectClinicLocation = computed(() => this.clinic()?.address ?? null);
+  veterinariesOfClinic = computed(() => {
+    return this.onGetVeterinariesFromClinic.value() ?? [];
   });
 
-  onSelectClinicLocation = signal<Clinic | null>(null)
-  onSelectVoivodeship = signal<Voivodeship | null>(null);
+  onUpdateClinicTrigger = signal<ClinicPayload | null>(null)
 
   constructor() {
     effect(() => {
-      const clinicData = this.clinicData()
-      if (clinicData) {
-        this.onSelectVoivodeship.set(clinicData.voivodeship)
+      const user = this.authService.user()
+      if (!user) {
+        this.router.navigate(['auth', 'login']);
       }
-    })
+    });
 
     effect(() => {
-      console.log(this.onSelectClinicLocation())
+      if (this.onUpdateClinic.status() === 'resolved' && this.onUpdateClinic.value()) {
+        this.clinic.set(this.onUpdateClinic.value())
+      }
+    });
+
+    effect(() => {
+      const status = this.onGetClinicInfo.status();
+      if (status === 'resolved') {
+        this.clinic.set(this.onGetClinicInfo.value())
+      }
     });
   }
 
-  onImageSelected(file: File) {
-    const clinicId = this.clinic()?.id;
+  onGetClinicInfo = resource({
+    params: () => this.clinicId(),
+    loader: async ({params}) => {
+      if (!params) {
+        throw Error('no clinic Id assigned')
+      }
+      return this.clinicService.getClinicInfo(params)
+    }
+  })
 
-    if (!clinicId) return;
+  onUpdateClinic = resource({
+    params: () => this.onUpdateClinicTrigger(),
+    loader: async ({params}) => {
+      if (!params) {
+        throw Error('no clinic Id assigned')
+      }
+      return this.clinicService.updateCover(params.file, params.clinic)
+    }
+  })
 
-    this.clinicService.updateCover(file, clinicId)
-      .subscribe(url => {
-        console.log('uploaded:', url);
-      });
+  onGetVeterinariesFromClinic = resource({
+    params: () => this.clinic()?.vetIds,
+    loader: async ({params}) => {
+      if (!params) {
+        return []
+      }
+      return this.clinicService.getVeterinariesAssignedToClinic(params)
+    }
+  })
+
+  onPhotoUpload(file: File, clinicData: Clinic) {
+    console.log(clinicData, file);
+    this.onUpdateClinicTrigger.set({clinic: clinicData, file: file});
   }
 }

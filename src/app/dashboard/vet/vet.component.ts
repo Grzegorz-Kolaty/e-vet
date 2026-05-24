@@ -1,6 +1,7 @@
-import {ChangeDetectionStrategy, Component, effect, inject} from '@angular/core';
+import {ChangeDetectionStrategy, Component, effect, inject, input, Input, signal} from '@angular/core';
 import {AuthService} from "../../shared/data-access/auth.service";
 import {Router} from "@angular/router";
+import {UserProfile} from "../../shared/interfaces/userProfile";
 
 @Component({
   selector: 'app-vet',
@@ -64,19 +65,21 @@ import {Router} from "@angular/router";
       </div>
     </div>
   `,
-  styleUrl: './vet.component.scss',
+  styles: ``,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VetComponent {
-  // public readonly authService = inject(AuthService);
-  // private readonly router = inject(Router)
+export default class VetComponent {
+  public readonly authService = inject(AuthService);
+  private readonly router = inject(Router)
 
-  // constructor() {
-  //   effect(() => {
-  //     if (!this.authService.firebaseUser()) {
-  //       this.router.navigate(['auth'])
-  //     }
-  //   });
-  // }
+  user = input<UserProfile>();
+
+  constructor() {
+    effect(() => {
+      if (!this.authService.firebaseUser()) {
+        this.router.navigate(['auth'])
+      }
+    });
+  }
 
 }

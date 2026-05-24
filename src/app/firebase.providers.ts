@@ -30,7 +30,7 @@ export function provideFirebaseServices(): EnvironmentProviders {
   window.FIREBASE_APPCHECK_DEBUG_TOKEN = false
 
   if (!environment.production) {
-    window.FIREBASE_APPCHECK_DEBUG_TOKEN = environment.firebase.recaptchaToken // for emulating appcheck
+    window.FIREBASE_APPCHECK_DEBUG_TOKEN = environment.firebase.recaptchaToken
     connectAuthEmulator(auth, 'http://localhost:9099', {disableWarnings: true});
     connectFirestoreEmulator(firestore, 'localhost', 8080);
     connectStorageEmulator(storage, 'localhost', 9199);
