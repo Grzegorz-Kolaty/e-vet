@@ -1,92 +1,152 @@
-import {effect, inject, Injectable, signal} from '@angular/core';
-import {Credentials, RegisterCredentials, Role, UserProfile} from '../interfaces/userProfile';
-import {
-  applyActionCode,
-  confirmPasswordReset,
-  sendEmailVerification,
-  sendPasswordResetEmail,
-  signInWithEmailAndPassword,
-  User,
-  onAuthStateChanged
-} from 'firebase/auth';
-import {httpsCallable} from "firebase/functions";
-import {AUTH, FUNCTIONS} from "../../firebase.providers";
-import {UserService} from "./user.service";
-import {jwtDecode} from "jwt-decode";
+import {computed, inject, Injectable, signal} from '@angular/core';
+import {HttpClient, HttpErrorResponse} from '@angular/common/http';
+import {firstValueFrom} from 'rxjs';
 
+import {
+  Credentials,
+  RegisterCredentials,
+  UserInterface,
+} from '../interfaces/user.interface';
+
+type UserResponse = Omit<UserInterface, 'created_at' | 'updated_at'> & {
+  created_at: string;
+  updated_at: string;
+};
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  readonly auth = inject(AUTH);
-  private readonly functions = inject(FUNCTIONS);
-  private readonly userService = inject(UserService);
+  private readonly http = inject(HttpClient);
 
-  firebaseUser = signal<User | null>(null);
-  user = signal<UserProfile | null>(null);
+  readonly user = signal<UserInterface | null>(null);
+  readonly initialized = signal(false);
 
-  init(): Promise<void> {
-    console.log('init proc')
-    return new Promise((resolve) => {
+  readonly isAuthenticated = computed(() => this.user() !== null);
+  readonly isLoadingAuth = computed(() => !this.initialized());
 
-      let resolved = false;
+  private initPromise: Promise<UserInterface | null> | null = null;
 
-      const unsub = onAuthStateChanged(this.auth, async (user) => {
-        this.firebaseUser.set(user);
-
-        if (user) {
-          const token = await user.getIdToken()
-          const data = this.deserializeUserToken(token)
-          const role = data.role;
-
-
-          const profile = await this.userService.loadProfile(user.uid, role);
-          this.user.set(profile ?? null);
-        } else {
-          this.user.set(null);
-        }
-
-        if (!resolved) {
-          resolved = true;
-          resolve();
-        }
-      });
-    });
-  }
-
-  public deserializeUserToken(token: string): UserProfile {
-    return jwtDecode(token)
-  }
-
-  public async logout() {
-    await this.auth.signOut();
-  }
-
-  public async register(registerForm: RegisterCredentials) {
-    await httpsCallable(this.functions, 'createUser')(registerForm)
-  }
-
-  public async login(credentials: Credentials) {
-    await signInWithEmailAndPassword(this.auth, credentials.email, credentials.password);
-  }
-
-  public async initiateEmail(user: User) {
-    await sendEmailVerification(user)
-  }
-
-  public async resetPassword(email: string) {
-    await sendPasswordResetEmail(this.auth, email);
-  }
-
-  public async confirmPasswordReset(oobCode: string, newPassword: string) {
-    await confirmPasswordReset(this.auth, oobCode, newPassword)
-  }
-
-  public async verifyEmail(oobCode?: string) {
-    if (!oobCode) {
-      throw new Error('Brak kodu weryfikacji email');
+  init(): Promise<UserInterface | null> {
+    if (!this.initPromise) {
+      this.initPromise = this.loadCurrentUser();
     }
-    await applyActionCode(this.auth, oobCode);
+
+    return this.initPromise;
+  }
+
+  async login(credentials: Credentials): Promise<UserInterface> {
+    try {
+      const response = await firstValueFrom(
+        this.http.post<UserResponse>('/auth/login', credentials),
+      );
+
+      const user = this.mapUser(response);
+
+      this.user.set(user);
+      this.initialized.set(true);
+
+      return user;
+    } catch (error) {
+      this.user.set(null);
+      this.initialized.set(true);
+      throw new Error(this.getErrorMessage(error));
+    }
+  }
+
+  async register(registerForm: RegisterCredentials): Promise<UserInterface> {
+    try {
+      const response = await firstValueFrom(
+        this.http.post<UserResponse>('/auth/register', {
+          name: registerForm.name,
+          email: registerForm.email,
+          password: registerForm.password,
+          role: registerForm.role,
+        }),
+      );
+
+      return this.mapUser(response);
+    } catch (error) {
+      throw new Error(this.getErrorMessage(error));
+    }
+  }
+
+  async loadCurrentUser(): Promise<UserInterface | null> {
+    try {
+      const response = await firstValueFrom(
+        this.http.get<UserResponse>('/me'),
+      );
+
+      const user = this.mapUser(response);
+
+      this.user.set(user);
+
+      return user;
+    } catch {
+      this.user.set(null);
+      return null;
+    } finally {
+      this.initialized.set(true);
+    }
+  }
+
+  async logout() {
+    try {
+      await firstValueFrom(
+        this.http.post<{ status: string }>('/auth/logout', {}),
+      );
+    } finally {
+      this.user.set(null);
+      this.initialized.set(true);
+      this.initPromise = null;
+    }
+  }
+
+  private mapUser(user: UserResponse): UserInterface {
+    return {
+      ...user,
+      created_at: new Date(user.created_at),
+      updated_at: new Date(user.updated_at),
+    };
+  }
+
+  private getErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      if (error.status === 401) return 'Nieprawidłowy email lub hasło.';
+      if (error.status === 403) return 'Konto jest nieaktywne.';
+      if (error.status === 409) return 'Konto z tym adresem email już istnieje.';
+
+      if (Array.isArray(error.error?.detail)) {
+        return error.error.detail
+          .map((item: { msg?: string }) => item.msg)
+          .filter(Boolean)
+          .join(', ');
+      }
+
+      if (error.error?.detail) {
+        return String(error.error.detail);
+      }
+    }
+
+    return 'Wystąpił błąd. Spróbuj ponownie.';
+  }
+
+  async initiateEmail(_user?: unknown): Promise<void> {
+    throw new Error('Weryfikacja email nie jest jeszcze obsługiwana przez nowe API.');
+  }
+
+  async resetPassword(_email: string): Promise<void> {
+    throw new Error('Reset hasła nie jest jeszcze obsługiwany przez nowe API.');
+  }
+
+  async confirmPasswordReset(
+    _oobCode: string,
+    _newPassword: string,
+  ): Promise<void> {
+    throw new Error('Potwierdzenie resetu hasła nie jest jeszcze obsługiwane przez nowe API.');
+  }
+
+  async verifyEmail(_oobCode?: string): Promise<void> {
+    throw new Error('Weryfikacja email nie jest jeszcze obsługiwana przez nowe API.');
   }
 }

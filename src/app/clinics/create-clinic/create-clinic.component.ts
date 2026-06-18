@@ -42,7 +42,7 @@ import {LoaderComponent} from "../../shared/ui/loader/loader.component";
 
             <app-create-clinic-form
               [createClinicStatus]="onCreateClinicResource.status()"
-              [vetId]="user.user_id"
+              [vetId]="user.id"
               [clinicAddress]="selection().clinic"
               (createClinic)="onCreateClinicSubmit.set($event)"/>
           </div>
@@ -78,8 +78,11 @@ export default class CreateClinicComponent {
 
   constructor() {
     effect(() => {
-      const user = this.user()
-      if (!user) {
+      if (!this.authService.initialized()) {
+        return;
+      }
+
+      if (!this.authService.user()) {
         this.router.navigate(['auth', 'login']);
       }
     });

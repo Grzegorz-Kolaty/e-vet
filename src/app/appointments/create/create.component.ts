@@ -1,21 +1,14 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-  effect, resource
-} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, inject, signal, effect, resource} from '@angular/core';
 import {AppointmentsService} from '../../shared/data-access/appointments.service';
 import {DatepickerRangeComponent} from '../../shared/ui/datepicker-range/datepicker-range.component';
-import {doc, Timestamp, writeBatch} from 'firebase/firestore';
 import AppointmentsTableComponent from "./appointments-table/appointments-table.component";
 import {Router} from "@angular/router";
 import {AuthService} from "../../shared/data-access/auth.service";
 import {Appointment} from "../../shared/interfaces/appointments.interface";
+import ClinicService from "../../shared/data-access/clinic.service";
 
-// Dodajemy stan do głównego komponentu zarządzającego
 export type SlotState = 'existing' | 'draft' | 'reserved' | 'empty' | 'outdated' | 'weekend' | 'toDelete';
+
 
 @Component({
   selector: 'app-create',
@@ -32,7 +25,7 @@ export type SlotState = 'existing' | 'draft' | 'reserved' | 'empty' | 'outdated'
 
         <div class="row p-5 g-4">
           <div class="col-3">
-            <div class="alert alert-primary d-flex align-items-center" role="alert">
+            <div class="alert alert-primary d-flex align-items-cent" role="alert">
               <div>
                 Znajdujesz się w panelu zarządzania rezerwacjami.
                 <br/>
@@ -43,9 +36,10 @@ export type SlotState = 'existing' | 'draft' | 'reserved' | 'empty' | 'outdated'
               </div>
             </div>
 
+
             <div class="text-center d-flex flex-column gap-3">
               <app-datepicker-range
-                [selectSingleDay]="false"
+                [selectSingleDay]=false
                 (weekSelection)="onSelectWeekSig.set($event)"/>
 
               <button
@@ -72,132 +66,112 @@ export type SlotState = 'existing' | 'draft' | 'reserved' | 'empty' | 'outdated'
   `
 })
 export default class CreateComponent {
-  private authService = inject(AuthService);
-  private appointmentsService = inject(AppointmentsService);
-  private router = inject(Router);
-
-  user = this.authService.user;
-  onSelectWeekSig = signal<{ start: Date; end: Date } | null>(null);
-
-  draftAppointments = signal<Appointment[]>([]);
-  appointmentsToDelete = signal<Set<number>>(new Set());
-
-  appointmentsResource = resource({
-    params: () => this.onSelectWeekSig(),
-    loader: async ({params}) => {
-      if (!params) return [];
-      return await this.appointmentsService.getAppointmentsForVet(params) ?? [];
-    }
+  private readonly authService = inject(AuthService);
+  private readonly appointmentsService = inject(AppointmentsService);
+  private readonly clinicService = inject(ClinicService);
+  private readonly router = inject(Router);
+  readonly user = this.authService.user;
+  readonly onSelectWeekSig = signal<{ start: Date; end: Date } | null>(null);
+  readonly draftAppointments = signal<Appointment[]>([]);
+  readonly appointmentsToDelete = signal<Set<number>>(new Set());
+  readonly clinicResource = resource({
+    params: () => this.user()?.id, loader: async ({params: vetId}) => {
+      if (!vetId) return null;
+      return this.clinicService.getClinicByVetId(vetId);
+    },
   });
-
-  weekDays = computed(() => {
-    const w = this.onSelectWeekSig();
-    if (!w) return [];
-
+  readonly appointmentsResource = resource({
+    params: () => this.onSelectWeekSig(), loader: async ({params}) => {
+      if (!params) return [];
+      return this.appointmentsService.getAppointmentsForVet(params);
+    },
+  });
+  readonly weekDays = computed(() => {
+    const selectedWeek = this.onSelectWeekSig();
+    if (!selectedWeek) return [];
     const days: Date[] = [];
-    const d = new Date(w.start);
-    while (d <= w.end) {
-      days.push(new Date(d));
-      d.setDate(d.getDate() + 1);
+    const currentDate = new Date(selectedWeek.start);
+    while (currentDate <= selectedWeek.end) {
+      days.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
     }
     return days;
   });
-
-  slotState = computed(() => {
-    const map = new Map<string, SlotState>();
+  readonly slotState = computed(() => {
+    const map = new Map<number, SlotState>();
     const now = new Date();
-    const existing = this.appointmentsResource.value() ?? [];
-    const toDelete = this.appointmentsToDelete();
-
-    // 1. Mapowanie terminów z bazy danych
-    for (const a of existing) {
-      const d = a.dateTimeFrom.toDate();
-      const millis = a.dateTimeFrom.toMillis();
-      const key = `${this.toDayKey(d)}-${d.getHours()}`;
-
-      if (toDelete.has(millis)) {
-        // ZAMIANA: zamiast 'empty', ustawiamy dedykowany stan 'toDelete'
-        map.set(key, 'toDelete');
-      } else {
-        map.set(key, now > d ? 'outdated' : (a.reserved ? 'reserved' : 'existing'));
+    const existingAppointments = this.appointmentsResource.value() ?? [];
+    const appointmentsToDelete = this.appointmentsToDelete();
+    for (const appointment of existingAppointments) {
+      const date = appointment.dateTimeFrom;
+      const millis = date.getTime();
+      if (appointmentsToDelete.has(millis)) {
+        map.set(millis, 'toDelete');
+        continue;
       }
+      if (now > date) {
+        map.set(millis, 'outdated');
+        continue;
+      }
+      map.set(millis, appointment.reserved ? 'reserved' : 'existing');
     }
-
-    // 2. Mapowanie nowo dodawanych terminów (Draft)
-    for (const a of this.draftAppointments()) {
-      const d = a.dateTimeFrom.toDate();
-      const key = `${this.toDayKey(d)}-${d.getHours()}`;
-      map.set(key, now > d ? 'outdated' : 'draft');
+    for (const appointment of this.draftAppointments()) {
+      const date = appointment.dateTimeFrom;
+      const millis = date.getTime();
+      map.set(millis, now > date ? 'outdated' : 'draft');
     }
-
     return map;
   });
 
   constructor() {
     effect(() => {
+      if (!this.authService.initialized()) {
+        return;
+      }
+
       if (!this.authService.user()) {
         this.router.navigate(['auth', 'login']);
       }
     });
   }
 
-  private toDayKey(d: Date): string {
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  }
-
-  addToDraft(date: Date) {
+  addToDraft(date: Date): void {
     const millis = date.getTime();
-
-    // Jeśli ten termin był na liście do USUNIĘCIA (czyli był czerwony),
-    // ponowne kliknięcie ("Dodaj") oznacza po prostu rezygnację z kasowania!
     if (this.appointmentsToDelete().has(millis)) {
-      this.appointmentsToDelete.update(set => {
+      this.appointmentsToDelete.update((set) => {
         set.delete(millis);
         return new Set(set);
       });
       return;
     }
-
-    const ap = this.build(date);
-    this.draftAppointments.update(list => {
-      const exists = list.some(a => a.dateTimeFrom.toMillis() === millis);
-      return exists ? list : [...list, ap];
+    const appointment = this.build(date);
+    this.draftAppointments.update((list) => {
+      const exists = list.some((item) => item.dateTimeFrom.getTime() === millis,);
+      return exists ? list : [...list, appointment];
     });
   }
 
-  handleRemove(date: Date) {
+  handleRemove(date: Date): void {
     const millis = date.getTime();
-    const isInDraft = this.draftAppointments().some(a => a.dateTimeFrom.toMillis() === millis);
-
+    const isInDraft = this.draftAppointments().some((appointment) => appointment.dateTimeFrom.getTime() === millis,);
     if (isInDraft) {
-      this.draftAppointments.update(list => list.filter(a => a.dateTimeFrom.toMillis() !== millis));
-    } else {
-      this.appointmentsToDelete.update(set => {
-        set.add(millis);
-        return new Set(set);
-      });
+      this.draftAppointments.update((list) => list.filter((appointment) => appointment.dateTimeFrom.getTime() !== millis),);
+      return;
     }
+    this.appointmentsToDelete.update((set) => {
+      set.add(millis);
+      return new Set(set);
+    });
   }
 
-  async commitChanges() {
-    const batch = writeBatch(this.appointmentsService.firestore);
+  async commitChanges(): Promise<void> {
     const user = this.user();
-    if (!user?.user_id) return;
-
-    for (const ap of this.draftAppointments()) {
-      const id = `${ap.vetId}_${ap.dateTimeFrom.toMillis()}`;
-      const ref = doc(this.appointmentsService.firestore, 'appointments', id);
-      batch.set(ref, ap);
-    }
-
-    for (const millis of this.appointmentsToDelete()) {
-      const id = `${user.user_id}_${millis}`;
-      const ref = doc(this.appointmentsService.firestore, 'appointments', id);
-      batch.delete(ref);
-    }
-
-    await batch.commit();
-
+    if (!user?.id) return;
+    const existingAppointments = this.appointmentsResource.value() ?? [];
+    const appointmentsToDelete = existingAppointments.filter((appointment) => this.appointmentsToDelete().has(appointment.dateTimeFrom.getTime()),);
+    await Promise.all([...this.draftAppointments().map(
+      (appointment) =>
+        this.appointmentsService.createAppointment(appointment),), ...appointmentsToDelete.filter((appointment) => appointment.id).map((appointment) => this.appointmentsService.deleteAppointment(appointment.id!),),]);
     this.draftAppointments.set([]);
     this.appointmentsToDelete.set(new Set());
     this.appointmentsResource.reload();
@@ -205,17 +179,27 @@ export default class CreateComponent {
 
   private build(date: Date): Appointment {
     const user = this.user();
-    if (!user?.user_id || !user?.clinicId) throw new Error('No user or vet or clinic');
-
+    if (!user?.id) {
+      throw new Error('No user id');
+    }
+    const currentClinic = this.clinicResource.value();
+    if (!currentClinic?.id || !currentClinic.clinicName) {
+      throw new Error('No clinic id');
+    }
+    const resolvedCity = currentClinic.address?.city || currentClinic.address?.town || currentClinic.address?.village || 'Nieokreślone miasto';
+    const dateTimeFrom = new Date(date);
+    const dateTimeTo = new Date(date);
+    dateTimeTo.setMinutes(dateTimeTo.getMinutes() + 30);
     return {
-      vetId: user.user_id,
-      clinicId: user.clinicId,
+      vetId: user.id,
+      clinicId: currentClinic.id,
+      clinicName: currentClinic.clinicName,
       vetDisplayName: user.name,
       reserved: false,
       realised: false,
-      city: 'Szczecin',
-      dateTimeFrom: Timestamp.fromDate(date),
-      dateTimeTo: Timestamp.fromDate(date),
+      city: resolvedCity,
+      dateTimeFrom,
+      dateTimeTo,
     };
   }
 }

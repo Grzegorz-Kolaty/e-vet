@@ -23,7 +23,7 @@ export const emailVerificationGuard = (): CanActivateFn => {
     const authService = inject(AuthService);
     const router = inject(Router);
 
-    if (!!authService.user()?.email_verified) {
+    if (authService.user() && authService.user()?.is_email_verified) {
       console.log('user email verified');
       return true;
     }

@@ -1,0 +1,9 @@
+fastapi[standard]
+psycopg[binary]
+sqlalchemy
+alembic
+pydantic-settings
+argon2-cffi
+email-validator
+black
+ruff

@@ -10,10 +10,8 @@ import {
 import { DatePipe } from '@angular/common';
 import { CalendarService } from '../../../shared/data-access/calendar.service';
 import { FormatHourPipe } from '../../../shared/pipes/format-hour.pipe';
-import { Timestamp } from 'firebase/firestore';
 import { Appointment } from "../../../shared/interfaces/appointments.interface";
-import {SlotState} from "../create.component";
-
+import { SlotState } from "../create.component";
 
 interface SlotUIConfig {
   label: string;
@@ -22,6 +20,7 @@ interface SlotUIConfig {
   action?: 'add' | 'remove';
 }
 
+
 @Component({
   selector: 'app-appointments-table',
   imports: [DatePipe, FormatHourPipe],
@@ -29,12 +28,12 @@ interface SlotUIConfig {
   template: `
     <table class="table table-sm table-light table-fixed">
       <thead>
-        <tr>
-          <th></th>
-          @for (day of visibleDays(); track day.getTime()) {
-            <th class="text-center">{{ day | date: 'mediumDate' }}</th>
-          }
-        </tr>
+      <tr>
+        <th></th>
+        @for (day of visibleDays(); track day.getTime()) {
+          <th class="text-center">{{ day | date: 'mediumDate' }}</th>
+        }
+      </tr>
       </thead>
 
       <tbody class="text-center">
@@ -74,7 +73,6 @@ export default class AppointmentsTableComponent {
     reserved: { label: 'Zarezerwowany', className: 'btn-warning', disabled: true },
     draft:    { label: 'Draft', className: 'btn-info', disabled: false, action: 'remove' },
     existing: { label: 'Utworzony', className: 'btn-success', disabled: false, action: 'remove' },
-    // NOWY STAN: Czerwony kafelek informujący o planowanym usunięciu
     toDelete: { label: 'Do usunięcia', className: 'btn-danger', disabled: false, action: 'add' },
     empty:    { label: 'Dodaj', className: 'btn-secondary', disabled: false, action: 'add' },
     weekend:  { label: 'Weekend', className: 'btn-light', disabled: true }
@@ -85,7 +83,9 @@ export default class AppointmentsTableComponent {
   existingAppointments = input<Appointment[]>([]);
   isLoading = input<boolean>(false);
   hideWeekends = signal<boolean>(true);
-  slotState = input<Map<string, SlotState> | null>(null);
+
+  // Zmiana typu klucza ze string na number (ms)
+  slotState = input<Map<number, SlotState> | null>(null);
 
   visibleDays = computed(() =>
     this.weekData().filter(d => !(this.isWeekend(d) && this.hideWeekends()))
@@ -94,10 +94,8 @@ export default class AppointmentsTableComponent {
   private appointmentsMap = computed(() => {
     const map = new Map<number, Appointment>();
     this.existingAppointments().forEach(a => {
-      const time = a.dateTimeFrom instanceof Timestamp
-        ? a.dateTimeFrom.toDate().getTime()
-        : new Date(a.dateTimeFrom).getTime();
-      map.set(time, a);
+      // Usunięty Timestamp check - dateTimeFrom to teraz czyste Date z serwisu
+      map.set(a.dateTimeFrom.getTime(), a);
     });
     return map;
   });
@@ -108,14 +106,13 @@ export default class AppointmentsTableComponent {
   getCellContext(day: Date, hour: number): { state: SlotState; date: Date } {
     const date = new Date(day);
     date.setHours(hour, 0, 0, 0);
+    const targetTime = date.getTime();
 
-    const key = `${this.toDayKey(day)}-${hour}`;
-    const fromSlotState = this.slotState()?.get(key);
+    // Sprawdzenie stanu przekazanego z komponentu nadrzędnego po milisekundach
+    const fromSlotState = this.slotState()?.get(targetTime);
     if (fromSlotState) return { state: fromSlotState, date };
 
-    const targetTime = date.getTime();
     const now = new Date();
-
     if (now > date) return { state: 'outdated', date };
 
     const existing = this.appointmentsMap().get(targetTime);
@@ -129,13 +126,7 @@ export default class AppointmentsTableComponent {
     return { state: 'empty', date };
   }
 
-  private toDayKey(d: Date): string {
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  }
-
   onAddAppointment(date: Date) { this.add.emit(date); }
-  onRemoveAppointment(date: Date) {
-    console.log(date)
-    this.remove.emit(date); }
+  onRemoveAppointment(date: Date) { this.remove.emit(date); }
   private isWeekend(date: Date): boolean { return date.getDay() === 0 || date.getDay() === 6; }
 }

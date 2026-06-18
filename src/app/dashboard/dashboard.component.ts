@@ -1,8 +1,7 @@
 import {ChangeDetectionStrategy, Component, effect, inject, resource, signal} from '@angular/core';
 import {Router} from "@angular/router";
-import {Role, UploadContext, UserProfile} from "../shared/interfaces/userProfile";
+import {Role, UploadContext, UserInterface} from "../shared/interfaces/user.interface";
 import UserComponent from "./user/user.component";
-import {UserService} from "../shared/data-access/user.service";
 import {LoaderComponent} from "../shared/ui/loader/loader.component";
 import VetComponent from "./vet/vet.component";
 import SendEmailVerificationComponent from "../auth/send-verification-email/ui/send-verification-email.component";
@@ -13,17 +12,17 @@ import {AuthService} from "../shared/data-access/auth.service";
 @Component({
   selector: 'app-dashboard',
   imports: [
-    UserComponent,
     LoaderComponent,
     VetComponent,
     SendEmailVerificationComponent,
     ProfileFormComponent,
+    UserComponent,
   ],
   template: `
     <section class="container-fluid h-100 p-5">
       @if (authService.user(); as profile) {
 
-        @if (!profile.email_verified) {
+        @if (profile.is_email_verified) {
           <app-send-email-verification/>
         } @else if (profile.role === Role.Vet) {
           <app-vet/>
@@ -60,15 +59,17 @@ export default class DashboardComponent {
   public readonly authService = inject(AuthService);
   protected readonly Role = Role;
   private router = inject(Router)
-  protected readonly userService = inject(UserService);
 
   uploadPhotoTrigger = signal<UploadContext | null>(null);
-  nameTrigger = signal<UserProfile | null>(null)
+  nameTrigger = signal<UserInterface | null>(null)
 
   constructor() {
     effect(() => {
-      const user = this.authService.user()
-      if (!user) {
+      if (!this.authService.initialized()) {
+        return;
+      }
+
+      if (!this.authService.user()) {
         this.router.navigate(['auth', 'login']);
       }
     });
@@ -78,9 +79,11 @@ export default class DashboardComponent {
         const data = this.uploadPhotoResource.value();
         console.log(data);
 
+        if (!data) return
+
         this.authService.user.update(user => ({
           ...user!,
-          photoUrl: data?.photoUrl,
+          photo_url:  "",
         }));
       }
     });
@@ -91,11 +94,12 @@ export default class DashboardComponent {
     params: this.uploadPhotoTrigger,
     loader: async ({params}) => {
       if (!params || !params.file) throw new Error('No file');
-      return this.userService.uploadProfilePhoto(params.profile, params.file);
+      return
+      // return this.userService.uploadProfilePhoto(params.profile, params.file);
     },
   });
 
-  onPhotoUpload(profile: UserProfile, file: File) {
+  onPhotoUpload(profile: UserInterface, file: File) {
     console.log(profile, file);
     this.uploadPhotoTrigger.set({profile: profile, file: file});
   }
@@ -105,13 +109,15 @@ export default class DashboardComponent {
     loader: async ({params}) => {
       if (!params) return;
 
-      return this.userService.uploadProfilePhoto(
-        params,
-      );
+      return
+
+      // return this.userService.uploadProfilePhoto(
+      //   params,
+      // );
     },
   });
 
-  onNameChange(profile: UserProfile, name: string) {
+  onNameChange(profile: UserInterface, name: string) {
     const newProfile = {
       ...profile,
       name: name,

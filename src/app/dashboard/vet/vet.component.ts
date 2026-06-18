@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, Component, effect, inject, input, Input, signal} from '@angular/core';
 import {AuthService} from "../../shared/data-access/auth.service";
 import {Router} from "@angular/router";
-import {UserProfile} from "../../shared/interfaces/userProfile";
+import {UserInterface} from "../../shared/interfaces/user.interface";
 
 @Component({
   selector: 'app-vet',
@@ -72,11 +72,11 @@ export default class VetComponent {
   public readonly authService = inject(AuthService);
   private readonly router = inject(Router)
 
-  user = input<UserProfile>();
+  user = input<UserInterface>();
 
   constructor() {
     effect(() => {
-      if (!this.authService.firebaseUser()) {
+      if (!this.authService.user()) {
         this.router.navigate(['auth'])
       }
     });

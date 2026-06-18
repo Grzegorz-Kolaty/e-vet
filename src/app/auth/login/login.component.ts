@@ -1,7 +1,7 @@
 import {Component, effect, inject, resource, signal} from '@angular/core';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {AuthService} from '../../shared/data-access/auth.service';
-import {Credentials} from '../../shared/interfaces/userProfile';
+import {Credentials} from '../../shared/interfaces/user.interface';
 import {Router, RouterLink} from "@angular/router";
 
 

@@ -8,7 +8,7 @@ import {
   faNotesMedical,
   faPaw, faPhone,
   faStore,
-  faUser, faUserGear
+  faUser, faUserGear, faCalendar, faPen, faCalendarDay
 } from "@fortawesome/free-solid-svg-icons";
 import {HeaderComponent} from "./shared/ui/header/header.component";
 
@@ -23,7 +23,7 @@ import {HeaderComponent} from "./shared/ui/header/header.component";
     <div class="layout-container">
       <app-header></app-header>
       <div class="content-wrapper">
-        <main class="main-content bg-body-secondary">
+        <main class="main-content">
           <router-outlet/>
         </main>
       </div>
@@ -54,7 +54,7 @@ export class AppComponent {
     this.library.addIcons(
       faPaw, faStore, faUser, faNotesMedical, faCalendarDays,
       faGear, faBars, faUserGear, faLocationDot, faMap,
-      faMagnifyingGlass, faBookMedical, faImage, faPhone, faClock
+      faMagnifyingGlass, faBookMedical, faImage, faPhone, faClock, faCalendar, faPen, faCalendarDay
     );
   }
 }

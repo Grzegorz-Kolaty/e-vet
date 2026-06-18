@@ -6,20 +6,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Edu+NSW+ACT+Cursive:wght@400..700&display=swap');
 @import "@ng-select/ng-select/themes/default.theme.css";
 
-
-:root {
-  --bg-main: #08110c;
-  --bg-surface: #122019;
-  --bg-surface-2: #1b2d24;
-
-  --border-soft: rgba(255,255,255,0.05);
-
-  --text-muted: rgba(255,255,255,0.65);
-
-  --primary: #67e8a5;
-
-
-}
+//
+//:root {
+//  --bg-main: #08110c;
+//  --bg-surface: #122019;
+//  --bg-surface-2: #1b2d24;
+//  --border-soft: rgba(255,255,255,0.05);
+//  --text-muted: rgba(255,255,255,0.65);
+//  --primary: #67e8a5;
+//}
 
 
 body::-webkit-scrollbar {
@@ -145,22 +140,22 @@ html, body {
 }
 
 
-.btn-white {
-  --bs-btn-color: #212529;
-  --bs-btn-bg: #fff;
-  --bs-btn-border-color: #dee2e6;
-  --bs-btn-hover-color: #212529;
-  --bs-btn-hover-bg: #f8f9fa;
-  --bs-btn-hover-border-color: #ced4da;
-  --bs-btn-focus-shadow-rgb: 0, 0, 0;
-  --bs-btn-active-color: #212529;
-  --bs-btn-active-bg: #e9ecef;
-  --bs-btn-active-border-color: #ced4da;
-  --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
-  --bs-btn-disabled-color: #adb5bd;
-  --bs-btn-disabled-bg: #fff;
-  --bs-btn-disabled-border-color: #dee2e6;
-}
+//.btn-white {
+//  --bs-btn-color: #212529;
+//  --bs-btn-bg: #fff;
+//  --bs-btn-border-color: #dee2e6;
+//  --bs-btn-hover-color: #212529;
+//  --bs-btn-hover-bg: #f8f9fa;
+//  --bs-btn-hover-border-color: #ced4da;
+//  --bs-btn-focus-shadow-rgb: 0, 0, 0;
+//  --bs-btn-active-color: #212529;
+//  --bs-btn-active-bg: #e9ecef;
+//  --bs-btn-active-border-color: #ced4da;
+//  --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+//  --bs-btn-disabled-color: #adb5bd;
+//  --bs-btn-disabled-bg: #fff;
+//  --bs-btn-disabled-border-color: #dee2e6;
+//}
 
 img, svg {
   vertical-align: middle !important;

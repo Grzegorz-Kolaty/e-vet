@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, effect, input, model, output, ResourceStatus} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {UserProfile} from '../../../shared/interfaces/userProfile';
+import {UserInterface} from '../../../shared/interfaces/user.interface';
 import {NgClass} from "@angular/common";
 import {UploadableImagesComponent} from "../../../shared/ui/uploadable-images/uploadable-images.component";
 
@@ -68,7 +68,7 @@ import {UploadableImagesComponent} from "../../../shared/ui/uploadable-images/up
                   <div class="col-6 text-center">
                     <label class="form-label">Zdjęcie profilowe</label>
                     <app-uploadable-images
-                      [photoUrl]="user()?.photoUrl"
+                      [photoUrl]="user()?.photo_url"
                       (photoFile)="userPhotoFile.emit($event)"
                     />
                   </div>
@@ -151,7 +151,7 @@ import {UploadableImagesComponent} from "../../../shared/ui/uploadable-images/up
   styles: ``,
 })
 export default class ProfileFormComponent {
-  user = input<UserProfile | null>();
+  user = input<UserInterface | null>();
 
   uploadPhotoResourceStatus =
     input<ResourceStatus | undefined>();

@@ -1,8 +1,9 @@
-import {ChangeDetectionStrategy, Component, computed, inject, resource, signal} from "@angular/core";
+import {ChangeDetectionStrategy, Component, computed, effect, inject, resource, signal} from "@angular/core";
 import { MapComponent } from "../features/map/map.component";
 import {SearchClinicComponent} from "../features/search-clinic/search-clinic.component";
 import ClinicService from "../../shared/data-access/clinic.service";
-import {RouterLink} from "@angular/router";
+import {Router, RouterLink} from "@angular/router";
+import {AuthService} from "../../shared/data-access/auth.service";
 
 @Component({
   selector: 'app-browse-clinics',
@@ -102,7 +103,9 @@ import {RouterLink} from "@angular/router";
   `,
 })
 export default class BrowseClinicsComponent {
+  private authService = inject(AuthService);
   private clinicService = inject(ClinicService);
+  private router = inject(Router);
 
   selectedCity = signal<string | null>(null);
 
@@ -119,6 +122,18 @@ export default class BrowseClinicsComponent {
   extractedLocations = computed(() => {
     return this.filteredClinics().map(clinic => clinic.address);
   });
+
+  constructor() {
+    effect(() => {
+      if (!this.authService.initialized()) {
+        return;
+      }
+
+      if (!this.authService.user()) {
+        this.router.navigate(['auth', 'login']);
+      }
+    });
+  }
 
   onCitySelected(city: string | null) {
     this.selectedCity.set(city);

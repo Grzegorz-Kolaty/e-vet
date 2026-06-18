@@ -1,140 +1,140 @@
-import {inject, Injectable} from "@angular/core";
-import {FIRESTORE, FUNCTIONS, STORAGE} from "../../firebase.providers";
-import {httpsCallable} from "firebase/functions";
-import {Clinic} from "../interfaces/clinics.interface";
-import {getDownloadURL, ref, uploadBytes} from "firebase/storage";
-import {collection, doc, getDoc, getDocs, query, setDoc, where, documentId, updateDoc, arrayUnion} from "firebase/firestore";
-import {UserProfile} from "../interfaces/userProfile";
+import {inject, Injectable} from '@angular/core';
+import {HttpClient} from '@angular/common/http';
+import {firstValueFrom} from 'rxjs';
 
+import {environment} from '../../../environments/environment';
+import {Clinic} from '../interfaces/clinics.interface';
+import {UserInterface} from '../interfaces/user.interface';
 
-@Injectable({providedIn: 'root'})
+@Injectable({
+  providedIn: 'root',
+})
 export default class ClinicService {
-  private functions = inject(FUNCTIONS);
-  private storage = inject(STORAGE);
-  private firestore = inject(FIRESTORE);
+  private readonly http = inject(HttpClient);
 
-  async createClinic(dto: Clinic) {
-    const callable = httpsCallable<Clinic, { clinicId: string }>(
-      this.functions,
-      'createNewClinic'
-    );
+  /**
+   * Potrzebne tylko do budowania URL-i obrazków, np. /uploads/...
+   * Interceptor działa dla HttpClienta, ale nie dla <img src>.
+   */
+  private readonly apiUrl = environment.apiUrl;
 
-    const cityName = dto.address.city || dto.address.town || dto.address.village;
-
-    // Wzbogacasz DTO o pole ułatwiające wyszukiwanie, zanim wyślesz je do bazy
-    if (dto.address) {
-      dto.address.searchCity = cityName?.trim();
-    }
-
-    const result = await callable(dto);
-    await this.addCityToMetadata(cityName);
-
-    return result.data.clinicId;
-  }
-
-  async addCityToMetadata(cityName: string): Promise<void> {
-    const docRef = doc(this.firestore, 'metadata', 'locations');
-
-    await setDoc(docRef, {
-      cities: arrayUnion(cityName.trim())
-    }, { merge: true });
-  }
-
-  async getClinicsByCity(city: string): Promise<Clinic[]> {
-    const clinicsRef = collection(this.firestore, 'clinics');
-
-    // Teraz szukasz zawsze po jednym, pewnym polu pomocniczym
-    const q = query(clinicsRef, where('address.searchCity', '==', city));
-    const snapshot = await getDocs(q);
-
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Clinic[];
-  }
-
-  async getAvailableCities(): Promise<string[]> {
-    const docRef = doc(this.firestore, 'metadata', 'locations');
-    const snap = await getDoc(docRef);
-
-    if (snap.exists()) {
-      return snap.data()['cities'] as string[];
-    }
-    return [];
-  }
-
-  async updateCover(file: File, clinic: Clinic) {
-    const path = `clinics/${clinic.id}/cover.jpg`
-    const reference = ref(this.storage, path);
-    const imageUrl = await uploadBytes(reference, file).then(() => getDownloadURL(reference));
-
-    const docReference = doc(this.firestore, 'clinics', clinic.id)
-
-    const updatedClinic = {
-      ...clinic,
-      coverImage: {
-        url: imageUrl,
-      },
-    };
-    await setDoc(docReference, updatedClinic, {merge: true});
-
-    return updatedClinic;
-  }
-
-
-  async getClinicInfo(clinicId: string): Promise<Clinic | null> {
+  async getMyClinic(): Promise<Clinic | null> {
     try {
-      const docRef = doc(this.firestore, 'clinics', clinicId)
-      const snap = await getDoc(docRef);
-      if (!snap.exists()) return null;
-
-      return snap.data() as Clinic;
-    } catch (e) {
-      console.error('[ClinicService] getClinicInfo failed', e);
+      return await firstValueFrom(
+        this.http.get<Clinic | null>('/clinics/my'),
+      );
+    } catch (error) {
+      console.error('[ClinicService] getMyClinic failed', error);
       return null;
     }
   }
 
-  async getVeterinariesAssignedToClinic(vetIds: string[]): Promise<UserProfile[]> {
+  async createClinic(dto: Clinic): Promise<string> {
+    const cityName =
+      dto.address.city ||
+      dto.address.town ||
+      dto.address.village;
+
+    const payload: Clinic = {
+      ...dto,
+      address: {
+        ...dto.address,
+        searchCity: cityName?.trim(),
+      },
+    };
+
+    const clinic = await firstValueFrom(
+      this.http.post<Clinic>('/clinics', payload),
+    );
+
+    if (!clinic.id) {
+      throw new Error('Backend did not return clinic id');
+    }
+
+    return clinic.id;
+  }
+
+  async getClinicsByCity(city: string): Promise<Clinic[]> {
+    return firstValueFrom(
+      this.http.get<Clinic[]>('/clinics', {
+        params: {
+          city,
+        },
+      }),
+    );
+  }
+
+  async getAvailableCities(): Promise<string[]> {
+    return firstValueFrom(
+      this.http.get<string[]>('/clinics/cities'),
+    );
+  }
+
+  async updateCover(file: File, clinic: Clinic): Promise<Clinic> {
+    if (!clinic.id) {
+      throw new Error('Clinic id is required to update cover');
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const updatedClinic = await firstValueFrom(
+      this.http.post<Clinic>(
+        `/clinics/${clinic.id}/cover`,
+        formData,
+      ),
+    );
+
+    return {
+      ...clinic,
+      ...updatedClinic,
+    };
+  }
+
+  async getClinicByClinicId(clinicId: string): Promise<Clinic | null> {
     try {
-      if (!vetIds.length) return [];
-      const chunks: string[][] = [];
-      for (let i = 0; i < vetIds.length; i += 10) {
-        chunks.push(vetIds.slice(i, i + 10));
-      }
-
-      const results = await Promise.all(
-        chunks.map(async (chunk) => {
-
-          const q = query(
-            collection(this.firestore, 'vets'),
-            where(documentId(), 'in', chunk)
-          );
-
-          const snapshot = await getDocs(q);
-
-          return snapshot.docs.map(doc =>
-            doc.data() as UserProfile
-          );
-        })
+      return await firstValueFrom(
+        this.http.get<Clinic>(`/clinics/${clinicId}`),
       );
+    } catch (error) {
+      console.error('[ClinicService] getClinicByClinicId failed', error);
+      return null;
+    }
+  }
 
-      return results.flat();
+  async getClinicByVetId(vetId: string): Promise<Clinic | null> {
+    try {
+      return await firstValueFrom(
+        this.http.get<Clinic | null>(`/clinics/by-vet/${vetId}`),
+      );
+    } catch (error) {
+      console.error('[ClinicService] getClinicByVetId failed', error);
+      return null;
+    }
+  }
 
-    } catch (e) {
+  async getVeterinariesAssignedToClinic(clinicId: string): Promise<UserInterface[]> {
+    try {
+      return await firstValueFrom(
+        this.http.get<UserInterface[]>(`/clinics/${clinicId}/vets`),
+      );
+    } catch (error) {
       console.error(
         '[ClinicService] getVeterinariesAssignedToClinic failed',
-        e
+        error,
       );
 
       return [];
     }
   }
 
-  async getAllClinics(): Promise<Clinic[]> {
-    const clinicsCollection = collection(this.firestore, 'clinics');
-    const snapshot = await getDocs(clinicsCollection);
+  getImageUrl(url?: string): string {
+    if (!url) return '';
 
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as Clinic[];
+    if (url.startsWith('http')) {
+      return url;
+    }
+
+    return `${this.apiUrl}${url}`;
   }
 }

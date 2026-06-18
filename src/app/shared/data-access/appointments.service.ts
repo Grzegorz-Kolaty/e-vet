@@ -1,96 +1,136 @@
 import {inject, Injectable} from '@angular/core';
-import {collection, doc, getDocs, orderBy, query, setDoc, where} from 'firebase/firestore';
-import {AuthService} from './auth.service';
-import {FIRESTORE} from "../../firebase.providers";
-import {Appointment} from "../interfaces/appointments.interface";
+import {HttpClient} from '@angular/common/http';
+import {firstValueFrom} from 'rxjs';
+import {Appointment} from '../interfaces/appointments.interface';
+import {ITreatment} from '../interfaces/animals.interface';
+import {environment} from '../../../environments/environment';
 
-@Injectable({
-  providedIn: 'root',
-})
+type AppointmentResponse = Omit<Appointment, 'dateTimeFrom' | 'dateTimeTo'> & {
+  dateTimeFrom: string;
+  dateTimeTo: string;
+};
+
+
+@Injectable({providedIn: 'root',})
 export class AppointmentsService {
-  firestore = inject(FIRESTORE);
-  authService = inject(AuthService);
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = environment.apiUrl;
 
-  public buildDateKey(date: Date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+  private mapAppointment(appointment: AppointmentResponse): Appointment {
+    return {
+      ...appointment,
+      dateTimeFrom: new Date(appointment.dateTimeFrom),
+      dateTimeTo: new Date(appointment.dateTimeTo),
+    } as Appointment;
+  }
 
-    return `${year}-${month}-${day}`
+  async createAppointment(appointment: Appointment): Promise<Appointment> {
+    const response = await firstValueFrom(
+      this.http.post<AppointmentResponse>(
+        `${this.apiUrl}/appointments`,
+        {
+          vetId: appointment.vetId,
+          clinicId: appointment.clinicId,
+          clinicName: appointment.clinicName,
+          vetDisplayName: appointment.vetDisplayName,
+          city: appointment.city,
+          dateTimeFrom: appointment.dateTimeFrom.toISOString(),
+          dateTimeTo: appointment.dateTimeTo.toISOString(),
+        },
+        {
+          withCredentials: true,
+        },
+      ),
+    );
+
+    return this.mapAppointment(response);
+  }
+
+  async deleteAppointment(id: string): Promise<void> {
+    await firstValueFrom(
+      this.http.delete<void>(
+        `${this.apiUrl}/appointments/${id}`,
+        {
+          withCredentials: true,
+        },
+      ),
+    );
   }
 
   async getAppointmentsForVet(range: { start: Date; end: Date }): Promise<Appointment[]> {
-    const {start, end} = range;
-    const startOfDay = new Date(start);
+    const startOfDay = new Date(range.start);
     startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(end);
+    const endOfDay = new Date(range.end);
     endOfDay.setHours(23, 59, 59, 999);
-
-    const uid = this.authService.firebaseUser()?.uid;
-    if (!uid) return [];
-
-    const q = query(
-      collection(this.firestore, 'appointments'),
-      where('vetId', '==', uid),
-      where('dateTimeFrom', '>=', startOfDay),
-      where('dateTimeTo', '<=', endOfDay),
-      orderBy('dateTimeFrom')
-    );
-
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as Appointment[];
+    const appointments = await firstValueFrom(this.http.get<AppointmentResponse[]>(`${this.apiUrl}/appointments/vet`, {
+      params: {
+        start: startOfDay.toISOString(),
+        end: endOfDay.toISOString(),
+      }, withCredentials: true,
+    },),);
+    return appointments.map((appointment) => this.mapAppointment(appointment));
   }
 
-  async getAppointmentsForVetGroupedByDay(vetId: string, clinicId: string): Promise<Record<string, Appointment[]>> {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const q = query(
-      collection(this.firestore, 'appointments'),
-      where('vetId', '==', vetId),
-      where('clinicId', '==', clinicId),
-      where('dateTimeFrom', '>=', startOfDay),
-      orderBy('dateTimeFrom', 'asc')
-    );
-
-    const snapshot = await getDocs(q);
-
-    const appointments = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as Appointment[];
-
-    return appointments.reduce((groups: Record<string, Appointment[]>, appointment: Appointment) => {
-      const date = appointment.dateTimeFrom instanceof Date
-        ? appointment.dateTimeFrom
-        : (appointment.dateTimeFrom).toDate();
-
-      const dateKey = this.buildDateKey(date)
-
+  async getAppointmentsForVetGroupedByDay(vetId: string, clinicId: string,): Promise<Record<string, Appointment[]>> {
+    const appointments = await firstValueFrom(this.http.get<AppointmentResponse[]>(`${this.apiUrl}/appointments/available`, {
+      params: {
+        vetId,
+        clinicId,
+      }, withCredentials: true,
+    },),);
+    return appointments.map((appointment) => this.mapAppointment(appointment)).reduce((groups: Record<string, Appointment[]>, appointment: Appointment) => {
+      const dayStart = new Date(appointment.dateTimeFrom);
+      dayStart.setHours(0, 0, 0, 0);
+      const dateKey = dayStart.getTime().toString();
       if (!groups[dateKey]) {
         groups[dateKey] = [];
       }
       groups[dateKey].push(appointment);
-
       return groups;
-    }, {} as Record<string, Appointment[]>);
+    }, {});
   }
 
-  public async reserveAppointment(appointment: Appointment) {
-    const uid = this.authService.firebaseUser()?.uid;
+  async bookAppointment(appointment: Appointment, _userId: string, userName: string, petId: string, petName: string,): Promise<void> {
+    if (!appointment.id) {
+      throw new Error('Appointment id is required');
+    }
+    await firstValueFrom(this.http.put<AppointmentResponse>(`${this.apiUrl}/appointments/${appointment.id}/book`, {
+      patientName: userName,
+      petId,
+      petName,
+    }, {withCredentials: true,},),);
+  }
 
-    if (!uid) return;
+  async getAppointmentsByUserOrVet(_uid: string, role: 'user' | 'vet',): Promise<Appointment[]> {
+    const appointments = await firstValueFrom(this.http.get<AppointmentResponse[]>(`${this.apiUrl}/appointments`, {
+      params: {role,},
+      withCredentials: true,
+    },),);
+    return appointments.map((appointment) => this.mapAppointment(appointment));
+  }
 
-    const docId = `${appointment.vetId}_${appointment.dateTimeFrom.toMillis()}`;
-    const appointmentDocRef = doc(this.firestore, 'appointments', docId);
-    const filledAppointment = {
-      ...appointment,
-      patientId: uid,
-      reserved: true
-    };
-    await setDoc(appointmentDocRef, filledAppointment);
+  async getAppointmentById(id: string): Promise<Appointment | null> {
+    try {
+      const appointment = await firstValueFrom(this.http.get<AppointmentResponse>(`${this.apiUrl}/appointments/${id}`, {withCredentials: true,},),);
+      return this.mapAppointment(appointment);
+    } catch {
+      return null;
+    }
+  }
+
+  async markAsRealised(id: string): Promise<void> {
+    await firstValueFrom(this.http.patch<void>(`${this.apiUrl}/appointments/${id}/realise`, {}, {withCredentials: true,},),);
+  }
+
+  async completeAppointmentAndAddTreatment(petId: string, appointmentId: string, treatmentData: ITreatment,): Promise<void> {
+    await firstValueFrom(
+      this.http.post(`${this.apiUrl}/appointments/${appointmentId}/complete`, {
+          ...treatmentData,
+          petId,
+          appointmentId,
+          date: treatmentData.date instanceof Date ? treatmentData.date.toISOString() : treatmentData.date,
+        }, {withCredentials: true}
+      )
+    );
   }
 }

@@ -1,24 +1,52 @@
-import {ChangeDetectionStrategy, Component, computed, effect, inject, resource, signal} from '@angular/core';
-import {MapComponent} from "../features/map/map.component";
-import {Clinic} from "../../shared/interfaces/clinics.interface";
-import {FaIconComponent} from "@fortawesome/angular-fontawesome";
-import ClinicService from "../../shared/data-access/clinic.service";
-import {UploadableImagesComponent} from "../../shared/ui/uploadable-images/uploadable-images.component";
-import {ActivatedRoute, Router} from "@angular/router";
-import {toSignal} from "@angular/core/rxjs-interop";
-import {map} from "rxjs";
-import {AuthService} from "../../shared/data-access/auth.service";
-import {GetAppointmentsForVet} from "../features/get-appointments-for-vet/get-appointments-for-vet";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  resource,
+  signal,
+} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {ActivatedRoute, Router} from '@angular/router';
+import {toSignal} from '@angular/core/rxjs-interop';
+import {map} from 'rxjs';
 
+import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+
+import {MapComponent} from '../features/map/map.component';
+import {GetAppointmentsForVet} from '../features/get-appointments-for-vet/get-appointments-for-vet';
+
+import ClinicService from '../../shared/data-access/clinic.service';
+import {AuthService} from '../../shared/data-access/auth.service';
+import {AppointmentsService} from '../../shared/data-access/appointments.service';
+import {PetsService} from '../../shared/data-access/pets.service';
+
+import {UploadableImagesComponent} from '../../shared/ui/uploadable-images/uploadable-images.component';
+
+import {Clinic} from '../../shared/interfaces/clinics.interface';
+import {Appointment} from '../../shared/interfaces/appointments.interface';
+import {Role} from '../../shared/interfaces/user.interface';
 
 export interface ClinicPayload {
   file: File;
   clinic: Clinic;
 }
 
+export interface BookingPayload {
+  appointment: Appointment;
+  userId: string;
+  userName: string;
+  petId: string;
+  petName: string;
+}
+
 @Component({
   selector: 'app-vet-clinic',
   imports: [
+    CommonModule,
+    FormsModule,
     MapComponent,
     FaIconComponent,
     UploadableImagesComponent,
@@ -27,12 +55,13 @@ export interface ClinicPayload {
   template: `
     <div class="container h-100 pt-4">
       @let clinicData = clinic();
+      @let idOfClinic = clinicData?.id;
 
-      @if (clinicData) {
+      @if (clinicData && idOfClinic) {
         <div class="row mb-3">
           <div class="col">
             <h2 class="fw-bold">
-              Przychodnia Weterynaryjna {{ clinicData?.clinicName }}
+              Przychodnia Weterynaryjna {{ clinicData.clinicName }}
             </h2>
           </div>
         </div>
@@ -42,20 +71,62 @@ export interface ClinicPayload {
             <app-uploadable-images
               [photoUrl]="clinicData.coverImage.url"
               (photoFile)="onPhotoUpload($event, clinicData)"
-              [widerSize]=true
+              [widerSize]="true"
             />
+
+            @if (currentUserRole() === Role.User) {
+              <div class="card p-3 my-2 border border-primary-subtle rounded-4 bg-light bg-opacity-50">
+                <h6 class="fw-bold text-primary mb-2">
+                  <fa-icon [icon]="['fas', 'paw']" class="me-2"/>
+                  Wybierz pacjenta do rezerwacji:
+                </h6>
+
+                @if (userPetsResource.isLoading()) {
+                  <small class="text-muted">Ładowanie Twoich zwierzaków...</small>
+                } @else {
+                  <select
+                    class="form-select rounded-3 shadow-sm"
+                    [ngModel]="selectedPetId()"
+                    (ngModelChange)="selectedPetId.set($event)"
+                  >
+                    <option [ngValue]="null" disabled>-- Wybierz pupila --</option>
+
+                    @for (pet of userPetsResource.value() ?? []; track pet.id) {
+                      <option [value]="pet.id">
+                        {{ pet.name }} ({{ pet.species }})
+                      </option>
+                    }
+                  </select>
+
+                  @if (!selectedPetId()) {
+                    <small class="text-danger mt-1 d-block">
+                      Musisz wybrać zwierzaka z listy przed kliknięciem terminu.
+                    </small>
+                  }
+                }
+              </div>
+            }
+
+            @if (onBookAppointment.status() === 'loading') {
+              <div class="alert alert-info py-2">Trwa rezerwacja wizyty...</div>
+            }
 
             <h4 class="my-2">Dostępni weterynarze i terminy</h4>
 
-            @for (vet of veterinariesOfClinic(); track vet.user_id) {
-              <app-get-appointments-for-vet [veterinary]="vet" [clinicId]="clinicData.id"/>
+            @if (currentUserRole(); as userRole) {
+              @for (vet of veterinariesOfClinic(); track vet.id) {
+                <app-get-appointments-for-vet
+                  [loggedUserRole]="userRole"
+                  [veterinary]="vet"
+                  [clinicId]="idOfClinic"
+                  (appointmentSelected)="handleBooking($event)"
+                />
+              }
             }
           </div>
 
-
           <div class="col-lg-3">
-            <div class="p-4 shadow-lg rounded-4 bg-opacity-25 bg-light d-flex flex-column gap-4 ">
-
+            <div class="p-4 shadow-lg rounded-4 bg-opacity-25 bg-light d-flex flex-column gap-4">
               <h5>Informacje o klinice</h5>
 
               <div class="d-flex gap-3">
@@ -72,12 +143,11 @@ export interface ClinicPayload {
                 </div>
               </div>
 
-              <!-- PHONE -->
               <div class="d-flex gap-3">
                 <fa-icon [icon]="['fas', 'phone']" size="lg"/>
                 <div>
                   <h6 class="fw-semibold mb-1">Telefon</h6>
-                  <div>{{ clinicData?.phoneNumber }}</div>
+                  <div>{{ clinicData.phoneNumber }}</div>
                 </div>
               </div>
 
@@ -85,20 +155,16 @@ export interface ClinicPayload {
                 <fa-icon [icon]="['fas', 'clock']" size="lg"/>
                 <div>
                   <h6 class="fw-semibold mb-1">Godziny przyjęć</h6>
-                  <div>{{ clinicData?.timeOpen }} - {{ clinicData?.timeClose }}</div>
+                  <div>{{ clinicData.timeOpen }} - {{ clinicData.timeClose }}</div>
                 </div>
               </div>
 
               <div class="small-map rounded-3">
-                <app-map [clinicLocation]="onSelectClinicLocation()">
-                </app-map>
+                <app-map [clinicLocation]="onSelectClinicLocation()"/>
               </div>
-
             </div>
           </div>
-
         </div>
-
       }
     </div>
   `,
@@ -112,85 +178,196 @@ export interface ClinicPayload {
       cursor: pointer;
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class VetClinicComponent {
   private readonly authService = inject(AuthService);
-  public readonly clinicService = inject(ClinicService)
+  private readonly clinicService = inject(ClinicService);
+  private readonly appointmentsService = inject(AppointmentsService);
+  private readonly petsService = inject(PetsService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
-  clinicId = toSignal(
-    this.route.paramMap.pipe(
-      map(params => params.get('id'))
-    ),
+  readonly clinicId = toSignal(
+    this.route.paramMap.pipe(map((params) => params.get('id'))),
     {
-      initialValue: null
-    }
+      initialValue: null,
+    },
   );
 
-  clinic = signal<Clinic | undefined | null>(undefined);
-  onSelectClinicLocation = computed(() => this.clinic()?.address ?? null);
-  veterinariesOfClinic = computed(() => {
+  readonly clinic = signal<Clinic | null | undefined>(undefined);
+
+  readonly currentUser = computed(() => this.authService.user());
+  readonly currentUserRole = computed(() => this.currentUser()?.role);
+
+  readonly onSelectClinicLocation = computed(() => this.clinic()?.address ?? null);
+
+  readonly veterinariesOfClinic = computed(() => {
     return this.onGetVeterinariesFromClinic.value() ?? [];
   });
 
-  onUpdateClinicTrigger = signal<ClinicPayload | null>(null)
+  readonly selectedPetId = signal<string | null>(null);
+
+  readonly onUpdateClinicTrigger = signal<ClinicPayload | null>(null);
+  readonly onBookAppointmentTrigger = signal<BookingPayload | null>(null);
+
+  readonly userPetsResource = resource({
+    params: () => this.currentUserRole(),
+    loader: async ({params: role}) => {
+      if (role !== Role.User) return [];
+
+      return this.petsService.getPets();
+    },
+  });
+
+  readonly onGetClinicInfo = resource({
+    params: () => ({
+      clinicId: this.clinicId(),
+      user: this.currentUser(),
+    }),
+    loader: async ({params}) => {
+      const {clinicId, user} = params;
+
+      if (!user) {
+        return null;
+      }
+
+      if (user.role === Role.Vet) {
+        return this.clinicService.getMyClinic();
+      }
+
+      if (!clinicId) {
+        throw new Error('no clinic Id assigned');
+      }
+
+      return this.clinicService.getClinicByClinicId(clinicId);
+    },
+  });
+
+  readonly onUpdateClinic = resource({
+    params: () => this.onUpdateClinicTrigger(),
+    loader: async ({params}) => {
+      if (!params) {
+        return null;
+      }
+
+      return this.clinicService.updateCover(params.file, params.clinic);
+    },
+  });
+
+  readonly onGetVeterinariesFromClinic = resource({
+    params: () => this.clinic()?.id,
+    loader: async ({params: clinicId}) => {
+      if (!clinicId) {
+        return [];
+      }
+
+      return this.clinicService.getVeterinariesAssignedToClinic(clinicId);
+    },
+  });
+
+  readonly onBookAppointment = resource({
+    params: () => this.onBookAppointmentTrigger(),
+    loader: async ({params}) => {
+      if (!params) return null;
+
+      await this.appointmentsService.bookAppointment(
+        params.appointment,
+        params.userId,
+        params.userName,
+        params.petId,
+        params.petName,
+      );
+
+      return true;
+    },
+  });
 
   constructor() {
     effect(() => {
-      const user = this.authService.user()
-      if (!user) {
+      if (!this.authService.initialized()) {
+        return;
+      }
+
+      if (!this.authService.user()) {
         this.router.navigate(['auth', 'login']);
       }
     });
 
     effect(() => {
-      if (this.onUpdateClinic.status() === 'resolved' && this.onUpdateClinic.value()) {
-        this.clinic.set(this.onUpdateClinic.value())
+      if (this.onGetClinicInfo.status() === 'resolved') {
+        this.clinic.set(this.onGetClinicInfo.value());
       }
     });
 
     effect(() => {
-      const status = this.onGetClinicInfo.status();
-      if (status === 'resolved') {
-        this.clinic.set(this.onGetClinicInfo.value())
+      if (this.onUpdateClinic.status() === 'resolved') {
+        const updatedClinic = this.onUpdateClinic.value();
+
+        if (updatedClinic) {
+          this.clinic.set(updatedClinic);
+          this.onUpdateClinicTrigger.set(null);
+        }
+      }
+    });
+
+    effect(() => {
+      if (
+        this.onBookAppointment.status() === 'resolved' &&
+        this.onBookAppointment.value() === true
+      ) {
+        alert('Wizyta została zarezerwowana pomyślnie!');
+        this.onGetVeterinariesFromClinic.reload();
+        this.onBookAppointmentTrigger.set(null);
       }
     });
   }
 
-  onGetClinicInfo = resource({
-    params: () => this.clinicId(),
-    loader: async ({params}) => {
-      if (!params) {
-        throw Error('no clinic Id assigned')
-      }
-      return this.clinicService.getClinicInfo(params)
-    }
-  })
-
-  onUpdateClinic = resource({
-    params: () => this.onUpdateClinicTrigger(),
-    loader: async ({params}) => {
-      if (!params) {
-        throw Error('no clinic Id assigned')
-      }
-      return this.clinicService.updateCover(params.file, params.clinic)
-    }
-  })
-
-  onGetVeterinariesFromClinic = resource({
-    params: () => this.clinic()?.vetIds,
-    loader: async ({params}) => {
-      if (!params) {
-        return []
-      }
-      return this.clinicService.getVeterinariesAssignedToClinic(params)
-    }
-  })
-
   onPhotoUpload(file: File, clinicData: Clinic) {
-    console.log(clinicData, file);
-    this.onUpdateClinicTrigger.set({clinic: clinicData, file: file});
+    const user = this.currentUser();
+
+    if (!user || user.role !== Role.Vet) {
+      return;
+    }
+
+    this.onUpdateClinicTrigger.set({
+      clinic: clinicData,
+      file,
+    });
   }
+
+  handleBooking(appointment: Appointment) {
+    const user = this.currentUser();
+
+    if (!user || user.role !== Role.User) {
+      return;
+    }
+
+    const petId = this.selectedPetId();
+    const petsList = this.userPetsResource.value() ?? [];
+    const selectedPet = petsList.find((pet) => pet.id === petId);
+
+    if (!selectedPet) {
+      alert('Przed dokonaniem rezerwacji wybierz zwierzaka z listy powyżej!');
+      return;
+    }
+
+    const confirmBooking = confirm(
+      `Czy na pewno chcesz zarezerwować wizytę dla ${selectedPet.name} na godzinę ${appointment.dateTimeFrom}?`,
+    );
+
+    if (!confirmBooking) {
+      return;
+    }
+
+    this.onBookAppointmentTrigger.set({
+      appointment,
+      userId: user.id,
+      userName: user.name,
+      petId: selectedPet.id,
+      petName: selectedPet.name,
+    });
+  }
+
+  protected readonly Role = Role;
 }

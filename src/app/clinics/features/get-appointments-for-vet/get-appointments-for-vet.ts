@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, resource, signal } from '@angular/core';
-import { UserProfile } from "../../../shared/interfaces/userProfile";
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, resource, signal } from '@angular/core';
+import {Role, UserInterface} from "../../../shared/interfaces/user.interface";
 import { AppointmentsService } from "../../../shared/data-access/appointments.service";
 import { DatePipe } from "@angular/common";
 import { Appointment } from "../../../shared/interfaces/appointments.interface";
-import {DatepickerRangeComponent} from "../../../shared/ui/datepicker-range/datepicker-range.component";
+import { DatepickerRangeComponent } from "../../../shared/ui/datepicker-range/datepicker-range.component";
 
 @Component({
   selector: 'app-get-appointments-for-vet',
@@ -37,8 +37,12 @@ import {DatepickerRangeComponent} from "../../../shared/ui/datepicker-range/date
               <div class="row row-cols-auto g-2">
                 @for (appointment of appointmentsForSelectedDay(); track appointment.id) {
                   <div class="col">
-                    <button class="btn btn-outline-primary rounded-3 px-3">
-                      {{ appointment.dateTimeFrom.toDate() | date: 'HH:mm' }}
+                    <button
+                      [disabled]="loggedUserRole() === Role.Vet"
+                      [class]="selectedAppointment()?.id === appointment.id ? 'btn btn-primary rounded-3 px-3' : 'btn btn-outline-primary rounded-3 px-3'"
+                      type="button"
+                      (click)="selectAppointment(appointment)">
+                      {{ appointment.dateTimeFrom | date: 'HH:mm' }}
                     </button>
                   </div>
                 } @empty {
@@ -59,11 +63,17 @@ import {DatepickerRangeComponent} from "../../../shared/ui/datepicker-range/date
 })
 export class GetAppointmentsForVet {
   appointmentsService = inject(AppointmentsService);
-  veterinary = input.required<UserProfile>();
-  clinicId = input.required<string>(); // <-- NOWY INPUT
 
-  vetId = computed(() => this.veterinary().user_id);
+  loggedUserRole = input.required<Role>();
+  veterinary = input.required<UserInterface>();
+  clinicId = input.required<string>();
+
+  appointmentSelected = output<Appointment>();
+
+  vetId = computed(() => this.veterinary().id);
   selectedDay = signal<string | null>(null);
+
+  selectedAppointment = signal<Appointment | null>(null);
 
   onGetAppointments = resource({
     params: () => ({ vetId: this.vetId(), clinicId: this.clinicId() }),
@@ -97,7 +107,17 @@ export class GetAppointmentsForVet {
   });
 
   onDaySelected(date: Date) {
-    const dateKey = this.appointmentsService.buildDateKey(date)
+    const dayStart = new Date(date);
+    dayStart.setHours(0, 0, 0, 0);
+    const dateKey = dayStart.getTime().toString();
     this.selectedDay.set(dateKey);
+    this.selectedAppointment.set(null); // Resetujemy wybrany termin przy zmianie dnia
   }
+
+  selectAppointment(appointment: Appointment) {
+    this.selectedAppointment.set(appointment);
+    this.appointmentSelected.emit(appointment);
+  }
+
+  protected readonly Role = Role;
 }

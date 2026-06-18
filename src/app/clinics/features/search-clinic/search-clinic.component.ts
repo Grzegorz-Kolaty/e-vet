@@ -1,13 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  output,
-  resource,
-  signal,
-  ViewEncapsulation
-} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, inject, output, resource, ViewEncapsulation} from '@angular/core';
 import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 import {NgNotFoundTemplateDirective, NgOptionTemplateDirective, NgSelectComponent} from "@ng-select/ng-select";
 import {FormsModule} from "@angular/forms";
@@ -46,7 +37,7 @@ export interface CitySearchOption {
 
       <ng-template ng-notfound-tmp>
         <div class="p-3 small text-center text-white">
-          Brak klinik w tym mieście 🐾
+          Brak klinik 🐾
         </div>
       </ng-template>
 

@@ -55,7 +55,7 @@ export default class EmailVerificationComponent {
     this.oobCode.set(oobCode)
 
     effect(() => {
-      if (this.onEmailVerification.status() === 'resolved' || this.authService.firebaseUser()?.emailVerified) {
+      if (this.onEmailVerification.status() === 'resolved' || this.authService.user()?.is_email_verified) {
         console.log('Verify effect verify success')
 
         this.router.navigate(['dashboard'])

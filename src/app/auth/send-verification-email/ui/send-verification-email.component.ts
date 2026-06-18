@@ -51,7 +51,7 @@ export default class SendEmailVerificationComponent {
   error = signal(false);
 
   async sendEmail() {
-    const user = this.authService.firebaseUser();
+    const user = this.authService.user();
 
     if (!user) return;
 

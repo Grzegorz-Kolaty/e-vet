@@ -3,14 +3,13 @@ import {RouterLink, RouterLinkActive} from '@angular/router';
 import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 import {NgbPopover} from '@ng-bootstrap/ng-bootstrap';
 import {AuthService} from "../../data-access/auth.service";
-import {Role} from "../../interfaces/userProfile";
+import {Role} from "../../interfaces/user.interface";
 
 
 @Component({
   selector: 'app-header',
   imports: [RouterLink, RouterLinkActive, FaIconComponent, NgbPopover],
   template: `
-
     @let user = this.authService.user();
 
     <nav class="row g-0 flex-column flex-md-row align-items-center shadow-lg bg-dark text-white p-3">
@@ -31,8 +30,8 @@ import {Role} from "../../interfaces/userProfile";
           <h3 class="lead my-3 my-lg-0 mx-auto">
             {{
               user.role === Role.User
-                ? 'Panel opiekuna zwierzaków 🐕‍🦺'
-                : 'Panel weterynarza '
+                ? 'Panel&nbsp;opiekuna&nbsp;zwierzaków&nbsp;🐕‍🦺'
+                : 'Panel&nbsp;weterynarza '
             }}
           </h3>
         } @else {
@@ -55,83 +54,92 @@ import {Role} from "../../interfaces/userProfile";
               Dashboard&nbsp;🩺
             </button>
 
-
-
             @if (user.role === Role.User) {
-              <span [ngbPopover]="!user.email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
+              <span [ngbPopover]="!user?.is_email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
                     triggers="mouseenter:mouseleave"
                     tabindex="0">
               <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
                       routerLinkActive="active"
                       [routerLink]="['pets']"
-                      [disabled]="!user.email_verified"
-                      [attr.aria-disabled]="!user.email_verified">
+                      [disabled]="!user?.is_email_verified"
+                      [attr.aria-disabled]="!user?.is_email_verified">
                 Twoje&nbsp;zwierzaki&nbsp;📋
               </button>
-            </span>
-              <span [ngbPopover]="!user.email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
+              </span>
+
+              <span [ngbPopover]="!user?.is_email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
                     triggers="mouseenter:mouseleave"
                     tabindex="0">
-              <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
-                      routerLinkActive="active"
-                      [routerLink]="['appointments', 'browse']"
-                      [disabled]="!user.email_verified"
-                      [attr.aria-disabled]="!user.email_verified">
-                Rezerwacja&nbsp;wizyt&nbsp;📅
-              </button>
-              </span>
-            }
-
-            <span [ngbPopover]="!user.email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
-                  triggers="mouseenter:mouseleave"
-                  tabindex="0">
                 <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
                         routerLinkActive="active"
                         [routerLink]="['clinics', 'browse-clinics']"
-                        [class.disabled]="!user.email_verified"
-                        [attr.aria-disabled]="!user.email_verified">
+                        [class.disabled]="!user?.is_email_verified"
+                        [attr.aria-disabled]="!user?.is_email_verified">
                   Wyszukaj&nbsp;klinikę&nbsp;💌
                 </button>
               </span>
 
+              <span [ngbPopover]="!user?.is_email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
+                    triggers="mouseenter:mouseleave"
+                    tabindex="0">
+                <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
+                        routerLinkActive="active"
+                        [routerLink]="['appointments', 'history']"
+                        [class.disabled]="!user?.is_email_verified"
+                        [attr.aria-disabled]="!user?.is_email_verified">
+                  Twoje&nbsp;rezerwacje&nbsp;💌
+                </button>
+              </span>
+            }
+
             @if (user.role === Role.Vet) {
-              @if (user.clinicId) {
-                <span [ngbPopover]="!user.email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
-                      triggers="mouseenter:mouseleave"
-                      tabindex="0">
+              <span [ngbPopover]="!user?.is_email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
+                    triggers="mouseenter:mouseleave"
+                    tabindex="0">
                   <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
                           routerLinkActive="active"
-                          [routerLink]="['clinics', 'vet-clinic', user.clinicId]"
-                          [disabled]="!user.email_verified"
-                          [attr.aria-disabled]="!user.email_verified">
+                          [routerLink]="['clinics', 'vet-clinic', user.clinic_id]"
+                          [disabled]="!user?.is_email_verified"
+                          [attr.aria-disabled]="!user?.is_email_verified">
                     Twoja&nbsp;klinika&nbsp;🏥
                   </button>
                 </span>
 
-                <span [ngbPopover]="!user.email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
-                      triggers="mouseenter:mouseleave"
-                      tabindex="0">
+              <span [ngbPopover]="!user?.is_email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
+                    triggers="mouseenter:mouseleave"
+                    tabindex="0">
+                <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
+                        routerLinkActive="active"
+                        [routerLink]="['appointments', 'history']"
+                        [class.disabled]="!user?.is_email_verified"
+                        [attr.aria-disabled]="!user?.is_email_verified">
+                  Twoje&nbsp;rezerwacje&nbsp;💌
+                </button>
+              </span>
+
+              <span [ngbPopover]="!user?.is_email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
+                    triggers="mouseenter:mouseleave"
+                    tabindex="0">
                 <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
                         routerLinkActive="active"
                         [routerLink]="['appointments', 'create']"
-                        [class.disabled]="!user.email_verified"
-                        [attr.aria-disabled]="!user.email_verified">
+                        [class.disabled]="!user?.is_email_verified"
+                        [attr.aria-disabled]="!user?.is_email_verified">
                   Planner&nbsp;terminów&nbsp;💌
                 </button>
               </span>
-              } @else {
-                <span [ngbPopover]="!user.email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
-                      triggers="mouseenter:mouseleave"
-                      tabindex="0">
+              <span [ngbPopover]="!user?.is_email_verified ? 'Zweryfikuj mail, aby uzyskać dostęp' : null"
+                    triggers="mouseenter:mouseleave"
+                    tabindex="0">
                   <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
                           routerLinkActive="active"
                           [routerLink]="['clinics', 'create-clinic']"
-                          [disabled]="!user.email_verified"
-                          [attr.aria-disabled]="!user.email_verified">
+                          [disabled]="!user?.is_email_verified"
+                          [attr.aria-disabled]="!user?.is_email_verified">
                     Tworzenie&nbsp;kliniki&nbsp;🏥
                   </button>
                 </span>
-              }
+
             }
 
             <button class="btn btn-outline-primary text-white border-3 border-dark rounded-4 shadow-lg"
@@ -147,7 +155,7 @@ import {Role} from "../../interfaces/userProfile";
               <ng-template #popoverContent>
                 <button class="btn btn-outline-light rounded-4 border-0"
                         type="button"
-                        (click)="authService.logout()">
+                        (click)="logout()">
                   Wyloguj
                 </button>
               </ng-template>
@@ -164,6 +172,10 @@ import {Role} from "../../interfaces/userProfile";
 export class HeaderComponent {
   protected authService = inject(AuthService);
   public readonly appTitle = "PetCare"
+
+  async logout() {
+     await this.authService.logout();
+  }
 
 
   protected readonly Role = Role;

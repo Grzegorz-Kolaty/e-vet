@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, Component, effect, inject, resource, signal} from '@angular/core';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Router, RouterLink} from "@angular/router";
-import {RegisterCredentials, Role} from '../../shared/interfaces/userProfile';
+import {RegisterCredentials, Role} from '../../shared/interfaces/user.interface';
 import {AuthService} from '../../shared/data-access/auth.service';
 
 
@@ -36,14 +36,14 @@ import {AuthService} from '../../shared/data-access/auth.service';
 
       <div class="form-floating mb-2">
         <input
-          formControlName="displayName"
+          formControlName="name"
           placeholder="np. imię i nazwisko"
           type="text"
           class="form-control form-control-lg shadow-lg"
-          id="displayNameInput"
-          aria-describedby="displayNameInput"
+          id="nameInput"
+          aria-describedby="nameInput"
           required/>
-        <label for="displayNameInput">
+        <label for="nameInput">
           Imię i nazwisko
         </label>
       </div>
@@ -115,7 +115,7 @@ export default class RegisterComponent {
 
   registerForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.pattern(/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/)]],
-    displayName: ['', Validators.required],
+    name: ['', Validators.required],
     password: ['', Validators.required],
   });
 
@@ -130,7 +130,7 @@ export default class RegisterComponent {
   });
 
   constructor() {
-    this.setRandomData();
+    // this.setRandomData();
 
     effect(() => {
       const user = this.authService.user()
@@ -142,22 +142,25 @@ export default class RegisterComponent {
 
   onSubmit(role: Role): void {
     const rawForm = this.registerForm.getRawValue();
+
+    console.log(rawForm)
     if (this.registerForm.valid) {
+      console.log('ok form')
       const data = {...rawForm, role}
       this.register.set(data);
     }
   }
 
-  private setRandomData() {
-    const randomString = (length: number) => Math.random().toString(36).substring(2, 2 + length);
-    const email = `${randomString(5)}@example.com`;
-    const displayName = `User${randomString(4)}`;
-    const password = randomString(10);
-
-    this.registerForm.setValue({
-      email,
-      displayName,
-      password,
-    });
-  }
+  // private setRandomData() {
+  //   const randomString = (length: number) => Math.random().toString(36).substring(2, 2 + length);
+  //   const email = `${randomString(5)}@example.com`;
+  //   const displayName = `User${randomString(4)}`;
+  //   const password = randomString(10);
+  //
+  //   this.registerForm.setValue({
+  //     email,
+  //     displayName,
+  //     password,
+  //   });
+  // }
 }

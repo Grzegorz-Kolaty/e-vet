@@ -6,6 +6,10 @@ export const APPOINTMENTS_ROUTES: Route[] = [
     loadComponent: () => import('./create/create.component'),
   },
   {
+    path: 'history',
+    loadComponent: () => import('./history/history.component'),
+  },
+  {
     path: '',
     redirectTo: 'create',
     pathMatch: 'full',

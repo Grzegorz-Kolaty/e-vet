@@ -3,8 +3,8 @@ import {ChangeDetectionStrategy, Component} from '@angular/core';
 @Component({
   selector: 'app-user',
   imports: [],
-  templateUrl: './user.component.html',
-  styleUrl: './user.component.scss',
+  template: ``,
+  styles: ``,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export default class UserComponent {
