@@ -9,6 +9,7 @@ from app import models
 from app.core.config import settings
 from app.db import get_db
 from app.schemas import UserCreate, UserLogin, UserRead
+from app.services.email_service import EmailSendError, email_service
 from app.security import (
     create_session_token,
     hash_password,
@@ -196,3 +197,34 @@ def logout_user(
 @router.get("/me", response_model=UserRead)
 def get_me(current_user: models.User = Depends(get_current_user)):
     return current_user
+
+
+@router.post("/auth/dev/test-email")
+async def send_test_email(
+    email: str,
+):
+    if settings.environment == "production":
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Not found",
+        )
+
+    try:
+        await email_service.send_email(
+            to=email,
+            subject="VetReservation - test email",
+            html="""
+            <div style="font-family: Arial, sans-serif; line-height: 1.5;">
+                <h2>VetReservation</h2>
+                <p>To jest testowy email z backendu FastAPI przez Resend.</p>
+                <p>Jeśli widzisz tę wiadomość, konfiguracja działa poprawnie.</p>
+            </div>
+            """,
+        )
+    except EmailSendError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=str(exc),
+        )
+
+    return {"status": "email_sent"}

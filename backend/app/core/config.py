@@ -13,6 +13,11 @@ class Settings(BaseSettings):
     session_cookie_secure: bool = False
     session_cookie_samesite: str = "lax"
 
+    mail_provider: str = "resend"
+    resend_api_key: str | None = None
+    mail_from: str = "VetReservation <system@mail.vetreservation.com>"
+    frontend_url: str = "http://localhost:4200"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
