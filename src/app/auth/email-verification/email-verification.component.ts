@@ -1,6 +1,7 @@
 import {ChangeDetectionStrategy, Component, effect, inject, resource, signal} from '@angular/core';
 import {AuthService} from '../../shared/data-access/auth.service';
-import {ActivatedRoute, Router} from "@angular/router";
+import {ActivatedRoute, Router} from '@angular/router';
+
 
 @Component({
   selector: 'app-email-verification',
@@ -9,7 +10,15 @@ import {ActivatedRoute, Router} from "@angular/router";
       Weryfikacja email
     </h3>
 
-    @if (onEmailVerification.status() === 'loading') {
+    @if (!token()) {
+      <div class="bg-danger text-center rounded-4 pulse-box p-3 mb-4">
+        <span class="text-white">
+          Brakuje tokena weryfikacyjnego.
+        </span>
+      </div>
+    }
+
+    @if (emailVerification.status() === 'loading') {
       <div class="d-flex justify-content-center mb-3">
         <div class="spinner-border text-primary" role="status">
           <span class="visually-hidden">Ładowanie...</span>
@@ -17,18 +26,18 @@ import {ActivatedRoute, Router} from "@angular/router";
       </div>
     }
 
-    @if (onEmailVerification.status() === 'error') {
-      <div class="bg-danger text-danger text-center rounded-4 pulse-box p-3 mb-4">
+    @if (emailVerification.status() === 'error') {
+      <div class="bg-danger text-center rounded-4 pulse-box p-3 mb-4">
         <span class="text-white">
-          Wystąpił błąd z weryfikacją email
+          Link weryfikacyjny jest nieprawidłowy, wygasł albo został już użyty.
         </span>
       </div>
     }
 
-    @if (onEmailVerification.status() === 'resolved') {
-      <div class="bg-success text-center text-success rounded-4 pulse-box p-3 mb-4">
+    @if (emailVerification.status() === 'resolved') {
+      <div class="bg-success text-center rounded-4 pulse-box p-3 mb-4">
         <span class="text-white">
-          Weryfikacja udała się!
+          Email został potwierdzony!
         </span>
       </div>
     }
@@ -39,28 +48,36 @@ import {ActivatedRoute, Router} from "@angular/router";
 export default class EmailVerificationComponent {
   private readonly authService = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router)
+  private readonly router = inject(Router);
 
+  readonly token = signal<string | undefined>(
+    this.route.snapshot.queryParamMap.get('token') ?? undefined
+  );
 
-  oobCode = signal<string | undefined>(undefined);
-  onEmailVerification = resource({
-    loader: async () => {
-      return await this.authService.verifyEmail(this.oobCode())
-    }
-  })
+  readonly emailVerification = resource({
+    params: this.token,
+    loader: async (params) => {
+      if (!params) {
+        throw new Error('Missing verification token');
+      }
+      return await this.authService.verifyEmail(params.params);
+    },
+  });
 
   constructor() {
-    const queryParams = this.route.snapshot.queryParams;
-    const oobCode = queryParams['oobCode'];
-    this.oobCode.set(oobCode)
-
     effect(() => {
-      if (this.onEmailVerification.status() === 'resolved' || this.authService.user()?.is_email_verified) {
-        console.log('Verify effect verify success')
-
-        this.router.navigate(['dashboard'])
+      if (this.emailVerification.status() !== 'resolved') {
+        return;
       }
-    })
-  }
 
+      setTimeout(() => {
+        if (this.authService.user()) {
+          this.router.navigateByUrl('/dashboard');
+          return;
+        }
+
+        this.router.navigateByUrl('/auth/login');
+      }, 1500);
+    });
+  }
 }

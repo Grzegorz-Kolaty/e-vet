@@ -22,7 +22,7 @@ import {AuthService} from "../shared/data-access/auth.service";
     <section class="container-fluid h-100 p-5">
       @if (authService.user(); as profile) {
 
-        @if (profile.is_email_verified) {
+        @if (profile && !profile.is_email_verified) {
           <app-send-email-verification/>
         } @else if (profile.role === Role.Vet) {
           <app-vet/>

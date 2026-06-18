@@ -1,15 +1,31 @@
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-from sqlalchemy import select
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response, status
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app import models
 from app.core.config import settings
 from app.db import get_db
-from app.schemas import UserCreate, UserLogin, UserRead
+
+from app.schemas import (
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
+    UserCreate,
+    UserLogin,
+    UserRead,
+    VerifyEmailRequest,
+)
+
 from app.services.email_service import EmailSendError, email_service
+from app.services.auth_token_service import (
+    AUTH_TOKEN_PURPOSE_EMAIL_VERIFICATION,
+    AUTH_TOKEN_PURPOSE_PASSWORD_RESET,
+    consume_auth_token,
+    create_auth_token,
+)
+
 from app.security import (
     create_session_token,
     hash_password,
@@ -63,7 +79,11 @@ def get_current_user(
 @router.post(
     "/auth/register", response_model=UserRead, status_code=status.HTTP_201_CREATED
 )
-def register_user(payload: UserCreate, db: Session = Depends(get_db)):
+def register_user(
+    payload: UserCreate,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     email = str(payload.email).lower()
 
     existing_user = db.execute(
@@ -101,6 +121,20 @@ def register_user(payload: UserCreate, db: Session = Depends(get_db)):
         )
 
     db.refresh(user)
+
+    verification_token = create_auth_token(
+        db=db,
+        user_id=user.id,
+        purpose=AUTH_TOKEN_PURPOSE_EMAIL_VERIFICATION,
+        expires_in=timedelta(hours=24),
+    )
+
+    background_tasks.add_task(
+        email_service.send_verify_email,
+        to=user.email,
+        name=user.name,
+        token=verification_token,
+    )
 
     return user
 
@@ -197,6 +231,113 @@ def logout_user(
 @router.get("/me", response_model=UserRead)
 def get_me(current_user: models.User = Depends(get_current_user)):
     return current_user
+
+
+@router.post("/auth/verify-email")
+def verify_email(
+    payload: VerifyEmailRequest,
+    db: Session = Depends(get_db),
+):
+    auth_token = consume_auth_token(
+        db=db,
+        token=payload.token,
+        purpose=AUTH_TOKEN_PURPOSE_EMAIL_VERIFICATION,
+    )
+
+    if auth_token is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired verification token",
+        )
+
+    user = db.get(models.User, auth_token.user_id)
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid verification token",
+        )
+
+    user.is_email_verified = True
+    user.updated_at = datetime.now(timezone.utc)
+
+    db.commit()
+
+    return {"status": "email_verified"}
+
+
+@router.post("/auth/forgot-password")
+def forgot_password(
+    payload: ForgotPasswordRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
+    email = str(payload.email).lower()
+
+    user = db.execute(
+        select(models.User).where(models.User.email == email)
+    ).scalar_one_or_none()
+
+    if user is not None and user.is_active:
+        reset_token = create_auth_token(
+            db=db,
+            user_id=user.id,
+            purpose=AUTH_TOKEN_PURPOSE_PASSWORD_RESET,
+            expires_in=timedelta(hours=1),
+        )
+
+        background_tasks.add_task(
+            email_service.send_password_reset_email,
+            to=user.email,
+            name=user.name,
+            token=reset_token,
+        )
+
+    return {"status": "password_reset_email_sent_if_account_exists"}
+
+
+@router.post("/auth/reset-password")
+def reset_password(
+    payload: ResetPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    auth_token = consume_auth_token(
+        db=db,
+        token=payload.token,
+        purpose=AUTH_TOKEN_PURPOSE_PASSWORD_RESET,
+    )
+
+    if auth_token is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token",
+        )
+
+    user = db.get(models.User, auth_token.user_id)
+
+    if user is None or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid reset token",
+        )
+
+    now = datetime.now(timezone.utc)
+
+    user.password_hash = hash_password(payload.password)
+    user.updated_at = now
+
+    db.execute(
+        update(models.AuthSession)
+        .where(
+            models.AuthSession.user_id == user.id,
+            models.AuthSession.revoked_at.is_(None),
+        )
+        .values(revoked_at=now)
+    )
+
+    db.commit()
+
+    return {"status": "password_reset"}
 
 
 @router.post("/auth/dev/test-email")

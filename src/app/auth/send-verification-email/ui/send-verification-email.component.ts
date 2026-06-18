@@ -36,8 +36,7 @@ import { LoaderComponent } from "../../../shared/ui/loader/loader.component";
         class="btn btn-lg btn-outline-info rounded-4"
         (click)="sendEmail()"
         [disabled]="loading()"
-        type="button"
-      >
+        type="button">
         Wyślij ponownie 📩
       </button>
     </div>

@@ -152,3 +152,16 @@ class AppointmentRead(BaseModel):
     patientName: str | None = None
     petId: uuid.UUID | None = None
     petName: str | None = None
+
+class VerifyEmailRequest(BaseModel):
+    token: str = Field(min_length=20, max_length=300)
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(min_length=20, max_length=300)
+    password: str = Field(min_length=8, max_length=128)
+

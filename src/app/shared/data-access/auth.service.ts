@@ -102,6 +102,28 @@ export class AuthService {
     }
   }
 
+  async verifyEmail(token: string) {
+    return firstValueFrom(
+      this.http.post<{ status: string }>('/auth/verify-email', {token})
+    );
+  }
+
+  forgotPassword(email: string) {
+    return firstValueFrom(
+      this.http.post<{ status: string }>('/auth/forgot-password', { email })
+    );
+  }
+
+  resetPassword(token: string, password: string) {
+    return firstValueFrom(
+      this.http.post<{ status: string }>('/auth/reset-password', {
+        token,
+        password,
+      })
+    );
+  }
+
+
   private mapUser(user: UserResponse): UserInterface {
     return {
       ...user,
@@ -135,18 +157,10 @@ export class AuthService {
     throw new Error('Weryfikacja email nie jest jeszcze obsługiwana przez nowe API.');
   }
 
-  async resetPassword(_email: string): Promise<void> {
-    throw new Error('Reset hasła nie jest jeszcze obsługiwany przez nowe API.');
-  }
-
   async confirmPasswordReset(
     _oobCode: string,
     _newPassword: string,
   ): Promise<void> {
     throw new Error('Potwierdzenie resetu hasła nie jest jeszcze obsługiwane przez nowe API.');
-  }
-
-  async verifyEmail(_oobCode?: string): Promise<void> {
-    throw new Error('Weryfikacja email nie jest jeszcze obsługiwana przez nowe API.');
   }
 }

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import html
+
 import httpx
 
 from app.core.config import settings
@@ -51,6 +53,70 @@ class EmailService:
             raise EmailSendError(
                 f"Resend error {response.status_code}: {response.text}"
             )
+
+    async def send_verify_email(
+        self,
+        *,
+        to: str,
+        name: str,
+        token: str,
+    ) -> None:
+        verify_url = f"{settings.frontend_url}/auth/verify-email?token={token}"
+        safe_name = html.escape(name)
+        safe_url = html.escape(verify_url, quote=True)
+
+        await self.send_email(
+            to=to,
+            subject="Potwierdź adres email w VetReservation",
+            html=f"""
+            <div style="font-family: Arial, sans-serif; line-height: 1.5;">
+                <h2>VetReservation</h2>
+                <p>Cześć {safe_name},</p>
+                <p>Dziękujemy za rejestrację. Kliknij poniższy przycisk, aby potwierdzić adres email.</p>
+                <p>
+                    <a href="{safe_url}"
+                       style="display:inline-block;padding:10px 16px;background:#0d6efd;color:#ffffff;text-decoration:none;border-radius:6px;">
+                        Potwierdź email
+                    </a>
+                </p>
+                <p>Jeśli przycisk nie działa, skopiuj ten link do przeglądarki:</p>
+                <p>{safe_url}</p>
+                <p>Jeśli to nie Ty zakładałeś konto, zignoruj tę wiadomość.</p>
+            </div>
+            """,
+        )
+
+    async def send_password_reset_email(
+        self,
+        *,
+        to: str,
+        name: str,
+        token: str,
+    ) -> None:
+        reset_url = f"{settings.frontend_url}/auth/reset-password?token={token}"
+        safe_name = html.escape(name)
+        safe_url = html.escape(reset_url, quote=True)
+
+        await self.send_email(
+            to=to,
+            subject="Reset hasła w VetReservation",
+            html=f"""
+            <div style="font-family: Arial, sans-serif; line-height: 1.5;">
+                <h2>VetReservation</h2>
+                <p>Cześć {safe_name},</p>
+                <p>Otrzymaliśmy prośbę o reset hasła do Twojego konta.</p>
+                <p>
+                    <a href="{safe_url}"
+                       style="display:inline-block;padding:10px 16px;background:#0d6efd;color:#ffffff;text-decoration:none;border-radius:6px;">
+                        Ustaw nowe hasło
+                    </a>
+                </p>
+                <p>Jeśli przycisk nie działa, skopiuj ten link do przeglądarki:</p>
+                <p>{safe_url}</p>
+                <p>Jeśli to nie Ty prosiłeś o reset hasła, zignoruj tę wiadomość.</p>
+            </div>
+            """,
+        )
 
 
 email_service = EmailService()
