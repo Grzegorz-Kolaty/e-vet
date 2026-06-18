@@ -266,6 +266,36 @@ def verify_email(
     return {"status": "email_verified"}
 
 
+@router.post("/auth/resend-verification-email")
+async def resend_verification_email(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user.is_email_verified:
+        return {"status": "email_already_verified"}
+
+    verification_token = create_auth_token(
+        db=db,
+        user_id=current_user.id,
+        purpose=AUTH_TOKEN_PURPOSE_EMAIL_VERIFICATION,
+        expires_in=timedelta(hours=24),
+    )
+
+    try:
+        await email_service.send_verify_email(
+            to=current_user.email,
+            name=current_user.name,
+            token=verification_token,
+        )
+    except EmailSendError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=str(exc),
+        )
+
+    return {"status": "verification_email_sent"}
+
+
 @router.post("/auth/forgot-password")
 def forgot_password(
     payload: ForgotPasswordRequest,

@@ -1,6 +1,7 @@
-import {ChangeDetectionStrategy, Component, inject, signal} from '@angular/core';
-import { AuthService } from "../../../shared/data-access/auth.service";
-import { LoaderComponent } from "../../../shared/ui/loader/loader.component";
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { AuthService } from '../../../shared/data-access/auth.service';
+import { LoaderComponent } from '../../../shared/ui/loader/loader.component';
+
 
 @Component({
   selector: 'app-send-email-verification',
@@ -37,29 +38,35 @@ import { LoaderComponent } from "../../../shared/ui/loader/loader.component";
         (click)="sendEmail()"
         [disabled]="loading()"
         type="button">
-        Wyślij ponownie 📩
+        @if (loading()) {
+          Wysyłanie...
+        } @else {
+          Wyślij ponownie 📩
+        }
       </button>
     </div>
-  `
+  `,
 })
 export default class SendEmailVerificationComponent {
-  private authService = inject(AuthService);
+  private readonly authService = inject(AuthService);
 
-  loading = signal(false);
-  success = signal(false);
-  error = signal(false);
+  protected readonly loading = signal(false);
+  protected readonly success = signal(false);
+  protected readonly error = signal(false);
 
   async sendEmail() {
     const user = this.authService.user();
 
-    if (!user) return;
+    if (!user || user.is_email_verified) {
+      return;
+    }
 
     this.loading.set(true);
     this.success.set(false);
     this.error.set(false);
 
     try {
-      await this.authService.initiateEmail(user);
+      await this.authService.resendVerificationEmail();
       this.success.set(true);
     } catch (e) {
       this.error.set(true);

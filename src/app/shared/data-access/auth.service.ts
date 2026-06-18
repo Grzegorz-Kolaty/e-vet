@@ -153,14 +153,9 @@ export class AuthService {
     return 'Wystąpił błąd. Spróbuj ponownie.';
   }
 
-  async initiateEmail(_user?: unknown): Promise<void> {
-    throw new Error('Weryfikacja email nie jest jeszcze obsługiwana przez nowe API.');
-  }
-
-  async confirmPasswordReset(
-    _oobCode: string,
-    _newPassword: string,
-  ): Promise<void> {
-    throw new Error('Potwierdzenie resetu hasła nie jest jeszcze obsługiwane przez nowe API.');
+  resendVerificationEmail() {
+    return firstValueFrom(
+      this.http.post<{ status: string }>('/auth/resend-verification-email', {})
+    );
   }
 }
