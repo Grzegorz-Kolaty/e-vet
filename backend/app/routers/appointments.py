@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -108,6 +108,44 @@ def create_appointment(
     db.refresh(appointment)
 
     return appointment_to_read(appointment)
+
+
+@router.delete("/appointments/{appointment_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_appointment(
+    appointment_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    appointment = db.get(models.Appointment, appointment_id)
+
+    if appointment is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Appointment not found",
+        )
+
+    if current_user.role != "vet":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only vet can delete appointment",
+        )
+
+    if appointment.vet_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can delete only your own appointments",
+        )
+
+    if appointment.patient_id is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Booked appointment cannot be deleted",
+        )
+
+    db.delete(appointment)
+    db.commit()
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/appointments/vet", response_model=list[AppointmentRead])
@@ -255,7 +293,8 @@ def get_appointment_by_id(
 
 
 @router.patch(
-    "/appointments/{appointment_id}/realise", status_code=status.HTTP_204_NO_CONTENT
+    "/appointments/{appointment_id}/realise",
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 def mark_as_realised(
     appointment_id: uuid.UUID,
@@ -342,7 +381,8 @@ def complete_appointment_and_add_treatment(
 
 
 @router.get(
-    "/pets/{pet_id}/appointments/upcoming", response_model=list[AppointmentRead]
+    "/pets/{pet_id}/appointments/upcoming",
+    response_model=list[AppointmentRead],
 )
 def get_pet_upcoming_appointments(
     pet_id: uuid.UUID,
