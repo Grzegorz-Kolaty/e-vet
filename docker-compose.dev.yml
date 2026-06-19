@@ -6,6 +6,8 @@
     restart: unless-stopped
     env_file:
       - .env.dev
+    environment:
+      WATCHFILES_FORCE_POLLING: "true"
     ports:
       - "8000:8000"
     volumes:

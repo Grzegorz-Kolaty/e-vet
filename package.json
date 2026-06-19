@@ -3,10 +3,22 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+
     "start": "ng serve",
+    "dev": "yarn backend:up && ng serve",
+    "dev:build": "yarn backend:build && ng serve",
+
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+
+    "backend:up": "docker compose --env-file .env.dev -f docker-compose.dev.yml up -d api",
+    "backend:build": "docker compose --env-file .env.dev -f docker-compose.dev.yml up -d --build api",
+    "backend:restart": "docker compose --env-file .env.dev -f docker-compose.dev.yml restart api",
+    "backend:logs": "docker compose --env-file .env.dev -f docker-compose.dev.yml logs -f api",
+    "backend:ps": "docker compose --env-file .env.dev -f docker-compose.dev.yml ps",
+    "backend:down": "docker compose --env-file .env.dev -f docker-compose.dev.yml down",
+
     "deploy:prod": "powershell -ExecutionPolicy Bypass -File ./scripts/deploy-prod.ps1"
   },
   "private": true,
