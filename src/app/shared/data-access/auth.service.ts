@@ -110,9 +110,15 @@ export class AuthService {
 
   async verifyEmail(token: string) {
     try {
-      return await firstValueFrom(
+      const response = await firstValueFrom(
         this.http.post<{ status: string }>('/auth/verify-email', { token })
       );
+
+      if (response.status === 'email_verified' && this.user()) {
+        await this.refreshCurrentUser();
+      }
+
+      return response;
     } catch (error) {
       throw new Error(this.getErrorMessage(error));
     }
