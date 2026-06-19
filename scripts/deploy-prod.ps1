@@ -144,7 +144,13 @@ echo "=== Remote deploy finished ==="
 
 Write-Host ""
 Write-Host "Running remote deploy..." -ForegroundColor Cyan
-$remoteScript | ssh $Server "bash -s -- '$RemotePath' '$Branch'"
+
+$remoteScriptUnix = $remoteScript -replace "`r`n", "`n" -replace "`r", "`n"
+$remoteScriptUnix | ssh $Server "bash -s -- '$RemotePath' '$Branch'"
+
+if ($LASTEXITCODE -ne 0) {
+  throw "Remote deploy failed with exit code $LASTEXITCODE"
+}
 
 Write-Host ""
 Write-Host "Cleaning local artifact..." -ForegroundColor Cyan
