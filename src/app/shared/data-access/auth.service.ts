@@ -35,6 +35,11 @@ export class AuthService {
     return this.initPromise;
   }
 
+  async refreshCurrentUser(): Promise<UserInterface | null> {
+    this.initPromise = this.loadCurrentUser();
+    return await this.initPromise;
+  }
+
   async login(credentials: Credentials): Promise<UserInterface> {
     try {
       const response = await firstValueFrom(
@@ -45,6 +50,7 @@ export class AuthService {
 
       this.user.set(user);
       this.initialized.set(true);
+      this.initPromise = Promise.resolve(user);
 
       return user;
     } catch (error) {

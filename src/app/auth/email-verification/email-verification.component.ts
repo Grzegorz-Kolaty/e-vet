@@ -75,8 +75,14 @@ export default class EmailVerificationComponent {
       }
 
       setTimeout(async () => {
-        if (this.authService.user()) {
-          await this.authService.loadCurrentUser();
+        if (!this.authService.user()) {
+          await this.router.navigateByUrl('/auth/login');
+          return;
+        }
+
+        const refreshedUser = await this.authService.refreshCurrentUser();
+
+        if (refreshedUser) {
           await this.router.navigateByUrl('/dashboard');
           return;
         }
