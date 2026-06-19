@@ -56,11 +56,11 @@ export default class EmailVerificationComponent {
 
   readonly emailVerification = resource({
     params: this.token,
-    loader: async (params) => {
+    loader: async ({params}) => {
       if (!params) {
         throw new Error('Missing verification token');
       }
-      return await this.authService.verifyEmail(params.params);
+      return await this.authService.verifyEmail(params);
     },
   });
 
@@ -70,13 +70,18 @@ export default class EmailVerificationComponent {
         return;
       }
 
-      setTimeout(() => {
+      if (!this.authService.initialized()) {
+        return;
+      }
+
+      setTimeout(async () => {
         if (this.authService.user()) {
-          this.router.navigateByUrl('/dashboard');
+          await this.authService.loadCurrentUser();
+          await this.router.navigateByUrl('/dashboard');
           return;
         }
 
-        this.router.navigateByUrl('/auth/login');
+        await this.router.navigateByUrl('/auth/login');
       }, 1500);
     });
   }

@@ -103,14 +103,24 @@ export class AuthService {
   }
 
   async verifyEmail(token: string) {
+    try {
+      return await firstValueFrom(
+        this.http.post<{ status: string }>('/auth/verify-email', { token })
+      );
+    } catch (error) {
+      throw new Error(this.getErrorMessage(error));
+    }
+  }
+
+  resendVerificationEmail() {
     return firstValueFrom(
-      this.http.post<{ status: string }>('/auth/verify-email', {token})
+      this.http.post<{ status: string }>('/auth/resend-verification-email', {})
     );
   }
 
   forgotPassword(email: string) {
     return firstValueFrom(
-      this.http.post<{ status: string }>('/auth/forgot-password', { email })
+      this.http.post<{ status: string }>('/auth/forgot-password', {email})
     );
   }
 
@@ -151,11 +161,5 @@ export class AuthService {
     }
 
     return 'Wystąpił błąd. Spróbuj ponownie.';
-  }
-
-  resendVerificationEmail() {
-    return firstValueFrom(
-      this.http.post<{ status: string }>('/auth/resend-verification-email', {})
-    );
   }
 }
