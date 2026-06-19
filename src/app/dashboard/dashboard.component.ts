@@ -110,10 +110,6 @@ export default class DashboardComponent {
       if (!params) return;
 
       return
-
-      // return this.userService.uploadProfilePhoto(
-      //   params,
-      // );
     },
   });
 
