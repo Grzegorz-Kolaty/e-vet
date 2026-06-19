@@ -146,7 +146,9 @@ Write-Host ""
 Write-Host "Running remote deploy..." -ForegroundColor Cyan
 
 $remoteScriptUnix = $remoteScript -replace "`r`n", "`n" -replace "`r", "`n"
-$remoteScriptUnix | ssh $Server "bash -s -- '$RemotePath' '$Branch'"
+$remoteDeployPath = "/tmp/evet-remote-deploy-$timestamp.sh"
+
+$remoteScriptUnix | ssh $Server "cat > '$remoteDeployPath' && chmod +x '$remoteDeployPath' && bash '$remoteDeployPath' '$RemotePath' '$Branch'; code=`$?; rm -f '$remoteDeployPath'; exit `$code"
 
 if ($LASTEXITCODE -ne 0) {
   throw "Remote deploy failed with exit code $LASTEXITCODE"
