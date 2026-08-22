@@ -706,16 +706,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@bluehalo/ngx-leaflet@npm:^20.0.0":
-  version: 20.0.0
-  resolution: "@bluehalo/ngx-leaflet@npm:20.0.0"
+"@bluehalo/ngx-leaflet@npm:21":
+  version: 21.2.1
+  resolution: "@bluehalo/ngx-leaflet@npm:21.2.1"
   dependencies:
     tslib: "npm:^2.8.0"
   peerDependencies:
-    "@angular/common": 20
-    "@angular/core": 20
+    "@angular/common": 21
+    "@angular/core": 21
     leaflet: 1
-  checksum: 10c0/442f6a5c2563cb485456990f13fd8b8baf0cb8f68342f17613148120f507fa1f84e8c86acade84360325ab9275d14b154d67075882a4091474a6ce6154ce91e1
+  checksum: 10c0/b54fabcdcff9b38ef67e713ad471f5634d323dbeeed88a2f6c496d508137b936166c1afceef406dbf9c186d821dc445960b3715e4e0c59226a1f1166458352a0
   languageName: node
   linkType: hard
 
@@ -1090,15 +1090,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fortawesome/angular-fontawesome@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "@fortawesome/angular-fontawesome@npm:3.0.0"
+"@fortawesome/angular-fontawesome@npm:4":
+  version: 4.0.0
+  resolution: "@fortawesome/angular-fontawesome@npm:4.0.0"
   dependencies:
-    "@fortawesome/fontawesome-svg-core": "npm:^7.0.0"
+    "@fortawesome/fontawesome-svg-core": "npm:^7.1.0"
     tslib: "npm:^2.8.1"
   peerDependencies:
-    "@angular/core": ^20.0.0
-  checksum: 10c0/1e8c859c4e37ef2b5bd229ec3c296e01a8ef30153f528dcca3566d0cbd36ae40edb6cfee266f66505dadf10796d8e9c1eaefe01bf2a966dded704eaf69becefd
+    "@angular/core": ^21.0.0
+  checksum: 10c0/e603ec0b1160215be1293d7cf4cb5fdbeb4feba4c886cb048a3bb1a305341062d39805fe4379c535d036fa0ad2684560557d8ed6f59a589e3e015bdc3dda1a99
   languageName: node
   linkType: hard
 
@@ -1109,12 +1109,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fortawesome/fontawesome-svg-core@npm:^7.0.0":
-  version: 7.2.0
-  resolution: "@fortawesome/fontawesome-svg-core@npm:7.2.0"
+"@fortawesome/fontawesome-common-types@npm:7.3.1":
+  version: 7.3.1
+  resolution: "@fortawesome/fontawesome-common-types@npm:7.3.1"
+  checksum: 10c0/f443a0109773e57ceab3c35021c4f26baf8c29afc79efbea2324bcd9f7dd326f5ac415e46ead17eaf6e935bc23fce83993d4211a4cff375c19100ee65ea9e5cc
+  languageName: node
+  linkType: hard
+
+"@fortawesome/fontawesome-svg-core@npm:^7.1.0":
+  version: 7.3.1
+  resolution: "@fortawesome/fontawesome-svg-core@npm:7.3.1"
   dependencies:
-    "@fortawesome/fontawesome-common-types": "npm:7.2.0"
-  checksum: 10c0/5c6655b030254804999eb87b96111cdcc42c0789e6e9ea13bc1e37d5ebf9fb982c79a618b68272cc59c23c4e1abf73d487e747a17a61499eac5f9f528fc54ad4
+    "@fortawesome/fontawesome-common-types": "npm:7.3.1"
+  checksum: 10c0/07c84a5751999d13d875f63e059ec2b0ab6dbed9cfe363fe8a870fd64e045c049367ae55bdee18973b38255967593d6eef403170a1e70cf4400de8216a932654
   languageName: node
   linkType: hard
 
@@ -1784,32 +1791,32 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ng-bootstrap/ng-bootstrap@npm:^19.0.1":
-  version: 19.0.1
-  resolution: "@ng-bootstrap/ng-bootstrap@npm:19.0.1"
+"@ng-bootstrap/ng-bootstrap@npm:20":
+  version: 20.0.0
+  resolution: "@ng-bootstrap/ng-bootstrap@npm:20.0.0"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/common": ^20.0.0
-    "@angular/core": ^20.0.0
-    "@angular/forms": ^20.0.0
-    "@angular/localize": ^20.0.0
+    "@angular/common": ^21.0.0
+    "@angular/core": ^21.0.0
+    "@angular/forms": ^21.0.0
+    "@angular/localize": ^21.0.0
     "@popperjs/core": ^2.11.8
     rxjs: ^6.5.3 || ^7.4.0
-  checksum: 10c0/aeddaf8c2092ec7e7f34456541d61e70820a78b4ef1348fb8e1c1941632cf98f52977dcf92e9ab4d2bc5b3fba7fed74180f6f20d8ab6cb718ea99baec7ab75d5
+  checksum: 10c0/92af3f87c29028ef2c417e9269026357209dd2e5f61b333a08decb73ad034101877e2c0dd05b95f876530edee0dd3ef8d8764ad17e28e3d7f0a0f2ea1ad6f560
   languageName: node
   linkType: hard
 
-"@ng-select/ng-select@npm:^20.1.1":
-  version: 20.7.0
-  resolution: "@ng-select/ng-select@npm:20.7.0"
+"@ng-select/ng-select@npm:21":
+  version: 21.8.2
+  resolution: "@ng-select/ng-select@npm:21.8.2"
   dependencies:
     tslib: "npm:^2.8.1"
   peerDependencies:
-    "@angular/common": ^20.0.0
-    "@angular/core": ^20.0.0
-    "@angular/forms": ^20.0.0
-  checksum: 10c0/1e6414cf855d6345e70032c4a13ef789a6f6b7b8952d38b85bacf87e90aee44680f0484484b34a98e84a4e574aa19ecfc2bfa3f0572f5075187665601661a4e9
+    "@angular/common": ^21.0.0
+    "@angular/core": ^21.0.0
+    "@angular/forms": ^21.0.0
+  checksum: 10c0/8df9317099176f0541121888cf985127dc2513eec41b50d3fd10ff71fe9681724dcd8aaf6c4a5cfd8f87e64ef3b8e40ae0ab151b644769d5611f0cbfd956e517
   languageName: node
   linkType: hard
 
@@ -3329,11 +3336,11 @@ __metadata:
     "@angular/platform-browser": "npm:^21.2.9"
     "@angular/platform-browser-dynamic": "npm:^21.2.9"
     "@angular/router": "npm:^21.2.9"
-    "@bluehalo/ngx-leaflet": "npm:^20.0.0"
-    "@fortawesome/angular-fontawesome": "npm:^3.0.0"
+    "@bluehalo/ngx-leaflet": "npm:21"
+    "@fortawesome/angular-fontawesome": "npm:4"
     "@fortawesome/free-solid-svg-icons": "npm:^7.0.0"
-    "@ng-bootstrap/ng-bootstrap": "npm:^19.0.1"
-    "@ng-select/ng-select": "npm:^20.1.1"
+    "@ng-bootstrap/ng-bootstrap": "npm:20"
+    "@ng-select/ng-select": "npm:21"
     "@popperjs/core": "npm:^2.11.8"
     "@types/geojson": "npm:^7946.0.16"
     "@types/jasmine": "npm:^5.1.8"
