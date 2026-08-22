@@ -67,8 +67,10 @@ jobs:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
         run: |
+          REMOTE_SCRIPT="/tmp/evet-deploy-${GITHUB_SHA}.sh"
+
           ssh "$DEPLOY_USER@$DEPLOY_HOST" \
-            "bash -s -- '$GITHUB_SHA' '/tmp/evet-frontend-${GITHUB_SHA}.tar.gz'" <<'REMOTE'
+            "cat > '$REMOTE_SCRIPT'" <<'REMOTE'
 
           set -Eeuo pipefail
 
@@ -220,3 +222,9 @@ jobs:
           echo "Commit: ${deploy_sha}"
 
           REMOTE
+
+          ssh "$DEPLOY_USER@$DEPLOY_HOST" \
+            "bash '$REMOTE_SCRIPT' '$GITHUB_SHA' '/tmp/evet-frontend-${GITHUB_SHA}.tar.gz'"
+
+          ssh "$DEPLOY_USER@$DEPLOY_HOST" \
+            "rm -f '$REMOTE_SCRIPT'"
