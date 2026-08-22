@@ -42,23 +42,56 @@ def clinic_to_read(clinic: models.Clinic) -> ClinicRead:
     )
 
 
+def get_clinic_for_current_user(
+    db: Session,
+    current_user: models.User,
+) -> models.Clinic | None:
+    if current_user.clinic_id is not None:
+        clinic = db.get(models.Clinic, current_user.clinic_id)
+
+        if clinic is not None:
+            return clinic
+
+    clinic = (
+        db.execute(
+            select(models.Clinic).where(models.Clinic.owner_id == current_user.id)
+        )
+        .scalars()
+        .first()
+    )
+
+    if clinic is not None:
+        return clinic
+
+    # Fallback pod stare dane, jeśli wcześniej klinika miała vet_ids,
+    # ale user nie miał jeszcze ustawionego clinic_id.
+    current_user_id = str(current_user.id)
+    clinics = db.execute(select(models.Clinic)).scalars().all()
+
+    for clinic in clinics:
+        if current_user_id in (clinic.vet_ids or []):
+            current_user.clinic_id = clinic.id
+            db.commit()
+            db.refresh(current_user)
+            return clinic
+
+    return None
+
+
 @router.get("/my", response_model=ClinicRead | None)
 def get_my_clinic(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    current_user_id = str(current_user.id)
+    clinic = get_clinic_for_current_user(
+        db=db,
+        current_user=current_user,
+    )
 
-    clinics = db.execute(select(models.Clinic)).scalars().all()
+    if clinic is None:
+        return None
 
-    for clinic in clinics:
-        if clinic.owner_id == current_user.id:
-            return clinic_to_read(clinic)
-
-        if current_user_id in (clinic.vet_ids or []):
-            return clinic_to_read(clinic)
-
-    return None
+    return clinic_to_read(clinic)
 
 
 @router.post("", response_model=ClinicRead, status_code=status.HTTP_201_CREATED)
@@ -67,6 +100,23 @@ def create_clinic(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
+    if current_user.role != "vet":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only vet can create clinic",
+        )
+
+    existing_clinic = get_clinic_for_current_user(
+        db=db,
+        current_user=current_user,
+    )
+
+    if existing_clinic is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="User is already assigned to a clinic",
+        )
+
     search_city = get_city_from_address(payload.address)
 
     address = dict(payload.address)
@@ -74,19 +124,10 @@ def create_clinic(
     if search_city:
         address["searchCity"] = search_city
 
-    current_user_id = str(current_user.id)
-
-    vet_ids = [
-        vet_id for vet_id in (payload.vetIds or []) if vet_id and vet_id != "string"
-    ]
-
-    if current_user_id not in vet_ids:
-        vet_ids.append(current_user_id)
-
     clinic = models.Clinic(
         clinic_name=payload.clinicName,
         owner_id=current_user.id,
-        vet_ids=vet_ids,
+        vet_ids=[str(current_user.id)],
         phone_number=payload.phoneNumber,
         address=address,
         search_city=search_city,
@@ -96,6 +137,10 @@ def create_clinic(
     )
 
     db.add(clinic)
+    db.flush()
+
+    current_user.clinic_id = clinic.id
+
     db.commit()
     db.refresh(clinic)
 
@@ -118,7 +163,9 @@ def get_clinics(
 
 
 @router.get("/cities", response_model=list[str])
-def get_available_cities(db: Session = Depends(get_db)):
+def get_available_cities(
+    db: Session = Depends(get_db),
+):
     cities = (
         db.execute(
             select(models.Clinic.search_city)
@@ -131,20 +178,6 @@ def get_available_cities(db: Session = Depends(get_db)):
     )
 
     return [city for city in cities if city]
-
-
-@router.get("/by-vet/{vet_id}", response_model=ClinicRead | None)
-def get_clinic_by_vet_id(
-    vet_id: str,
-    db: Session = Depends(get_db),
-):
-    clinics = db.execute(select(models.Clinic)).scalars().all()
-
-    for clinic in clinics:
-        if vet_id in (clinic.vet_ids or []):
-            return clinic_to_read(clinic)
-
-    return None
 
 
 @router.get("/{clinic_id}", response_model=ClinicRead)
@@ -176,20 +209,36 @@ def get_veterinaries_assigned_to_clinic(
             detail="Clinic not found",
         )
 
-    vet_ids = clinic.vet_ids or []
+    users = (
+        db.execute(
+            select(models.User)
+            .where(models.User.clinic_id == clinic.id)
+            .where(models.User.role == "vet")
+        )
+        .scalars()
+        .all()
+    )
+
+    if users:
+        return users
+
+    # Fallback pod stare dane, jeśli vet_ids istnieje,
+    # ale users.clinic_id nie zostało jeszcze uzupełnione.
+    vet_ids = [
+        uuid.UUID(vet_id)
+        for vet_id in (clinic.vet_ids or [])
+        if vet_id and vet_id != "string"
+    ]
 
     if not vet_ids:
         return []
 
-    user_ids = [
-        uuid.UUID(vet_id) for vet_id in vet_ids if vet_id and vet_id != "string"
-    ]
-
-    if not user_ids:
-        return []
-
     users = (
-        db.execute(select(models.User).where(models.User.id.in_(user_ids)))
+        db.execute(
+            select(models.User)
+            .where(models.User.id.in_(vet_ids))
+            .where(models.User.role == "vet")
+        )
         .scalars()
         .all()
     )
@@ -197,14 +246,16 @@ def get_veterinaries_assigned_to_clinic(
     return users
 
 
-@router.post("/{clinic_id}/cover", response_model=ClinicRead)
-async def update_cover(
-    clinic_id: uuid.UUID,
+@router.post("/my/cover", response_model=ClinicRead)
+async def update_my_clinic_cover(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    clinic = db.get(models.Clinic, clinic_id)
+    clinic = get_clinic_for_current_user(
+        db=db,
+        current_user=current_user,
+    )
 
     if clinic is None:
         raise HTTPException(

@@ -34,11 +34,10 @@ class UserRead(BaseModel):
 
 class ClinicCreate(BaseModel):
     clinicName: str
-    phoneNumber: str | None = None
+    phoneNumber: str
     address: dict[str, Any]
-    vetIds: list[str] = []
-    timeOpen: str | None = None
-    timeClose: str | None = None
+    timeOpen: str
+    timeClose: str
     coverImage: dict[str, Any] | None = None
 
 
@@ -122,36 +121,36 @@ class TreatmentRead(BaseModel):
 
 
 class AppointmentCreate(BaseModel):
-    vetId: uuid.UUID
-    clinicId: uuid.UUID
-    clinicName: str
-    vetDisplayName: str
-    city: str
     dateTimeFrom: datetime
     dateTimeTo: datetime
 
 
 class AppointmentBook(BaseModel):
-    patientName: str
     petId: uuid.UUID
-    petName: str
 
 
 class AppointmentRead(BaseModel):
     id: uuid.UUID
     vetId: uuid.UUID
     clinicId: uuid.UUID
-    clinicName: str
-    vetDisplayName: str
     reserved: bool
     realised: bool
-    city: str
     dateTimeFrom: datetime
     dateTimeTo: datetime
-    patientId: uuid.UUID | None = None
-    patientName: str | None = None
     petId: uuid.UUID | None = None
-    petName: str | None = None
+    vetDisplayName: str | None = None
+    clinicName: str | None = None
+
+
+class AppointmentTreatmentCreate(BaseModel):
+    type: str
+    date: datetime
+    diagnosis: str | None = None
+    description: str | None = None
+    recommendation: str | None = None
+    prescription: str | None = None
+    attachments: list[AttachmentRead] = Field(default_factory=list)
+
 
 class VerifyEmailRequest(BaseModel):
     token: str = Field(min_length=20, max_length=300)
@@ -164,4 +163,3 @@ class ForgotPasswordRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     token: str = Field(min_length=20, max_length=300)
     password: str = Field(min_length=8, max_length=128)
-

@@ -1,59 +1,80 @@
-# Build output
-/dist
-/functions/lib/
+# =========================
+# Frontend / Angular / Node
+# =========================
 
-# Node modules
-/node_modules
+frontend/node_modules/
+frontend/dist/
+frontend/out-tsc/
+frontend/.angular/
+frontend/coverage/
 
-# IDEs
+# Yarn
+frontend/.yarn/cache/
+frontend/.yarn/install-state.gz
+frontend/.pnp.*
+frontend/yarn-error.log
+
+# =========================
+# Backend / Python
+# =========================
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Backend uploads / development data
+backend/uploads/
+
+# =========================
+# Environment variables
+# =========================
+
+.env
+.env.*
+
+!.env.example
+!.env.dev.example
+!.env.prod.example
+
+# =========================
+# IDEs / editors
+# =========================
+
 .idea/
+
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-.history/*
 
-# Angular cache and metadata
-.angular/
+.history/
 
+# =========================
+# Logs / temporary files
+# =========================
 
-# Logs and temporary files
 *.log
-/tmp
-/out-tsc
-/bazel-out
+tmp/
+bazel-out/
 .sass-cache/
 connect.lock
-coverage
-typings
+typings/
 libpeerconnection.log
 testem.log
 
-# System files
+# =========================
+# Operating system
+# =========================
+
 .DS_Store
 Thumbs.db
-
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-
-# Python virtual envs
-.venv/
-venv/
-env/
-
-# Local env files
-.env
-.env.*
-!.env.example
-!.env.dev.example
-!.env.prod.example
-
-# Backend uploads/dev data
-backend/uploads/

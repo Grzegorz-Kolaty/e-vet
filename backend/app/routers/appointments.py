@@ -13,7 +13,7 @@ from app.schemas import (
     AppointmentBook,
     AppointmentCreate,
     AppointmentRead,
-    TreatmentCreate,
+    AppointmentTreatmentCreate,
     TreatmentRead,
 )
 
@@ -25,34 +25,83 @@ def appointment_to_read(appointment: models.Appointment) -> AppointmentRead:
         id=appointment.id,
         vetId=appointment.vet_id,
         clinicId=appointment.clinic_id,
-        clinicName=appointment.clinic_name,
-        vetDisplayName=appointment.vet_display_name,
         reserved=appointment.reserved,
         realised=appointment.realised,
-        city=appointment.city,
         dateTimeFrom=appointment.date_time_from,
         dateTimeTo=appointment.date_time_to,
-        patientId=appointment.patient_id,
-        patientName=appointment.patient_name,
         petId=appointment.pet_id,
-        petName=appointment.pet_name,
+        vetDisplayName=appointment.vet_display_name,
+        clinicName=appointment.clinic_name,
     )
 
 
 def ensure_appointment_access(
     appointment: models.Appointment,
     current_user: models.User,
+    db: Session,
 ) -> None:
     if appointment.vet_id == current_user.id:
         return
 
-    if appointment.patient_id == current_user.id:
-        return
+    if appointment.pet_id is not None:
+        pet = db.get(models.Pet, appointment.pet_id)
+
+        if pet is not None and pet.owner_id == current_user.id:
+            return
 
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
         detail="You cannot access this appointment",
     )
+
+
+def get_clinic_for_current_vet(
+    db: Session,
+    current_user: models.User,
+) -> models.Clinic | None:
+    if current_user.clinic_id is not None:
+        clinic = db.get(models.Clinic, current_user.clinic_id)
+
+        if clinic is not None:
+            return clinic
+
+    clinic = (
+        db.execute(
+            select(models.Clinic).where(models.Clinic.owner_id == current_user.id)
+        )
+        .scalars()
+        .first()
+    )
+
+    if clinic is not None:
+        current_user.clinic_id = clinic.id
+
+        current_user_id = str(current_user.id)
+        vet_ids = clinic.vet_ids or []
+
+        if current_user_id not in vet_ids:
+            clinic.vet_ids = [*vet_ids, current_user_id]
+
+        db.commit()
+        db.refresh(current_user)
+        db.refresh(clinic)
+
+        return clinic
+
+    current_user_id = str(current_user.id)
+    clinics = db.execute(select(models.Clinic)).scalars().all()
+
+    for clinic in clinics:
+        if current_user_id in (clinic.vet_ids or []):
+            current_user.clinic_id = clinic.id
+
+            db.commit()
+            db.refresh(current_user)
+            db.refresh(clinic)
+
+            return clinic
+
+    return None
 
 
 @router.post(
@@ -65,42 +114,37 @@ def create_appointment(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    clinic = db.get(models.Clinic, payload.clinicId)
+    if current_user.role != "vet":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only vet can create appointments",
+        )
+
+    if payload.dateTimeFrom >= payload.dateTimeTo:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Appointment start must be before appointment end",
+        )
+
+    clinic = get_clinic_for_current_vet(
+        db=db,
+        current_user=current_user,
+    )
 
     if clinic is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Clinic not found",
-        )
-
-    vet = db.get(models.User, payload.vetId)
-
-    if vet is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Vet not found",
-        )
-
-    if payload.vetId != current_user.id and current_user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can create appointments only for yourself",
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Vet is not assigned to any clinic",
         )
 
     appointment = models.Appointment(
-        vet_id=payload.vetId,
-        clinic_id=payload.clinicId,
-        clinic_name=payload.clinicName,
-        vet_display_name=payload.vetDisplayName,
+        vet_id=current_user.id,
+        clinic_id=clinic.id,
         reserved=False,
         realised=False,
-        city=payload.city,
         date_time_from=payload.dateTimeFrom,
         date_time_to=payload.dateTimeTo,
-        patient_id=None,
-        patient_name=None,
         pet_id=None,
-        pet_name=None,
     )
 
     db.add(appointment)
@@ -136,7 +180,7 @@ def delete_appointment(
             detail="You can delete only your own appointments",
         )
 
-    if appointment.patient_id is not None:
+    if appointment.reserved or appointment.pet_id is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Booked appointment cannot be deleted",
@@ -155,6 +199,12 @@ def get_appointments_for_current_vet(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
+    if current_user.role != "vet":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only vet can read vet appointments",
+        )
+
     appointments = (
         db.execute(
             select(models.Appointment)
@@ -220,6 +270,12 @@ def book_appointment(
             detail="Appointment is already reserved",
         )
 
+    if appointment.realised:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Appointment is already realised",
+        )
+
     pet = db.get(models.Pet, payload.petId)
 
     if pet is None:
@@ -234,11 +290,27 @@ def book_appointment(
             detail="You can book appointments only for your own pets",
         )
 
-    appointment.patient_id = current_user.id
-    appointment.patient_name = payload.patientName
-    appointment.pet_id = payload.petId
-    appointment.pet_name = payload.petName
+    vet = db.get(models.User, appointment.vet_id)
+
+    if vet is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Vet not found",
+        )
+
+    clinic = db.get(models.Clinic, appointment.clinic_id)
+
+    if clinic is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Clinic not found",
+        )
+
+    appointment.pet_id = pet.id
     appointment.reserved = True
+
+    appointment.vet_display_name = vet.name
+    appointment.clinic_name = clinic.clinic_name
 
     db.commit()
     db.refresh(appointment)
@@ -248,17 +320,18 @@ def book_appointment(
 
 @router.get("/appointments", response_model=list[AppointmentRead])
 def get_appointments_by_current_user_or_vet(
-    role: str,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    if role == "vet":
+    if current_user.role == "vet":
         statement = select(models.Appointment).where(
             models.Appointment.vet_id == current_user.id
         )
     else:
-        statement = select(models.Appointment).where(
-            models.Appointment.patient_id == current_user.id
+        statement = (
+            select(models.Appointment)
+            .join(models.Pet, models.Appointment.pet_id == models.Pet.id)
+            .where(models.Pet.owner_id == current_user.id)
         )
 
     appointments = (
@@ -287,6 +360,7 @@ def get_appointment_by_id(
     ensure_appointment_access(
         appointment=appointment,
         current_user=current_user,
+        db=db,
     )
 
     return appointment_to_read(appointment)
@@ -315,11 +389,17 @@ def mark_as_realised(
             detail="Only assigned vet can realise appointment",
         )
 
+    if appointment.pet_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No pet_id assigned to this appointment",
+        )
+
     appointment.realised = True
 
     db.commit()
 
-    return None
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post(
@@ -328,7 +408,7 @@ def mark_as_realised(
 )
 def complete_appointment_and_add_treatment(
     appointment_id: uuid.UUID,
-    payload: TreatmentCreate,
+    payload: AppointmentTreatmentCreate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
@@ -346,7 +426,13 @@ def complete_appointment_and_add_treatment(
             detail="Only assigned vet can complete appointment",
         )
 
-    pet = db.get(models.Pet, payload.petId)
+    if appointment.pet_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cannot complete appointment without assigned pet",
+        )
+
+    pet = db.get(models.Pet, appointment.pet_id)
 
     if pet is None:
         raise HTTPException(
@@ -354,18 +440,26 @@ def complete_appointment_and_add_treatment(
             detail="Pet not found",
         )
 
+    clinic = db.get(models.Clinic, appointment.clinic_id)
+
+    if clinic is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Clinic not found",
+        )
+
     appointment.realised = True
 
     treatment = models.Treatment(
-        pet_id=payload.petId,
+        pet_id=appointment.pet_id,
         appointment_id=appointment.id,
-        clinic_id=payload.clinicId,
+        clinic_id=appointment.clinic_id,
         vet_id=current_user.id,
-        is_created_by_user=payload.isCreatedByUser,
+        is_created_by_user=False,
         type=payload.type,
         date=payload.date,
-        vet=payload.vet,
-        clinic=payload.clinic,
+        vet=current_user.name,
+        clinic=clinic.clinic_name,
         diagnosis=payload.diagnosis,
         description=payload.description,
         recommendation=payload.recommendation,

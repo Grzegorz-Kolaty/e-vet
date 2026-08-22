@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, func, text
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, String, Text, func, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -37,19 +37,19 @@ class User(Base):
     role: Mapped[str] = mapped_column(
         String(30),
         nullable=False,
-        server_default="user",
+        server_default=text("'user'"),
     )
 
     is_active: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,
-        server_default="true",
+        server_default=text("true"),
     )
 
     is_email_verified: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,
-        server_default="false",
+        server_default=text("false"),
     )
 
     clinic_id: Mapped[uuid.UUID | None] = mapped_column(
@@ -74,6 +74,7 @@ class User(Base):
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now(),
+        onupdate=func.now(),
     )
 
 
@@ -242,6 +243,7 @@ class Clinic(Base):
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now(),
+        onupdate=func.now(),
     )
 
 
@@ -287,6 +289,7 @@ class Pet(Base):
     )
 
     weight: Mapped[float | None] = mapped_column(
+        Float,
         nullable=True,
     )
 
@@ -315,6 +318,7 @@ class Pet(Base):
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now(),
+        onupdate=func.now(),
     )
 
 
@@ -336,6 +340,7 @@ class Treatment(Base):
 
     appointment_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
+        ForeignKey("appointments.id", ondelete="SET NULL"),
         nullable=True,
         index=True,
     )
@@ -357,7 +362,7 @@ class Treatment(Base):
     is_created_by_user: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,
-        server_default="true",
+        server_default=text("true"),
     )
 
     type: Mapped[str] = mapped_column(
@@ -374,37 +379,37 @@ class Treatment(Base):
     vet: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
-        server_default="",
+        server_default=text("''"),
     )
 
     clinic: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
-        server_default="",
+        server_default=text("''"),
     )
 
     diagnosis: Mapped[str] = mapped_column(
         Text,
         nullable=False,
-        server_default="",
+        server_default=text("''"),
     )
 
     description: Mapped[str] = mapped_column(
         Text,
         nullable=False,
-        server_default="",
+        server_default=text("''"),
     )
 
     recommendation: Mapped[str] = mapped_column(
         Text,
         nullable=False,
-        server_default="",
+        server_default=text("''"),
     )
 
     prescription: Mapped[str] = mapped_column(
         Text,
         nullable=False,
-        server_default="",
+        server_default=text("''"),
     )
 
     attachments: Mapped[list[dict]] = mapped_column(
@@ -423,6 +428,7 @@ class Treatment(Base):
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now(),
+        onupdate=func.now(),
     )
 
 
@@ -449,32 +455,16 @@ class Appointment(Base):
         index=True,
     )
 
-    clinic_name: Mapped[str] = mapped_column(
-        String(255),
-        nullable=False,
-    )
-
-    vet_display_name: Mapped[str] = mapped_column(
-        String(255),
-        nullable=False,
-    )
-
     reserved: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,
-        server_default="false",
+        server_default=text("false"),
     )
 
     realised: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,
-        server_default="false",
-    )
-
-    city: Mapped[str] = mapped_column(
-        String(150),
-        nullable=False,
-        index=True,
+        server_default=text("false"),
     )
 
     date_time_from: Mapped[datetime] = mapped_column(
@@ -488,18 +478,6 @@ class Appointment(Base):
         nullable=False,
     )
 
-    patient_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("users.id", ondelete="SET NULL"),
-        nullable=True,
-        index=True,
-    )
-
-    patient_name: Mapped[str | None] = mapped_column(
-        String(255),
-        nullable=True,
-    )
-
     pet_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("pets.id", ondelete="SET NULL"),
@@ -507,7 +485,12 @@ class Appointment(Base):
         index=True,
     )
 
-    pet_name: Mapped[str | None] = mapped_column(
+    vet_display_name: Mapped[str | None] = mapped_column(
+        String(150),
+        nullable=True,
+    )
+
+    clinic_name: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,
     )
@@ -522,4 +505,5 @@ class Appointment(Base):
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now(),
+        onupdate=func.now(),
     )
