@@ -1,59 +1,213 @@
-# EVetSzczecin
+# e-vet
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.1.7.
+Aplikacja full-stack do obsługi wizyt weterynaryjnych.
 
-## Development server
+Projekt składa się z dwóch głównych części:
 
-To start a local development server, run:
-
-```bash
-ng serve
+```text
+e-vet/
+├── frontend/              # Angular
+├── backend/               # FastAPI
+├── docker-compose.dev.yml
+├── .env.dev
+└── README.md
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Development
 
-## Code scaffolding
+### Wymagania
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Do lokalnego uruchomienia projektu potrzebne są:
 
-```bash
-ng generate component component-name
+* Docker Desktop
+* Node.js 24
+* Corepack
+* Yarn 4.9.2
+
+Backend oraz baza danych uruchamiane są przez Docker Compose. Frontend uruchamiany jest osobno z katalogu `frontend/`.
+
+---
+
+## Backend + PostgreSQL
+
+Komendy Docker Compose należy wykonywać z głównego katalogu projektu:
+
+```powershell
+cd D:\Users\Makar\Desktop\Projects\e-vet
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+### Uruchomienie backendu
 
-```bash
-ng generate --help
+```powershell
+docker compose --env-file .env.dev -f docker-compose.dev.yml up -d api
 ```
 
-## Building
+Uruchomione zostaną:
 
-To build the project run:
+* FastAPI: `http://localhost:8000`
+* PostgreSQL: `localhost:5433`
 
-```bash
-ng build
+Serwis `api` posiada zależność od bazy danych, dlatego PostgreSQL zostanie uruchomiony automatycznie.
+
+### Sprawdzenie statusu kontenerów
+
+```powershell
+docker compose --env-file .env.dev -f docker-compose.dev.yml ps
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+### Logi backendu
 
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
+```powershell
+docker compose --env-file .env.dev -f docker-compose.dev.yml logs -f api
 ```
 
-## Running end-to-end tests
+Wyjście z podglądu logów:
 
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
+```text
+Ctrl+C
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+Nie zatrzymuje to kontenera API.
 
-## Additional Resources
+### Health check API
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+```powershell
+curl.exe http://localhost:8000/health
+```
+
+Przykładowa odpowiedź:
+
+```json
+{
+  "status": "healthy"
+}
+```
+
+### Zatrzymanie środowiska
+
+```powershell
+docker compose --env-file .env.dev -f docker-compose.dev.yml down
+```
+
+### Przebudowanie backendu
+
+Przebudowanie obrazu jest potrzebne m.in. po zmianie `Dockerfile` lub zależności Pythona:
+
+```powershell
+docker compose --env-file .env.dev -f docker-compose.dev.yml up -d --build api
+```
+
+Przy zwykłych zmianach kodu backendu rebuild nie jest wymagany, ponieważ kod jest montowany do kontenera w środowisku developerskim.
+
+---
+
+## Migracje bazy danych
+
+Migracje obsługiwane są przez Alembic.
+
+### Wykonanie wszystkich oczekujących migracji
+
+```powershell
+docker compose --env-file .env.dev -f docker-compose.dev.yml run --rm api alembic upgrade head
+```
+
+### Aktualna migracja
+
+```powershell
+docker compose --env-file .env.dev -f docker-compose.dev.yml run --rm api alembic current
+```
+
+### Historia migracji
+
+```powershell
+docker compose --env-file .env.dev -f docker-compose.dev.yml run --rm api alembic history
+```
+
+### Cofnięcie ostatniej migracji
+
+```powershell
+docker compose --env-file .env.dev -f docker-compose.dev.yml run --rm api alembic downgrade -1
+```
+
+---
+
+## Frontend
+
+Frontend znajduje się w osobnym katalogu:
+
+```powershell
+cd frontend
+```
+
+### Instalacja zależności
+
+Przy pierwszym uruchomieniu lub po zmianie zależności:
+
+```powershell
+corepack yarn install
+```
+
+### Uruchomienie Angulara
+
+```powershell
+corepack yarn start
+```
+
+Frontend będzie dostępny pod:
+
+```text
+http://localhost:4200
+```
+
+### Production build
+
+```powershell
+corepack yarn build
+```
+
+Wynik buildu zostanie zapisany w:
+
+```text
+frontend/dist/e-vet-szczecin
+```
+
+### Testy
+
+```powershell
+corepack yarn test
+```
+
+---
+
+## Typowy lokalny workflow
+
+Projekt najlepiej uruchomić w dwóch terminalach.
+
+### Terminal 1 — backend + baza danych
+
+Z katalogu głównego projektu:
+
+```powershell
+docker compose --env-file .env.dev -f docker-compose.dev.yml up -d api
+```
+
+### Terminal 2 — frontend
+
+```powershell
+cd frontend
+corepack yarn start
+```
+
+Po uruchomieniu:
+
+```text
+Frontend        http://localhost:4200
+Backend API     http://localhost:8000
+PostgreSQL      localhost:5433
+```
+
+Po zakończeniu pracy backend i bazę można zatrzymać z katalogu głównego:
+
+```powershell
+docker compose --env-file .env.dev -f docker-compose.dev.yml down
+```
