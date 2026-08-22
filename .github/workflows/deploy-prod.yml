@@ -1,0 +1,222 @@
+name: Deploy production
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    environment:
+      name: production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          corepack enable
+          yarn install --immutable
+          yarn build --configuration production
+
+      - name: Pack frontend
+        run: |
+          tar -czf "$RUNNER_TEMP/evet-frontend-${GITHUB_SHA}.tar.gz" \
+            -C frontend/dist/e-vet-szczecin/browser .
+
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Upload frontend
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          scp \
+            "$RUNNER_TEMP/evet-frontend-${GITHUB_SHA}.tar.gz" \
+            "$DEPLOY_USER@$DEPLOY_HOST:/tmp/evet-frontend-${GITHUB_SHA}.tar.gz"
+
+      - name: Deploy on VPS
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          ssh "$DEPLOY_USER@$DEPLOY_HOST" \
+            "bash -s -- '$GITHUB_SHA' '/tmp/evet-frontend-${GITHUB_SHA}.tar.gz'" <<'REMOTE'
+
+          set -Eeuo pipefail
+
+          deploy_sha="$1"
+          frontend_archive="$2"
+
+          repo="/opt/evet"
+          runtime="/home/deploy/evet-runtime"
+          timestamp="$(date +%Y%m%d-%H%M%S)"
+
+          cd "$repo"
+
+          compose() {
+            docker compose \
+              --env-file .env.prod \
+              -f docker-compose.prod.yml \
+              "$@"
+          }
+
+          echo "==> Backup database"
+
+          mkdir -p backups
+
+          compose exec -T db \
+            sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' \
+            | gzip > "backups/db-${timestamp}.sql.gz"
+
+          echo "==> Fetch repository"
+
+          git fetch origin main
+
+          git cat-file -e "${deploy_sha}^{commit}"
+
+          echo "==> Deploy commit: ${deploy_sha}"
+
+          git reset --hard "$deploy_sha"
+
+          echo "==> Validate Docker Compose"
+
+          compose config --quiet
+
+          echo "==> Build API"
+
+          compose build api
+
+          echo "==> Stop current API"
+
+          compose stop api
+
+          echo "==> Run database migrations"
+
+          if ! compose run --rm api alembic upgrade head; then
+            echo "Migration failed - restoring previous API container"
+            docker start evet-api || true
+            exit 1
+          fi
+
+          echo "==> Start new API"
+
+          compose up -d --force-recreate api
+
+          echo "==> Wait for API"
+
+          api_ok=0
+
+          for i in $(seq 1 30); do
+            if curl -fsS --max-time 5 \
+              https://api.vetreservation.com/health \
+              >/dev/null; then
+
+              api_ok=1
+              break
+            fi
+
+            sleep 2
+          done
+
+          if [ "$api_ok" -ne 1 ]; then
+            echo "API health check failed"
+            compose logs --tail=100 api
+            exit 1
+          fi
+
+          echo "==> API healthy"
+
+          stage="${runtime}/frontend-new-${deploy_sha}"
+          previous="${runtime}/frontend-${timestamp}"
+
+          echo "==> Extract frontend"
+
+          rm -rf "$stage"
+          mkdir -p "$stage"
+
+          tar -xzf "$frontend_archive" -C "$stage"
+
+          test -f "$stage/index.html"
+
+          echo "==> Swap frontend"
+
+          if [ -d "${runtime}/frontend" ]; then
+            mv "${runtime}/frontend" "$previous"
+          fi
+
+          mv "$stage" "${runtime}/frontend"
+
+          echo "==> Recreate nginx"
+
+          if ! compose up -d --force-recreate nginx; then
+            echo "nginx recreation failed - restoring previous frontend"
+
+            rm -rf "${runtime}/frontend"
+
+            if [ -d "$previous" ]; then
+              mv "$previous" "${runtime}/frontend"
+            fi
+
+            compose up -d --force-recreate nginx || true
+
+            exit 1
+          fi
+
+          if ! compose exec -T nginx nginx -t; then
+            echo "nginx configuration invalid - restoring previous frontend"
+
+            rm -rf "${runtime}/frontend"
+
+            if [ -d "$previous" ]; then
+              mv "$previous" "${runtime}/frontend"
+            fi
+
+            compose up -d --force-recreate nginx || true
+
+            exit 1
+          fi
+
+          echo "==> Final health checks"
+
+          curl -fsS --max-time 10 \
+            https://api.vetreservation.com/health
+
+          curl -fsS --max-time 10 \
+            https://vetreservation.com/ \
+            -o /dev/null
+
+          rm -f "$frontend_archive"
+
+          echo
+          echo "Deployment complete"
+          echo "Commit: ${deploy_sha}"
+
+          REMOTE
