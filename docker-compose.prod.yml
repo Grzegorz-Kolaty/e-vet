@@ -12,7 +12,14 @@ services:
     expose:
       - "8000"
 
-    command: fastapi run app/main.py --host 0.0.0.0 --port 8000
+    volumes:
+      - uploads_data:/app/uploads
+
+    command: >
+      sh -c "
+        alembic upgrade head &&
+        fastapi run app/main.py --host 0.0.0.0 --port 8000
+      "
 
     depends_on:
       - db
@@ -55,3 +62,6 @@ services:
 volumes:
   postgres_data:
     name: evet_postgres_data
+
+  uploads_data:
+    name: evet_uploads_data
