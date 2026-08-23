@@ -33,6 +33,11 @@ export const AUTH_ROUTES: Routes = [
           import('./email-verification/email-verification.component')
       },
       {
+        path: 'confirm-email-change',
+        loadComponent: () =>
+          import('./confirm-email-change/confirm-email-change')
+      },
+      {
         path: '',
         redirectTo: 'login',
         pathMatch: 'full'

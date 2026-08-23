@@ -70,7 +70,7 @@ def get_current_user(
     if user is None or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found or inactive",
+            detail="UsersService not found or inactive",
         )
 
     return user
@@ -161,7 +161,7 @@ def login_user(
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="User account is inactive",
+            detail="UsersService account is inactive",
         )
 
     session_token = create_session_token()

@@ -6,7 +6,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.db import get_db
-from app.routers import appointments, auth, clinics, pets, treatments
+from app.routers import appointments, auth, clinics, pets, treatments, users
 
 app = FastAPI(title="eVet API")
 
@@ -30,6 +30,7 @@ app.include_router(clinics.router)
 app.include_router(pets.router)
 app.include_router(treatments.router)
 app.include_router(appointments.router)
+app.include_router(users.router)
 
 
 @app.get("/")

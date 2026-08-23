@@ -1,13 +1,21 @@
-import {ChangeDetectionStrategy, Component, effect, input, model, output, ResourceStatus} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  input,
+  output,
+  ResourceStatus
+} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {UserInterface} from '../../../shared/interfaces/user.interface';
 import {NgClass} from "@angular/common";
 import {UploadableImagesComponent} from "../../../shared/ui/uploadable-images/uploadable-images.component";
+import {environment} from "../../../../environments/environment";
 
 
 @Component({
   selector: 'app-profile-form',
-  standalone: true,
   imports: [ReactiveFormsModule, FormsModule, NgClass, UploadableImagesComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -48,10 +56,10 @@ import {UploadableImagesComponent} from "../../../shared/ui/uploadable-images/up
                           [ngClass]="{
                           'is-valid': ngForm['submitted'] && uploadNewProfileResource() === 'resolved',
                           'is-invalid': nameInput.dirty && uploadNewProfileResource() === 'error'
-                          }"/>
+                          }"
+                        />
 
-                        <button type="submit"
-                                class="btn btn-outline-dark"
+                        <button type="submit" class="btn btn-outline-dark"
                                 [disabled]="uploadNewProfileResource() === 'loading'">
                           @if (uploadNewProfileResource() === 'loading') {
                             <span class="spinner-border spinner-border-sm"></span>
@@ -59,25 +67,106 @@ import {UploadableImagesComponent} from "../../../shared/ui/uploadable-images/up
                             💾
                           }
                         </button>
-
                       </div>
-
                     </form>
                   </div>
 
                   <div class="col-6 text-center">
-                    <label class="form-label">Zdjęcie profilowe</label>
+                    <label class="form-label">
+                      Zdjęcie profilowe
+                    </label>
                     <app-uploadable-images
-                      [photoUrl]="user()?.photo_url"
+                      [photoUrl]="photoUrl()"
                       (photoFile)="userPhotoFile.emit($event)"
                     />
                   </div>
 
-
                   <div class="col-md-6">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-control" disabled [value]="user()?.email">
+                    <label class="form-label">Aktualny email</label>
+                    <input
+                      type="email"
+                      class="form-control"
+                      disabled
+                      [value]="user()?.email"
+                    >
                   </div>
+
+                  <div class="col-12">
+                    <form
+                      class="py-3"
+                      #emailForm="ngForm"
+                      (ngSubmit)="onEmailChange()"
+                    >
+                      <h6>Zmień adres email</h6>
+
+                      <div class="row g-3">
+                        <div class="col-md-6">
+                          <label class="form-label">
+                            Nowy email
+                          </label>
+
+                          <input
+                            type="email"
+                            class="form-control"
+                            name="newEmail"
+                            [(ngModel)]="newEmail"
+                            required
+                            email
+                          >
+                        </div>
+
+                        <div class="col-md-6">
+                          <label class="form-label">
+                            Obecne hasło
+                          </label>
+
+                          <input
+                            type="password"
+                            class="form-control"
+                            name="currentPassword"
+                            [(ngModel)]="currentPassword"
+                            required
+                          >
+                        </div>
+
+                        <div class="col-12">
+                          <button
+                            type="submit"
+                            class="btn btn-outline-dark"
+                            [disabled]="
+            emailForm.invalid ||
+            emailChangeStatus() === 'loading'
+          "
+                          >
+                            @if (emailChangeStatus() === 'loading') {
+                              <span class="spinner-border spinner-border-sm me-2"></span>
+                              Wysyłanie...
+                            } @else {
+                              Zmień email
+                            }
+                          </button>
+                        </div>
+
+                        @if (emailChangeStatus() === 'resolved') {
+                          <div class="col-12">
+                            <div class="alert alert-success mb-0">
+                              Wysłaliśmy wiadomość na nowy adres email.
+                              Kliknij link w wiadomości, aby zatwierdzić zmianę.
+                            </div>
+                          </div>
+                        }
+
+                        @if (emailChangeStatus() === 'error') {
+                          <div class="col-12">
+                            <div class="alert alert-danger mb-0">
+                              Nie udało się rozpocząć zmiany adresu email.
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </form>
+                  </div>
+
                   <div class="col-md-6">
                     <label class="form-label">Telefon</label>
                     <input type="tel" class="form-control" value="+48 500 600 700" disabled>
@@ -86,7 +175,6 @@ import {UploadableImagesComponent} from "../../../shared/ui/uploadable-images/up
                     <label class="form-label">Bio</label>
                     <textarea class="form-control" disabled rows="4">Jeszcze niedostępne</textarea>
                   </div>
-
                 </div>
 
                 <!-- Settings Cards -->
@@ -153,17 +241,32 @@ import {UploadableImagesComponent} from "../../../shared/ui/uploadable-images/up
 export default class ProfileFormComponent {
   user = input<UserInterface | null>();
 
-  uploadPhotoResourceStatus =
-    input<ResourceStatus | undefined>();
+  uploadPhotoResourceStatus = input<ResourceStatus | undefined>();
 
-  uploadNewProfileResource =
-    input<ResourceStatus | undefined>();
+  uploadNewProfileResource = input<ResourceStatus | undefined>();
+
+  emailChangeStatus = input<ResourceStatus | undefined>();
+
+  userEmailChange = output<{
+    email: string;
+    password: string;
+  }>();
+
+  newEmail = '';
+  currentPassword = '';
 
   userPhotoFile = output<File>();
-
   userName = output<string>();
-
   displayName = '';
+
+  protected readonly photoUrl = computed(() => {
+    const photoUrl = this.user()?.photo_url;
+    if (!photoUrl) {
+      return '/assets/img/placeholder.svg';
+    }
+
+    return `${environment.apiUrl}${photoUrl}`;
+  });
 
   constructor() {
     effect(() => {
@@ -177,9 +280,22 @@ export default class ProfileFormComponent {
 
   onConfirmNewName() {
     const trimmed = this.displayName.trim();
-
     if (!trimmed) return;
 
     this.userName.emit(trimmed);
+  }
+
+  onEmailChange() {
+    const email = this.newEmail.trim();
+    const password = this.currentPassword;
+
+    if (!email || !password) {
+      return;
+    }
+
+    this.userEmailChange.emit({
+      email,
+      password,
+    });
   }
 }

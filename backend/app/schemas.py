@@ -7,14 +7,14 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 class UserCreate(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=8, max_length=128)
+    password: str = Field(min_length=1, max_length=150)
     name: str = Field(min_length=1, max_length=150)
     role: str = "user"
 
 
 class UserLogin(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=8, max_length=128)
+    password: str = Field(min_length=1, max_length=150)
 
 
 class UserRead(BaseModel):
@@ -31,6 +31,28 @@ class UserRead(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
+class UserUpdate(BaseModel):
+    name: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=50,
+    )
+
+class EmailChangeRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(
+        min_length=5,
+        max_length=300,
+    )
+
+
+class EmailChangeConfirm(BaseModel):
+    token: str = Field(
+        min_length=5,
+        max_length=300,
+    )
+    
 
 class ClinicCreate(BaseModel):
     clinicName: str

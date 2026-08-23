@@ -18,10 +18,15 @@ class User(Base):
     )
 
     email: Mapped[str] = mapped_column(
-        String(320),
+        String(300),
         nullable=False,
         unique=True,
         index=True,
+    )
+
+    pending_email: Mapped[str | None] = mapped_column(
+        String(300),
+        nullable=True,
     )
 
     password_hash: Mapped[str] = mapped_column(
@@ -60,7 +65,7 @@ class User(Base):
     )
 
     photo_url: Mapped[str | None] = mapped_column(
-        Text,
+        String(500),
         nullable=True,
     )
 
@@ -123,6 +128,7 @@ class AuthToken(Base):
         nullable=False,
         server_default=func.now(),
     )
+
 
 
 class AuthSession(Base):

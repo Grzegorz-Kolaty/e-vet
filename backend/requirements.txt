@@ -8,3 +8,4 @@ email-validator
 black
 ruff
 httpx
+pillow

@@ -25,10 +25,14 @@ class EmailService:
         html: str,
     ) -> None:
         if self.provider != "resend":
-            raise EmailSendError(f"Unsupported mail provider: {self.provider}")
+            raise EmailSendError(
+                f"Unsupported mail provider: {self.provider}"
+            )
 
         if not self.api_key:
-            raise EmailSendError("RESEND_API_KEY is not configured")
+            raise EmailSendError(
+                "RESEND_API_KEY is not configured"
+            )
 
         payload = {
             "from": self.mail_from,
@@ -42,12 +46,17 @@ class EmailService:
             "Content-Type": "application/json",
         }
 
-        async with httpx.AsyncClient(timeout=10) as client:
-            response = await client.post(
-                "https://api.resend.com/emails",
-                json=payload,
-                headers=headers,
-            )
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.post(
+                    "https://api.resend.com/emails",
+                    json=payload,
+                    headers=headers,
+                )
+        except httpx.RequestError as exc:
+            raise EmailSendError(
+                f"Could not connect to email provider: {exc}"
+            ) from exc
 
         if response.status_code >= 400:
             raise EmailSendError(
@@ -61,7 +70,10 @@ class EmailService:
         name: str,
         token: str,
     ) -> None:
-        verify_url = f"{settings.frontend_url}/auth/verify-email?token={token}"
+        verify_url = (
+            f"{settings.frontend_url}/auth/verify-email?token={token}"
+        )
+
         safe_name = html.escape(name)
         safe_url = html.escape(verify_url, quote=True)
 
@@ -71,17 +83,39 @@ class EmailService:
             html=f"""
             <div style="font-family: Arial, sans-serif; line-height: 1.5;">
                 <h2>VetReservation</h2>
+
                 <p>Cześć {safe_name},</p>
-                <p>Dziękujemy za rejestrację. Kliknij poniższy przycisk, aby potwierdzić adres email.</p>
+
+                <p>
+                    Dziękujemy za rejestrację.
+                    Kliknij poniższy przycisk, aby potwierdzić adres email.
+                </p>
+
                 <p>
                     <a href="{safe_url}"
-                       style="display:inline-block;padding:10px 16px;background:#0d6efd;color:#ffffff;text-decoration:none;border-radius:6px;">
+                       style="
+                           display:inline-block;
+                           padding:10px 16px;
+                           background:#0d6efd;
+                           color:#ffffff;
+                           text-decoration:none;
+                           border-radius:6px;
+                       ">
                         Potwierdź email
                     </a>
                 </p>
-                <p>Jeśli przycisk nie działa, skopiuj ten link do przeglądarki:</p>
+
+                <p>
+                    Jeśli przycisk nie działa,
+                    skopiuj ten link do przeglądarki:
+                </p>
+
                 <p>{safe_url}</p>
-                <p>Jeśli to nie Ty zakładałeś konto, zignoruj tę wiadomość.</p>
+
+                <p>
+                    Jeśli to nie Ty zakładałeś konto,
+                    zignoruj tę wiadomość.
+                </p>
             </div>
             """,
         )
@@ -93,7 +127,10 @@ class EmailService:
         name: str,
         token: str,
     ) -> None:
-        reset_url = f"{settings.frontend_url}/auth/reset-password?token={token}"
+        reset_url = (
+            f"{settings.frontend_url}/auth/reset-password?token={token}"
+        )
+
         safe_name = html.escape(name)
         safe_url = html.escape(reset_url, quote=True)
 
@@ -103,17 +140,102 @@ class EmailService:
             html=f"""
             <div style="font-family: Arial, sans-serif; line-height: 1.5;">
                 <h2>VetReservation</h2>
+
                 <p>Cześć {safe_name},</p>
-                <p>Otrzymaliśmy prośbę o reset hasła do Twojego konta.</p>
+
+                <p>
+                    Otrzymaliśmy prośbę o reset hasła
+                    do Twojego konta.
+                </p>
+
                 <p>
                     <a href="{safe_url}"
-                       style="display:inline-block;padding:10px 16px;background:#0d6efd;color:#ffffff;text-decoration:none;border-radius:6px;">
+                       style="
+                           display:inline-block;
+                           padding:10px 16px;
+                           background:#0d6efd;
+                           color:#ffffff;
+                           text-decoration:none;
+                           border-radius:6px;
+                       ">
                         Ustaw nowe hasło
                     </a>
                 </p>
-                <p>Jeśli przycisk nie działa, skopiuj ten link do przeglądarki:</p>
+
+                <p>
+                    Jeśli przycisk nie działa,
+                    skopiuj ten link do przeglądarki:
+                </p>
+
                 <p>{safe_url}</p>
-                <p>Jeśli to nie Ty prosiłeś o reset hasła, zignoruj tę wiadomość.</p>
+
+                <p>
+                    Jeśli to nie Ty prosiłeś o reset hasła,
+                    zignoruj tę wiadomość.
+                </p>
+            </div>
+            """,
+        )
+
+    async def send_email_change_email(
+        self,
+        *,
+        to: str,
+        name: str,
+        token: str,
+    ) -> None:
+        change_url = (
+            f"{settings.frontend_url}"
+            f"/auth/confirm-email-change?token={token}"
+        )
+
+        safe_name = html.escape(name)
+        safe_url = html.escape(change_url, quote=True)
+
+        await self.send_email(
+            to=to,
+            subject="Potwierdź zmianę adresu email w VetReservation",
+            html=f"""
+            <div style="font-family: Arial, sans-serif; line-height: 1.5;">
+                <h2>VetReservation</h2>
+
+                <p>Cześć {safe_name},</p>
+
+                <p>
+                    Otrzymaliśmy prośbę o zmianę adresu email
+                    przypisanego do Twojego konta.
+                </p>
+
+                <p>
+                    Kliknij poniższy przycisk,
+                    aby potwierdzić nowy adres email.
+                </p>
+
+                <p>
+                    <a href="{safe_url}"
+                       style="
+                           display:inline-block;
+                           padding:10px 16px;
+                           background:#0d6efd;
+                           color:#ffffff;
+                           text-decoration:none;
+                           border-radius:6px;
+                       ">
+                        Potwierdź nowy email
+                    </a>
+                </p>
+
+                <p>
+                    Jeśli przycisk nie działa,
+                    skopiuj ten link do przeglądarki:
+                </p>
+
+                <p>{safe_url}</p>
+
+                <p>
+                    Jeśli to nie Ty prosiłeś o zmianę adresu email,
+                    zignoruj tę wiadomość.
+                </p>
             </div>
             """,
         )

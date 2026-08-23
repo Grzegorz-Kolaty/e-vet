@@ -10,9 +10,9 @@ from sqlalchemy.orm import Session
 
 from app import models
 
-
 AUTH_TOKEN_PURPOSE_EMAIL_VERIFICATION = "email_verification"
 AUTH_TOKEN_PURPOSE_PASSWORD_RESET = "password_reset"
+AUTH_TOKEN_PURPOSE_EMAIL_CHANGE = "email_change"
 
 
 def create_raw_auth_token() -> str:
@@ -37,7 +37,7 @@ def create_auth_token(
             models.AuthToken.user_id == user_id,
             models.AuthToken.purpose == purpose,
             models.AuthToken.used_at.is_(None),
-            )
+        )
     ).scalars().all()
 
     for previous_token in previous_tokens:
@@ -74,7 +74,7 @@ def consume_auth_token(
             models.AuthToken.purpose == purpose,
             models.AuthToken.used_at.is_(None),
             models.AuthToken.expires_at > now,
-            )
+        )
     ).scalar_one_or_none()
 
     if auth_token is None:

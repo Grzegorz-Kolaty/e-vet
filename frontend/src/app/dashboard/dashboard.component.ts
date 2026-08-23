@@ -1,12 +1,13 @@
 import {ChangeDetectionStrategy, Component, effect, inject, resource, signal} from '@angular/core';
 import {Router} from "@angular/router";
-import {Role, UploadContext, UserInterface} from "../shared/interfaces/user.interface";
+import {Role} from "../shared/interfaces/user.interface";
 import UserComponent from "./user/user.component";
 import {LoaderComponent} from "../shared/ui/loader/loader.component";
 import VetComponent from "./vet/vet.component";
 import SendEmailVerificationComponent from "../auth/send-verification-email/ui/send-verification-email.component";
 import ProfileFormComponent from "./ui/profile-form/profile-form.component";
 import {AuthService} from "../shared/data-access/auth.service";
+import {UsersService} from "../shared/data-access/users.service";
 
 
 @Component({
@@ -29,20 +30,30 @@ import {AuthService} from "../shared/data-access/auth.service";
 
           <app-profile-form
             [user]="profile"
+
             [uploadPhotoResourceStatus]="uploadPhotoResource.status()"
-            (userPhotoFile)="onPhotoUpload(profile, $event)"
-            (userName)="onNameChange(profile, $event)"
+            (userPhotoFile)="onPhotoUpload($event)"
+
             [uploadNewProfileResource]="updateNameResource.status()"
+            (userName)="onNameChange($event)"
+
+            [emailChangeStatus]="emailChangeResource.status()"
+            (userEmailChange)="onEmailChange($event)"
           />
         } @else if (profile.role === Role.User) {
           <app-user/>
 
           <app-profile-form
             [user]="profile"
+
             [uploadPhotoResourceStatus]="uploadPhotoResource.status()"
-            (userPhotoFile)="onPhotoUpload(profile, $event)"
-            (userName)="onNameChange(profile, $event)"
+            (userPhotoFile)="onPhotoUpload($event)"
+
             [uploadNewProfileResource]="updateNameResource.status()"
+            (userName)="onNameChange($event)"
+
+            [emailChangeStatus]="emailChangeResource.status()"
+            (userEmailChange)="onEmailChange($event)"
           />
         }
 
@@ -57,11 +68,16 @@ import {AuthService} from "../shared/data-access/auth.service";
 })
 export default class DashboardComponent {
   public readonly authService = inject(AuthService);
+  private readonly userService = inject(UsersService);
   protected readonly Role = Role;
-  private router = inject(Router)
+  private readonly router = inject(Router);
 
-  uploadPhotoTrigger = signal<UploadContext | null>(null);
-  nameTrigger = signal<UserInterface | null>(null)
+  uploadPhotoTrigger = signal<File | undefined>(undefined);
+  updateNameTrigger = signal<string | undefined>(undefined);
+  emailChangeTrigger = signal<{
+    email: string;
+    password: string;
+  } | undefined>(undefined);
 
   constructor() {
     effect(() => {
@@ -75,50 +91,59 @@ export default class DashboardComponent {
     });
 
     effect(() => {
-      if (this.uploadPhotoResource.status() === 'resolved' && this.uploadPhotoResource.value()) {
-        const data = this.uploadPhotoResource.value();
-        console.log(data);
+      const updatedUser = this.uploadPhotoResource.value();
 
-        if (!data) return
+      if (updatedUser) {
+        this.authService.user.set(updatedUser);
+      }
+    });
 
-        this.authService.user.update(user => ({
-          ...user!,
-          photo_url:  "",
-        }));
+    effect(() => {
+      const updatedUser = this.updateNameResource.value();
+
+      if (updatedUser) {
+        this.authService.user.set(updatedUser);
       }
     });
   }
 
-
   uploadPhotoResource = resource({
     params: this.uploadPhotoTrigger,
     loader: async ({params}) => {
-      if (!params || !params.file) throw new Error('No file');
-      return
-      // return this.userService.uploadProfilePhoto(params.profile, params.file);
+      return this.userService.uploadProfilePhoto(params);
     },
   });
-
-  onPhotoUpload(profile: UserInterface, file: File) {
-    console.log(profile, file);
-    this.uploadPhotoTrigger.set({profile: profile, file: file});
-  }
 
   updateNameResource = resource({
-    params: this.nameTrigger,
+    params: this.updateNameTrigger,
     loader: async ({params}) => {
-      if (!params) return;
-
-      return
+      return this.userService.updateName(params);
     },
   });
 
-  onNameChange(profile: UserInterface, name: string) {
-    const newProfile = {
-      ...profile,
-      name: name,
-    }
-    this.nameTrigger.set(newProfile);
+  emailChangeResource = resource({
+    params: this.emailChangeTrigger,
+
+    loader: async ({params}) => {
+      return this.userService.requestEmailChange(
+        params.email,
+        params.password,
+      );
+    },
+  });
+
+  onPhotoUpload(file: File) {
+    this.uploadPhotoTrigger.set(file);
   }
 
+  onNameChange(name: string) {
+    this.updateNameTrigger.set(name);
+  }
+
+  onEmailChange(data: {
+    email: string;
+    password: string;
+  }) {
+    this.emailChangeTrigger.set(data);
+  }
 }

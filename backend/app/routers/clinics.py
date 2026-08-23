@@ -114,7 +114,7 @@ def create_clinic(
     if existing_clinic is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="User is already assigned to a clinic",
+            detail="UsersService is already assigned to a clinic",
         )
 
     search_city = get_city_from_address(payload.address)
