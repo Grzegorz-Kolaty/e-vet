@@ -19,6 +19,7 @@
       - ./backend/app:/app/app
       - ./backend/alembic:/app/alembic
       - ./backend/alembic.ini:/app/alembic.ini
+      - uploads_data_dev:/app/uploads
 
     command: fastapi dev app/main.py --host 0.0.0.0 --port 8000
 
@@ -45,3 +46,6 @@
 volumes:
   postgres_data_dev:
     name: e-vet_postgres_data_dev
+
+  uploads_data_dev:
+    name: e-vet_uploads_data_dev
