@@ -46,6 +46,10 @@ Jeżeli Git nie jest zainstalowany:
 winget install --id Git.Git -e
 ```
 
+Docker Desktop, Node.js i pozostałe zależności developerskie są przygotowywane przez setup.
+
+Nie trzeba ręcznie instalować WSL ani dystrybucji Linux, takich jak Ubuntu.
+
 ## 2. Sklonuj repozytorium
 
 ```powershell
@@ -110,7 +114,7 @@ Adresy:
 
 ```text
 Frontend        http://localhost:4200
-Backend API     http://localhost:8000
+Backend API     http://127.0.0.1:8000
 PostgreSQL      localhost:5433
 ```
 
@@ -168,7 +172,7 @@ Cofnięcie ostatniej:
 # Health check
 
 ```powershell
-curl.exe http://localhost:8000/health
+curl.exe http://127.0.0.1:8000/health
 ```
 
 Oczekiwana odpowiedź:

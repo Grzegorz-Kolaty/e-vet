@@ -157,7 +157,7 @@ if errorlevel 1 (
     echo         is not available in this terminal.
     echo.
     echo Open a new terminal and run:
-    echo   evet.cmd setup
+    echo   .\evet.cmd setup
     exit /b 1
 )
 
@@ -205,7 +205,7 @@ echo [ERROR] Docker Engine did not start correctly.
 echo.
 echo Open Docker Desktop manually and make sure it is running,
 echo then run:
-echo   evet.cmd setup
+echo   .\evet.cmd setup
 exit /b 1
 
 :docker_ready
@@ -449,7 +449,7 @@ echo ==========================================
 echo   e-vet setup completed successfully
 echo ==========================================
 echo.
-echo Backend:    http://localhost:8000
+echo Backend:    http://127.0.0.1:8000
 echo PostgreSQL: localhost:5433
 echo.
 echo Start the complete development environment with:
