@@ -125,20 +125,29 @@ REM ==================================================
 where docker.exe >nul 2>&1
 
 if errorlevel 1 (
-    echo [INFO] Docker Desktop was not found.
-    echo [INFO] Installing Docker Desktop...
-    echo.
+    REM Docker may already be installed but not yet visible
+    REM in the PATH of the current terminal.
 
-    winget install -e --id Docker.DockerDesktop
-
-    if errorlevel 1 (
+    if exist "%ProgramFiles%\Docker\Docker\resources\bin\docker.exe" (
+        set "PATH=%ProgramFiles%\Docker\Docker\resources\bin;%PATH%"
+    ) else if exist "%LOCALAPPDATA%\Programs\DockerDesktop\resources\bin\docker.exe" (
+        set "PATH=%LOCALAPPDATA%\Programs\DockerDesktop\resources\bin;%PATH%"
+    ) else (
+        echo [INFO] Docker Desktop was not found.
+        echo [INFO] Installing Docker Desktop...
         echo.
-        echo [ERROR] Docker Desktop installation failed.
-        exit /b 1
-    )
 
-    REM Refresh known Docker Desktop paths
-    set "PATH=%LOCALAPPDATA%\Programs\DockerDesktop\resources\bin;%ProgramFiles%\Docker\Docker\resources\bin;%PATH%"
+        winget install -e --id Docker.DockerDesktop
+
+        if errorlevel 1 (
+            echo.
+            echo [ERROR] Docker Desktop installation failed.
+            exit /b 1
+        )
+
+        REM Make newly installed Docker available in this process.
+        set "PATH=%ProgramFiles%\Docker\Docker\resources\bin;%LOCALAPPDATA%\Programs\DockerDesktop\resources\bin;%PATH%"
+    )
 )
 
 where docker.exe >nul 2>&1
@@ -343,8 +352,9 @@ for /L %%I in (1,1,30) do (
     docker compose ^
         --env-file "%ENV_FILE%" ^
         -f "%COMPOSE_FILE%" ^
-        exec -T db ^
-        pg_isready -U evet_user -d evet_dev >nul 2>&1
+        exec -T api ^
+        python -c "import os; from sqlalchemy import create_engine; engine=create_engine(os.environ['DATABASE_URL']); conn=engine.connect(); conn.close()" ^
+        >nul 2>&1
 
     if not errorlevel 1 (
         goto postgres_ready
@@ -354,12 +364,12 @@ for /L %%I in (1,1,30) do (
 )
 
 echo.
-echo [ERROR] PostgreSQL did not become ready.
+echo [ERROR] PostgreSQL did not become reachable from the API container.
 exit /b 1
 
 :postgres_ready
 
-echo [OK] PostgreSQL is ready.
+echo [OK] PostgreSQL is reachable from the API.
 
 
 REM ==================================================
