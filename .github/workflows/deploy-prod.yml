@@ -75,6 +75,15 @@ jobs:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
         run: |
           REMOTE_SCRIPT="/tmp/evet-deploy-${GITHUB_SHA}.sh"
+          REMOTE_FRONTEND_ARCHIVE="/tmp/evet-frontend-${GITHUB_SHA}.tar.gz"
+
+          cleanup_remote() {
+            ssh "$DEPLOY_USER@$DEPLOY_HOST" \
+              "rm -f '$REMOTE_SCRIPT' '$REMOTE_FRONTEND_ARCHIVE'" \
+              >/dev/null 2>&1 || true
+          }
+
+          trap cleanup_remote EXIT
 
           ssh "$DEPLOY_USER@$DEPLOY_HOST" \
             "cat > '$REMOTE_SCRIPT'" <<'REMOTE'
@@ -85,8 +94,12 @@ jobs:
           frontend_archive="$2"
 
           repo="/opt/evet"
-          runtime="/home/deploy/evet-runtime"
+          runtime="$HOME/evet-runtime"
           timestamp="$(date +%Y%m%d-%H%M%S)"
+
+          stage="${runtime}/frontend-new-${deploy_sha}"
+          previous_frontend=""
+          backup_file=""
 
           cd "$repo"
 
@@ -97,88 +110,171 @@ jobs:
               "$@"
           }
 
+          cleanup() {
+            rm -rf "$stage"
+            rm -f "$frontend_archive"
+          }
+
+          trap cleanup EXIT
+
+          wait_url() {
+            local url="$1"
+            local attempts="${2:-20}"
+            local delay="${3:-2}"
+
+            for _ in $(seq 1 "$attempts"); do
+              if curl -fsS --connect-timeout 3 --max-time 5 "$url" >/dev/null; then
+                return 0
+              fi
+              sleep "$delay"
+            done
+
+            return 1
+          }
+
+          wait_api_container() {
+            local status=""
+
+            for _ in $(seq 1 30); do
+              status="$(docker inspect --format '{{.State.Health.Status}}' evet-api 2>/dev/null || true)"
+
+              case "$status" in
+                healthy)
+                  return 0
+                  ;;
+                unhealthy)
+                  return 1
+                  ;;
+              esac
+
+              sleep 2
+            done
+
+            return 1
+          }
+
+          rollback_frontend() {
+            echo "==> Roll back frontend"
+
+            rm -rf "${runtime}/frontend"
+
+            if [ -n "$previous_frontend" ] && [ -d "$previous_frontend" ]; then
+              mv "$previous_frontend" "${runtime}/frontend"
+            fi
+          }
+
+          previous_sha="$(git rev-parse HEAD)"
+          previous_api_image_id="$(docker inspect --format '{{.Image}}' evet-api 2>/dev/null || true)"
+          rollback_api_tag="evet-api:rollback"
+
+          if [ -n "$previous_api_image_id" ]; then
+            docker image tag "$previous_api_image_id" "$rollback_api_tag"
+          fi
+
+          rollback_api() {
+            echo "==> Roll back API to previous image"
+            echo "Previous commit: $previous_sha"
+            echo "Database migrations are NOT automatically reverted."
+
+            set +e
+
+            git reset --hard "$previous_sha"
+
+            if docker image inspect "$rollback_api_tag" >/dev/null 2>&1; then
+              docker image tag "$rollback_api_tag" evet-api:latest
+              compose up -d --force-recreate api
+
+              if wait_url "https://api.vetreservation.com/health" 20 2; then
+                echo "==> Previous API restored"
+              else
+                echo "[ERROR] Previous API could not be verified after rollback."
+                echo "[ERROR] Database may require manual recovery from: $backup_file"
+                compose logs --tail=100 api
+              fi
+            else
+              echo "[ERROR] Previous API image is unavailable."
+              echo "[ERROR] Manual recovery may be required."
+            fi
+
+            set -e
+          }
+
           echo "==> Backup database"
 
           mkdir -p backups
+          backup_file="backups/db-${timestamp}.sql.gz"
 
           compose exec -T db \
             sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' \
-            | gzip > "backups/db-${timestamp}.sql.gz"
+            | gzip > "$backup_file"
+
+          test -s "$backup_file"
+          echo "Backup: $backup_file"
 
           echo "==> Fetch repository"
 
           git fetch origin main
-
           git cat-file -e "${deploy_sha}^{commit}"
 
           echo "==> Deploy commit: ${deploy_sha}"
-
           git reset --hard "$deploy_sha"
 
           echo "==> Validate Docker Compose"
-
           compose config --quiet
 
-          echo "==> Build API"
+          echo "==> Validate nginx configuration"
+          compose run --rm --no-deps nginx nginx -t
 
+          echo "==> Build API"
           compose build api
 
           echo "==> Stop current API"
-
           compose stop api
 
           echo "==> Run database migrations"
 
           if ! compose run --rm api alembic upgrade head; then
-            echo "Migration failed - restoring previous API container"
+            echo "[ERROR] Migration failed - restoring previous API container"
+            git reset --hard "$previous_sha"
             docker start evet-api || true
             exit 1
           fi
 
           echo "==> Start new API"
-
           compose up -d --force-recreate api
 
-          echo "==> Wait for API"
+          echo "==> Wait for API container health"
 
-          api_ok=0
-
-          for i in $(seq 1 30); do
-            if curl -fsS --max-time 5 \
-              https://api.vetreservation.com/health \
-              >/dev/null; then
-
-              api_ok=1
-              break
-            fi
-
-            sleep 2
-          done
-
-          if [ "$api_ok" -ne 1 ]; then
-            echo "API health check failed"
+          if ! wait_api_container; then
+            echo "[ERROR] API container did not become healthy"
             compose logs --tail=100 api
+            rollback_api
+            exit 1
+          fi
+
+          echo "==> Verify public API"
+
+          if ! wait_url "https://api.vetreservation.com/health" 15 2; then
+            echo "[ERROR] Public API health check failed"
+            compose logs --tail=100 api
+            rollback_api
             exit 1
           fi
 
           echo "==> API healthy"
 
-          stage="${runtime}/frontend-new-${deploy_sha}"
-          previous="${runtime}/frontend-${timestamp}"
-
           echo "==> Extract frontend"
 
           rm -rf "$stage"
           mkdir -p "$stage"
-
           tar -xzf "$frontend_archive" -C "$stage"
-
           test -f "$stage/index.html"
 
           echo "==> Swap frontend"
 
           if [ -d "${runtime}/frontend" ]; then
-            mv "${runtime}/frontend" "$previous"
+            previous_frontend="${runtime}/frontend-${timestamp}"
+            mv "${runtime}/frontend" "$previous_frontend"
           fi
 
           mv "$stage" "${runtime}/frontend"
@@ -186,52 +282,80 @@ jobs:
           echo "==> Recreate nginx"
 
           if ! compose up -d --force-recreate nginx; then
-            echo "nginx recreation failed - restoring previous frontend"
-
-            rm -rf "${runtime}/frontend"
-
-            if [ -d "$previous" ]; then
-              mv "$previous" "${runtime}/frontend"
-            fi
-
+            echo "[ERROR] nginx recreation failed - restoring previous frontend"
+            rollback_frontend
             compose up -d --force-recreate nginx || true
-
             exit 1
           fi
 
           if ! compose exec -T nginx nginx -t; then
-            echo "nginx configuration invalid - restoring previous frontend"
-
-            rm -rf "${runtime}/frontend"
-
-            if [ -d "$previous" ]; then
-              mv "$previous" "${runtime}/frontend"
-            fi
-
+            echo "[ERROR] nginx configuration invalid - restoring previous frontend"
+            rollback_frontend
             compose up -d --force-recreate nginx || true
-
             exit 1
           fi
 
           echo "==> Final health checks"
 
-          curl -fsS --max-time 10 \
-            https://api.vetreservation.com/health
+          if ! wait_url "https://api.vetreservation.com/health" 10 2; then
+            echo "[ERROR] Final API health check failed"
+            rollback_frontend
+            rollback_api
+            compose up -d --force-recreate nginx || true
+            exit 1
+          fi
 
-          curl -fsS --max-time 10 \
-            https://vetreservation.com/ \
-            -o /dev/null
+          if ! wait_url "https://vetreservation.com/" 10 2; then
+            echo "[ERROR] Final frontend health check failed"
+            rollback_frontend
+            compose up -d --force-recreate nginx || true
+            exit 1
+          fi
 
-          rm -f "$frontend_archive"
+          echo "==> Rotate database backups (keep 20 newest)"
+
+          find backups \
+            -maxdepth 1 \
+            -type f \
+            -name 'db-*.sql.gz' \
+            -printf '%T@ %p\n' \
+            | sort -rn \
+            | tail -n +21 \
+            | cut -d' ' -f2- \
+            | xargs -r rm -f --
+
+          echo "==> Rotate previous frontends (keep 5 newest)"
+
+          find "$runtime" \
+            -maxdepth 1 \
+            -mindepth 1 \
+            -type d \
+            -name 'frontend-[0-9]*' \
+            -printf '%T@ %p\n' \
+            | sort -rn \
+            | tail -n +6 \
+            | cut -d' ' -f2- \
+            | xargs -r rm -rf --
+
+          echo "==> Clean stale temporary deployment files"
+
+          find /tmp \
+            -maxdepth 1 \
+            -type f \
+            \( -name 'evet-frontend-*.tar.gz' -o -name 'evet-deploy-*.sh' \) \
+            -mtime +1 \
+            -delete || true
 
           echo
           echo "Deployment complete"
           echo "Commit: ${deploy_sha}"
+          echo "Backup: ${backup_file}"
 
           REMOTE
 
           ssh "$DEPLOY_USER@$DEPLOY_HOST" \
-            "bash '$REMOTE_SCRIPT' '$GITHUB_SHA' '/tmp/evet-frontend-${GITHUB_SHA}.tar.gz'"
+            "bash '$REMOTE_SCRIPT' '$GITHUB_SHA' '$REMOTE_FRONTEND_ARCHIVE'"
 
-          ssh "$DEPLOY_USER@$DEPLOY_HOST" \
-            "rm -f '$REMOTE_SCRIPT'"
+          trap - EXIT
+          cleanup_remote
+
