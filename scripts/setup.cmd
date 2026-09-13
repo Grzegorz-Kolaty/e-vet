@@ -416,8 +416,12 @@ echo.
 echo [INFO] Checking API...
 
 for /L %%I in (1,1,20) do (
-    curl.exe --fail --silent ^
-        http://localhost:8000/health >nul 2>&1
+    curl.exe ^
+        --fail ^
+        --silent ^
+        --connect-timeout 2 ^
+        --max-time 5 ^
+        http://127.0.0.1:8000/health >nul 2>&1
 
     if not errorlevel 1 (
         goto api_ready
@@ -428,6 +432,7 @@ for /L %%I in (1,1,20) do (
 
 echo.
 echo [ERROR] API health check failed.
+echo [ERROR] Expected endpoint: http://127.0.0.1:8000/health
 exit /b 1
 
 :api_ready
