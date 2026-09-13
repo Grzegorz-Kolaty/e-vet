@@ -4,7 +4,7 @@ param(
 )
 
 $FrontendPort = 4200
-$Root = $PSScriptRoot
+$Root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 
 $Compose = @(
   "compose",
@@ -39,7 +39,7 @@ function Start-Frontend
         -ArgumentList @(
     "-NoExit",
     "-Command",
-    "Set-Location '$Root\frontend'; corepack yarn start"
+    "Set-Location '$Root\frontend'; corepack.cmd yarn start"
   )
 
   Write-Host "Frontend uruchomiony."
