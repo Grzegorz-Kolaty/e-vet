@@ -62,7 +62,7 @@ where node.exe >nul 2>&1
 if errorlevel 1 (
     echo [ERROR] Node.js was installed but is not available in PATH.
     echo Open a new terminal and run:
-    echo   evet.cmd setup
+    echo   .\evet.cmd setup
     exit /b 1
 )
 
@@ -449,7 +449,7 @@ echo PostgreSQL: localhost:5433
 echo.
 echo Start the complete development environment with:
 echo.
-echo   evet.cmd up
+echo   .\evet.cmd up
 echo.
 
 exit /b 0
