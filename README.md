@@ -2,57 +2,111 @@
 
 Aplikacja full-stack do obsługi wizyt weterynaryjnych.
 
-## Struktura projektu
+## Stack
+
+- Angular
+- FastAPI
+- PostgreSQL
+- Docker Compose
+
+## Struktura
 
 ```text
 e-vet/
-├── frontend/                 # Angular
-├── backend/                  # FastAPI
-├── nginx/                    # konfiguracja nginx dla produkcji
-├── docker-compose.dev.yml    # Docker Compose dla developmentu
-├── docker-compose.prod.yml   # Docker Compose dla produkcji
-├── dev.ps1                   # pomocniczy skrypt developerski
-├── .env.dev
+├── backend/
+├── frontend/
+├── nginx/
+├── scripts/
+│   ├── dev.ps1
+│   ├── setup.cmd
+│   └── setup-env.mjs
+├── docker-compose.dev.yml
+├── docker-compose.prod.yml
+├── evet.cmd
 └── README.md
 ```
 
----
-
-# Development
-
-## Wymagania
-
-Do lokalnego uruchomienia projektu potrzebne są:
-
-* Docker Desktop
-* Node.js 24
-* Corepack
-* Yarn 4.9.2
-* Windows PowerShell
-
-Backend oraz PostgreSQL działają w Dockerze.
-
-Frontend Angular uruchamiany jest lokalnie przez Yarn.
-
-Skrypt `dev.ps1` pozwala zarządzać całym środowiskiem developerskim z jednej komendy.
+`evet.cmd` jest głównym entrypointem do pracy developerskiej. Plików z `scripts/` nie trzeba uruchamiać bezpośrednio.
 
 ---
 
-# Szybki start
+# Pierwsza instalacja
 
-Komendy należy wykonywać z głównego katalogu projektu:
+## 1. Wymagania
+
+Potrzebne są:
+
+- Windows PowerShell
+- WinGet
+- Git
+
+Jeżeli Git nie jest zainstalowany:
 
 ```powershell
-cd D:\Users\Makar\Desktop\Projects\e-vet
+winget install --id Git.Git -e
 ```
 
-## Uruchomienie całego projektu
+## 2. Sklonuj repozytorium
 
 ```powershell
-.\dev.ps1 up
+mkdir "$HOME\Projects" -ErrorAction SilentlyContinue
+cd "$HOME\Projects"
+
+git clone https://github.com/Grzegorz-Kolaty/e-vet.git
+cd e-vet
 ```
 
-Komenda uruchamia:
+## 3. Przygotuj Resend
+
+Przed setupem przygotuj:
+
+- konto Resend,
+- zweryfikowaną domenę,
+- API key z uprawnieniami do wysyłania wiadomości.
+
+## 4. Uruchom setup
+
+```powershell
+.\evet.cmd setup
+```
+
+Setup automatycznie:
+
+- instaluje/sprawdza Node.js 24,
+- sprawdza npm i Corepack,
+- instaluje/sprawdza Docker Desktop,
+- generuje `.env.dev`,
+- instaluje zależności frontendu,
+- uruchamia PostgreSQL i FastAPI,
+- wykonuje migracje Alembic,
+- sprawdza health check API.
+
+Podczas setupu zostaniesz poproszony o:
+
+```text
+Resend API Key:
+Resend domain:
+```
+
+`.env.dev` nie jest nadpisywany przy ponownym uruchomieniu setupu.
+
+---
+
+# Uruchamianie projektu
+
+Start:
+
+```powershell
+.\evet.cmd up
+```
+
+Stop:
+
+```powershell
+.\evet.cmd down
+```
+
+Adresy:
 
 ```text
 Frontend        http://localhost:4200
@@ -60,211 +114,64 @@ Backend API     http://localhost:8000
 PostgreSQL      localhost:5433
 ```
 
-Uruchamiane są:
-
-* PostgreSQL w Dockerze,
-* FastAPI w Dockerze,
-* Angular lokalnie przez Yarn.
-
-Frontend jest uruchamiany w osobnym oknie PowerShell.
-
-Jeżeli port `4200` jest już zajęty przez działający frontend, skrypt nie uruchomi drugiej instancji Angulara.
-
----
-
-## Zatrzymanie całego projektu
-
-```powershell
-.\dev.ps1 down
-```
-
-Komenda:
-
-1. wyszukuje proces nasłuchujący na porcie `4200`,
-2. zatrzymuje frontend,
-3. zatrzymuje backend i PostgreSQL,
-4. usuwa kontenery oraz sieć developerską Docker Compose.
-
-Named volumes nie są usuwane, dlatego dane PostgreSQL i uploadowane pliki pozostają zachowane.
-
 ---
 
 # Najczęściej używane komendy
 
-## Całe środowisko
-
-Uruchomienie:
-
 ```powershell
-.\dev.ps1 up
-```
-
-Zatrzymanie:
-
-```powershell
-.\dev.ps1 down
+.\evet.cmd up
+.\evet.cmd down
+.\evet.cmd start
+.\evet.cmd stop
+.\evet.cmd restart
+.\evet.cmd build
+.\evet.cmd logs
+.\evet.cmd ps
+.\evet.cmd migrate
+.\evet.cmd migration
+.\evet.cmd history
+.\evet.cmd downgrade
+.\evet.cmd frontend
+.\evet.cmd frontend-stop
 ```
 
 ---
 
-## Backend
+# Migracje
 
-Zatrzymanie tylko API:
-
-```powershell
-.\dev.ps1 stop
-```
-
-Uruchomienie tylko API:
+Wykonanie oczekujących migracji:
 
 ```powershell
-.\dev.ps1 start
+.\evet.cmd migrate
 ```
 
-Restart API:
+Aktualna migracja:
 
 ```powershell
-.\dev.ps1 restart
+.\evet.cmd migration
 ```
 
-Przebudowanie obrazu API:
+Historia:
 
 ```powershell
-.\dev.ps1 build
+.\evet.cmd history
 ```
 
-Przebudowanie jest potrzebne m.in. po zmianie:
-
-* `Dockerfile`,
-* `requirements.txt`,
-* zależności Pythona.
-
-Przy zwykłych zmianach kodu backendu rebuild nie jest wymagany, ponieważ katalog:
-
-```text
-backend/app
-```
-
-jest montowany do kontenera developerskiego.
-
-FastAPI działa w trybie:
-
-```text
-fastapi dev
-```
-
-i automatycznie przeładowuje aplikację po zmianach kodu.
-
----
-
-## Logi backendu
+Cofnięcie ostatniej:
 
 ```powershell
-.\dev.ps1 logs
-```
-
-Wyjście z logów:
-
-```text
-Ctrl+C
-```
-
-Nie zatrzymuje to backendu.
-
----
-
-## Status kontenerów
-
-```powershell
-.\dev.ps1 ps
+.\evet.cmd downgrade
 ```
 
 ---
 
-# Frontend
-
-Uruchomienie tylko frontendu:
-
-```powershell
-.\dev.ps1 frontend
-```
-
-Zatrzymanie tylko frontendu:
-
-```powershell
-.\dev.ps1 frontend-stop
-```
-
-Skrypt identyfikuje frontend na podstawie procesu nasłuchującego na porcie:
-
-```text
-4200
-```
-
-Dzięki temu może zatrzymać Angulara również wtedy, gdy został uruchomiony ręcznie w innym terminalu.
-
----
-
-# Migracje bazy danych
-
-Migracje obsługiwane są przez Alembic.
-
-Migracja oznacza zmianę wersji struktury bazy danych, np.:
-
-* dodanie lub usunięcie kolumny,
-* utworzenie tabeli,
-* zmianę typu kolumny,
-* dodanie klucza obcego,
-* dodanie indeksu lub constraintu,
-* jednorazową zmianę danych potrzebną do przejścia na nową strukturę.
-
-## Wykonanie wszystkich oczekujących migracji
-
-```powershell
-.\dev.ps1 migrate
-```
-
-Odpowiada to:
-
-```text
-alembic upgrade head
-```
-
----
-
-## Sprawdzenie aktualnej migracji
-
-```powershell
-.\dev.ps1 migration
-```
-
----
-
-## Historia migracji
-
-```powershell
-.\dev.ps1 history
-```
-
----
-
-## Cofnięcie ostatniej migracji
-
-```powershell
-.\dev.ps1 downgrade
-```
-
----
-
-# Health check API
-
-Po uruchomieniu backendu:
+# Health check
 
 ```powershell
 curl.exe http://localhost:8000/health
 ```
 
-Przykładowa odpowiedź:
+Oczekiwana odpowiedź:
 
 ```json
 {
@@ -276,29 +183,16 @@ Przykładowa odpowiedź:
 
 # Dane trwałe
 
-Środowisko developerskie wykorzystuje Docker named volumes.
-
-PostgreSQL:
+Development korzysta z named volumes:
 
 ```text
 e-vet_postgres_data_dev
-```
-
-Uploadowane pliki:
-
-```text
 e-vet_uploads_data_dev
 ```
 
-Dzięki temu dane nie znikają po wykonaniu:
+`.\evet.cmd down` nie usuwa danych.
 
-```powershell
-.\dev.ps1 down
-```
-
-Nie należy usuwać volumes, jeżeli dane mają zostać zachowane.
-
-W szczególności należy uważać na:
+Uważaj na:
 
 ```powershell
 docker compose down -v
@@ -308,19 +202,37 @@ Opcja `-v` usuwa named volumes.
 
 ---
 
-# Ręczne uruchamianie
+# Frontend ręcznie
 
-`dev.ps1` jest zalecanym sposobem pracy lokalnej, ale poszczególne części projektu można również uruchamiać ręcznie.
+```powershell
+cd frontend
+corepack.cmd yarn install
+corepack.cmd yarn start
+```
 
-## Backend + PostgreSQL
+Projekt przypina Yarn:
 
-Z głównego katalogu projektu:
+```text
+4.9.2
+```
+
+Sprawdzenie:
+
+```powershell
+corepack.cmd yarn --version
+```
+
+---
+
+# Backend ręcznie
+
+Start:
 
 ```powershell
 docker compose --env-file .env.dev -f docker-compose.dev.yml up -d
 ```
 
-Zatrzymanie:
+Stop:
 
 ```powershell
 docker compose --env-file .env.dev -f docker-compose.dev.yml down
@@ -334,87 +246,11 @@ docker compose --env-file .env.dev -f docker-compose.dev.yml logs -f api
 
 ---
 
-## Frontend ręcznie
-
-```powershell
-cd frontend
-corepack yarn start
-```
-
-Frontend:
-
-```text
-http://localhost:4200
-```
-
----
-
-# Instalacja zależności frontendu
-
-Przy pierwszym uruchomieniu lub po zmianie zależności:
-
-```powershell
-cd frontend
-corepack yarn install
-```
-
----
-
-# Production build frontendu
-
-```powershell
-cd frontend
-corepack yarn build
-```
-
-Wynik:
-
-```text
-frontend/dist/e-vet-szczecin
-```
-
----
-
-# Testy frontendu
-
-```powershell
-cd frontend
-corepack yarn test
-```
-
----
-
 # Typowy workflow
 
-Na początku pracy:
-
 ```powershell
-.\dev.ps1 up
-```
-
-Jeżeli pojawiła się nowa migracja:
-
-```powershell
-.\dev.ps1 migrate
-```
-
-Podgląd logów backendu:
-
-```powershell
-.\dev.ps1 logs
-```
-
-Po zakończeniu pracy:
-
-```powershell
-.\dev.ps1 down
-```
-
-W większości przypadków do codziennej pracy wystarczą więc cztery komendy:
-
-```powershell
-.\dev.ps1 up
-.\dev.ps1 migrate
-.\dev.ps1 logs
-.\dev.ps1 down
+.\evet.cmd up
+.\evet.cmd migrate
+.\evet.cmd logs
+.\evet.cmd down
 ```
