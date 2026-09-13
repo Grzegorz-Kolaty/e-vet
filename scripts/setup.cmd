@@ -449,7 +449,7 @@ echo ==========================================
 echo   e-vet setup completed successfully
 echo ==========================================
 echo.
-echo Backend:    http://127.0.0.1:8000
+echo Backend:    http://localhost:8000
 echo PostgreSQL: localhost:5433
 echo.
 echo Start the complete development environment with:
