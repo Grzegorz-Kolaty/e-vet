@@ -61,7 +61,8 @@ where node.exe >nul 2>&1
 
 if errorlevel 1 (
     echo [ERROR] Node.js was installed but is not available in PATH.
-    echo Open a new terminal and run setup.cmd again.
+    echo Open a new terminal and run:
+    echo   evet.cmd setup
     exit /b 1
 )
 
@@ -96,7 +97,7 @@ if errorlevel 1 (
 )
 
 echo [OK] npm detected:
-npm.cmd --version
+call npm.cmd --version
 echo.
 
 
@@ -113,7 +114,7 @@ if errorlevel 1 (
 )
 
 echo [OK] Corepack detected:
-corepack.cmd --version
+call corepack.cmd --version
 echo.
 
 
@@ -146,7 +147,8 @@ if errorlevel 1 (
     echo [ERROR] Docker Desktop is installed but docker.exe
     echo         is not available in this terminal.
     echo.
-    echo Open a new terminal and run setup.cmd again.
+    echo Open a new terminal and run:
+    echo   evet.cmd setup
     exit /b 1
 )
 
@@ -167,11 +169,19 @@ if errorlevel 1 (
     echo.
 
     docker desktop start >nul 2>&1
+
+    if errorlevel 1 (
+        if exist "%LOCALAPPDATA%\Programs\DockerDesktop\Docker Desktop.exe" (
+            start "" "%LOCALAPPDATA%\Programs\DockerDesktop\Docker Desktop.exe"
+        ) else if exist "%ProgramFiles%\Docker\Docker\Docker Desktop.exe" (
+            start "" "%ProgramFiles%\Docker\Docker\Docker Desktop.exe"
+        )
+    )
 )
 
 echo [INFO] Waiting for Docker Engine...
 
-for /L %%I in (1,1,30) do (
+for /L %%I in (1,1,60) do (
     docker info >nul 2>&1
 
     if not errorlevel 1 (
@@ -185,7 +195,8 @@ echo.
 echo [ERROR] Docker Engine did not start correctly.
 echo.
 echo Open Docker Desktop manually and make sure it is running,
-echo then run setup.cmd again.
+echo then run:
+echo   evet.cmd setup
 exit /b 1
 
 :docker_ready
@@ -277,7 +288,7 @@ echo.
 pushd "%ROOT%\frontend"
 
 echo [INFO] Project Yarn version:
-corepack.cmd yarn --version
+call corepack.cmd yarn --version
 
 if errorlevel 1 (
     popd
@@ -286,7 +297,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-corepack.cmd yarn install
+call corepack.cmd yarn install
 
 if errorlevel 1 (
     popd
@@ -428,7 +439,7 @@ echo PostgreSQL: localhost:5433
 echo.
 echo Start the complete development environment with:
 echo.
-echo   dev.cmd up
+echo   evet.cmd up
 echo.
 
 exit /b 0
