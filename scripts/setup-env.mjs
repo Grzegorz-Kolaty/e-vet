@@ -155,6 +155,7 @@ POSTGRES_USER=${dbUser}
 POSTGRES_PASSWORD=${dbPassword}
 
 DATABASE_URL=postgresql+psycopg://${dbUser}:${encodeURIComponent(dbPassword)}@db:5432/${dbName}
+SQL_ECHO=true
 
 CORS_ORIGINS=["http://localhost:4200"]
 

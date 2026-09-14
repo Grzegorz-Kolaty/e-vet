@@ -1,0 +1,48 @@
+<div class="d-flex flex-column min-vh-100 bg-body-tertiary">
+  <header class="bg-body border-bottom sticky-top">
+    <div class="container-xl py-3 d-flex align-items-center justify-content-between gap-3">
+      <a
+        routerLink="/home"
+        class="d-flex align-items-center gap-2 text-decoration-none text-body">
+        <span
+          class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-3"
+          style="width: 42px; height: 42px">
+          <fa-icon [icon]="faPaw"/>
+        </span>
+
+        <span class="d-none d-sm-flex flex-column lh-sm">
+          <strong class="fs-5">e-vet</strong>
+          <small class="text-body-secondary">Konfiguracja konta weterynarza</small>
+        </span>
+      </a>
+
+      @if (authService.user(); as user) {
+        <div class="d-flex align-items-center gap-3">
+          <div class="d-none d-md-block text-end lh-sm">
+            <strong>{{ user.name }}</strong>
+            <div class="d-flex justify-content-end flex-wrap gap-1 mt-1">
+              @if (user.is_email_verified) {
+                <span class="badge rounded-pill bg-success-subtle text-success-emphasis">
+                  <fa-icon [icon]="faCircleCheck" class="me-1"/>
+                  E-mail zweryfikowany
+                </span>
+              }
+
+              <!-- Po dodaniu statusu PWZ do User/AuthService ten badge powinien być warunkowy. -->
+              <span class="badge rounded-pill bg-primary-subtle text-primary-emphasis">
+                <fa-icon [icon]="faCircleCheck" class="me-1"/>
+                PWZ zweryfikowane
+              </span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </header>
+
+  <main class="flex-grow-1">
+    <div class="container-xl py-4 py-lg-5">
+      <router-outlet/>
+    </div>
+  </main>
+</div>

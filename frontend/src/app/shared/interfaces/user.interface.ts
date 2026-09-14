@@ -4,6 +4,20 @@ export enum Role {
   Admin = 'admin',
 }
 
+export type VetVerificationStatus =
+  | 'not_provided'
+  | 'pending'
+  | 'verified'
+  | 'rejected';
+
+export interface VetProfileInterface {
+  user_id: string;
+  pwz_number: string | null;
+  verification_status: VetVerificationStatus;
+  rejection_reason: string | null;
+  verified_at: string | null;
+}
+
 export interface UserInterface {
   id: string;
   email: string;
@@ -15,6 +29,8 @@ export interface UserInterface {
   created_at: Date;
   updated_at: Date;
   photo_url?: string;
+  pwz_status?: 'not_provided' | 'pending' | 'verified' | 'rejected';
+  vet_profile: VetProfileInterface | null;
 }
 
 /**

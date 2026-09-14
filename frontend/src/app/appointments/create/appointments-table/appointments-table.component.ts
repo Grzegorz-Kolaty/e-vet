@@ -11,7 +11,16 @@ import { DatePipe } from '@angular/common';
 import { CalendarService } from '../../../shared/data-access/calendar.service';
 import { FormatHourPipe } from '../../../shared/pipes/format-hour.pipe';
 import { Appointment } from "../../../shared/interfaces/appointments.interface";
-import { SlotState } from "../create.component";
+
+
+export type SlotState =
+  | 'outdated'
+  | 'reserved'
+  | 'draft'
+  | 'existing'
+  | 'toDelete'
+  | 'empty'
+  | 'weekend';
 
 interface SlotUIConfig {
   label: string;

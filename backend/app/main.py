@@ -1,22 +1,37 @@
-from pathlib import Path
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+
 from app.core.config import settings
+from app.core.uploads import UPLOADS_DIR
 from app.db import get_db
-from app.routers import appointments, auth, clinics, pets, treatments, users
+from app.routers import (
+    appointments,
+    auth,
+    clinics,
+    pets,
+    treatments,
+    users,
+)
+
 
 app = FastAPI(title="eVet API")
 
-Path("uploads").mkdir(exist_ok=True)
+
+UPLOADS_DIR.mkdir(
+    parents=True,
+    exist_ok=True,
+)
 
 app.mount(
     "/uploads",
-    StaticFiles(directory="uploads"),
+    StaticFiles(directory=UPLOADS_DIR),
     name="uploads",
 )
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -24,6 +39,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 app.include_router(auth.router)
 app.include_router(clinics.router)
@@ -44,13 +60,18 @@ def root():
 
 @app.get("/health")
 def health():
-    return {"status": "healthy"}
+    return {
+        "status": "healthy",
+    }
 
 
 @app.get("/health/db")
-def health_db(db: Session = Depends(get_db)):
-    result = db.execute(text("SELECT 1"))
-    value = result.scalar_one()
+def health_db(
+    db: Session = Depends(get_db),
+):
+    value = db.execute(
+        text("SELECT 1")
+    ).scalar_one()
 
     return {
         "status": "healthy",

@@ -1,34 +1,70 @@
-import {CanActivateFn, Router} from '@angular/router';
 import {inject} from '@angular/core';
-import {AuthService} from "../data-access/auth.service";
+import {CanActivateFn, Router} from '@angular/router';
+
+import {AuthService} from '../data-access/auth.service';
 
 
-export const isAuthenticatedGuard = (): CanActivateFn => {
-  return () => {
-    const authService = inject(AuthService);
-    const router = inject(Router);
+export const isAuthenticatedGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
 
-    if (authService.user()) {
-      console.log('user is logged in');
-      return true;
-    }
+  const user = authService.user();
 
-    console.log('isAuthg login')
-    return router.parseUrl('auth/login');
-  };
+  if (user) {
+    return true;
+  }
+
+  return router.createUrlTree(['/auth/login']);
 };
 
-export const emailVerificationGuard = (): CanActivateFn => {
-  return () => {
-    const authService = inject(AuthService);
-    const router = inject(Router);
 
-    if (authService.user() && authService.user()?.is_email_verified) {
-      console.log('user email verified');
-      return true;
-    }
+export const emailVerificationGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
 
-    console.log('email verification guard to dash')
-    return router.parseUrl('dashboard');
-  };
+  const user = authService.user();
+
+  if (!user) {
+    return router.createUrlTree(['/auth/login']);
+  }
+
+  if (user.is_email_verified) {
+    return true;
+  }
+
+  return router.createUrlTree(['/dashboard']);
+};
+
+
+export const vetOnboardingGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  const user = authService.user();
+
+  if (!user) {
+    return router.createUrlTree(['/auth/login']);
+  }
+
+  // Zwykłego właściciela zwierzęcia ten flow nie dotyczy.
+  if (user.role !== 'vet') {
+    return true;
+  }
+
+  // Najpierw kończymy istniejący flow weryfikacji emaila.
+  // Nie wysyłamy niezweryfikowanego veta do PWZ.
+  if (!user.is_email_verified) {
+    return true;
+  }
+
+  const verificationStatus =
+    user.vet_profile?.verification_status;
+
+  if (verificationStatus !== 'verified') {
+    return router.createUrlTree([
+      '/onboarding/vet/verify-pwz',
+    ]);
+  }
+
+  return true;
 };

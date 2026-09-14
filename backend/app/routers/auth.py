@@ -1,6 +1,14 @@
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    HTTPException,
+    Request,
+    Response,
+    status,
+)
 from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -8,39 +16,80 @@ from sqlalchemy.orm import Session
 from app import models
 from app.core.config import settings
 from app.db import get_db
-
 from app.schemas import (
     ForgotPasswordRequest,
     ResetPasswordRequest,
     UserCreate,
     UserLogin,
     UserRead,
+    VetProfileRead,
     VerifyEmailRequest,
 )
-
-from app.services.email_service import EmailSendError, email_service
-from app.services.auth_token_service import (
-    AUTH_TOKEN_PURPOSE_EMAIL_VERIFICATION,
-    AUTH_TOKEN_PURPOSE_PASSWORD_RESET,
-    consume_auth_token,
-    create_auth_token,
-)
-
 from app.security import (
     create_session_token,
     hash_password,
     hash_session_token,
     verify_password,
 )
+from app.services.auth_token_service import (
+    AUTH_TOKEN_PURPOSE_EMAIL_VERIFICATION,
+    AUTH_TOKEN_PURPOSE_PASSWORD_RESET,
+    consume_auth_token,
+    create_auth_token,
+)
+from app.core.uploads import build_upload_url
+from app.services.email_service import (
+    EmailSendError,
+    email_service,
+)
+
 
 router = APIRouter(tags=["auth"])
+
+
+def build_user_read(
+    db: Session,
+    user: models.User,
+    request: Request | None = None,
+) -> UserRead:
+    photo_url = None
+    if user.photo_path:
+        if request:
+            photo_url = build_upload_url(request, user.photo_path)
+        else:
+            photo_url = f"/uploads/{user.photo_path.lstrip('/')}"
+
+    user_read = UserRead.model_validate(user).model_copy(
+        update={"photo_url": photo_url}
+    )
+
+    if user.role != "vet":
+        return user_read
+
+    vet_profile = db.get(
+        models.VetProfile,
+        user.id,
+    )
+
+    if vet_profile is None:
+        return user_read
+
+    return user_read.model_copy(
+        update={
+            "vet_profile": VetProfileRead.model_validate(
+                vet_profile
+            )
+        }
+    )
 
 
 def get_current_user(
     request: Request,
     db: Session = Depends(get_db),
 ) -> models.User:
-    session_token = request.cookies.get(settings.session_cookie_name)
+    session_token = request.cookies.get(
+        settings.session_cookie_name
+    )
 
     if not session_token:
         raise HTTPException(
@@ -53,10 +102,11 @@ def get_current_user(
 
     auth_session = db.execute(
         select(models.AuthSession).where(
-            models.AuthSession.session_token_hash == session_token_hash,
+            models.AuthSession.session_token_hash
+            == session_token_hash,
             models.AuthSession.revoked_at.is_(None),
             models.AuthSession.expires_at > now,
-        )
+            )
     ).scalar_one_or_none()
 
     if auth_session is None:
@@ -65,7 +115,10 @@ def get_current_user(
             detail="Invalid or expired session",
         )
 
-    user = db.get(models.User, auth_session.user_id)
+    user = db.get(
+        models.User,
+        auth_session.user_id,
+    )
 
     if user is None or not user.is_active:
         raise HTTPException(
@@ -77,17 +130,22 @@ def get_current_user(
 
 
 @router.post(
-    "/auth/register", response_model=UserRead, status_code=status.HTTP_201_CREATED
+    "/auth/register",
+    response_model=UserRead,
+    status_code=status.HTTP_201_CREATED,
 )
 def register_user(
     payload: UserCreate,
     background_tasks: BackgroundTasks,
+    request: Request,
     db: Session = Depends(get_db),
 ):
     email = str(payload.email).lower()
 
     existing_user = db.execute(
-        select(models.User).where(models.User.email == email)
+        select(models.User).where(
+            models.User.email == email
+        )
     ).scalar_one_or_none()
 
     if existing_user is not None:
@@ -96,14 +154,19 @@ def register_user(
             detail="Email already registered",
         )
 
-    allowed_roles = {"user", "vet"}
+    allowed_roles = {
+        "user",
+        "vet",
+    }
+
     if payload.role not in allowed_roles:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid role"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid role",
         )
 
     user = models.User(
-        email=payload.email,
+        email=email,
         password_hash=hash_password(payload.password),
         name=payload.name,
         role=payload.role,
@@ -112,9 +175,22 @@ def register_user(
     db.add(user)
 
     try:
+        # Potrzebujemy user.id przed commitem,
+        # żeby móc utworzyć VetProfile w tej samej transakcji.
+        db.flush()
+
+        if user.role == "vet":
+            db.add(
+                models.VetProfile(
+                    user_id=user.id,
+                )
+            )
+
         db.commit()
+
     except IntegrityError:
         db.rollback()
+
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Email already registered",
@@ -136,10 +212,17 @@ def register_user(
         token=verification_token,
     )
 
-    return user
+    return build_user_read(
+        db,
+        user,
+        request,
+    )
 
 
-@router.post("/auth/login", response_model=UserRead)
+@router.post(
+    "/auth/login",
+    response_model=UserRead,
+)
 def login_user(
     payload: UserLogin,
     request: Request,
@@ -149,10 +232,18 @@ def login_user(
     email = str(payload.email).lower()
 
     user = db.execute(
-        select(models.User).where(models.User.email == email)
+        select(models.User).where(
+            models.User.email == email
+        )
     ).scalar_one_or_none()
 
-    if user is None or not verify_password(payload.password, user.password_hash):
+    if (
+        user is None
+        or not verify_password(
+        payload.password,
+        user.password_hash,
+    )
+    ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
@@ -165,14 +256,26 @@ def login_user(
         )
 
     session_token = create_session_token()
-    session_token_hash = hash_session_token(session_token)
-
-    expires_at = datetime.now(timezone.utc) + timedelta(
-        days=settings.session_ttl_days,
+    session_token_hash = hash_session_token(
+        session_token
     )
 
-    user_agent = request.headers.get("user-agent")
-    ip_address = request.client.host if request.client else None
+    expires_at = (
+        datetime.now(timezone.utc)
+        + timedelta(
+        days=settings.session_ttl_days,
+    )
+    )
+
+    user_agent = request.headers.get(
+        "user-agent"
+    )
+
+    ip_address = (
+        request.client.host
+        if request.client
+        else None
+    )
 
     auth_session = models.AuthSession(
         user_id=user.id,
@@ -188,14 +291,23 @@ def login_user(
     response.set_cookie(
         key=settings.session_cookie_name,
         value=session_token,
-        max_age=settings.session_ttl_days * 24 * 60 * 60,
+        max_age=(
+            settings.session_ttl_days
+            * 24
+            * 60
+            * 60
+        ),
         httponly=True,
         secure=settings.session_cookie_secure,
         samesite=settings.session_cookie_samesite,
         path="/",
     )
 
-    return user
+    return build_user_read(
+        db,
+        user,
+        request,
+    )
 
 
 @router.post("/auth/logout")
@@ -204,20 +316,28 @@ def logout_user(
     response: Response,
     db: Session = Depends(get_db),
 ):
-    session_token = request.cookies.get(settings.session_cookie_name)
+    session_token = request.cookies.get(
+        settings.session_cookie_name
+    )
 
     if session_token:
-        session_token_hash = hash_session_token(session_token)
+        session_token_hash = hash_session_token(
+            session_token
+        )
 
         auth_session = db.execute(
             select(models.AuthSession).where(
-                models.AuthSession.session_token_hash == session_token_hash,
+                models.AuthSession.session_token_hash
+                == session_token_hash,
                 models.AuthSession.revoked_at.is_(None),
-            )
+                )
         ).scalar_one_or_none()
 
         if auth_session is not None:
-            auth_session.revoked_at = datetime.now(timezone.utc)
+            auth_session.revoked_at = (
+                datetime.now(timezone.utc)
+            )
+
             db.commit()
 
     response.delete_cookie(
@@ -225,12 +345,27 @@ def logout_user(
         path="/",
     )
 
-    return {"status": "logged_out"}
+    return {
+        "status": "logged_out",
+    }
 
 
-@router.get("/me", response_model=UserRead)
-def get_me(current_user: models.User = Depends(get_current_user)):
-    return current_user
+@router.get(
+    "/me",
+    response_model=UserRead,
+)
+def get_me(
+    request: Request,
+    current_user: models.User = Depends(
+        get_current_user
+    ),
+    db: Session = Depends(get_db),
+):
+    return build_user_read(
+        db,
+        current_user,
+        request,
+    )
 
 
 @router.post("/auth/verify-email")
@@ -250,7 +385,10 @@ def verify_email(
             detail="Invalid or expired verification token",
         )
 
-    user = db.get(models.User, auth_token.user_id)
+    user = db.get(
+        models.User,
+        auth_token.user_id,
+    )
 
     if user is None:
         raise HTTPException(
@@ -259,20 +397,30 @@ def verify_email(
         )
 
     user.is_email_verified = True
-    user.updated_at = datetime.now(timezone.utc)
+    user.updated_at = datetime.now(
+        timezone.utc
+    )
 
     db.commit()
 
-    return {"status": "email_verified"}
+    return {
+        "status": "email_verified",
+    }
 
 
-@router.post("/auth/resend-verification-email")
+@router.post(
+    "/auth/resend-verification-email"
+)
 async def resend_verification_email(
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(
+        get_current_user
+    ),
     db: Session = Depends(get_db),
 ):
     if current_user.is_email_verified:
-        return {"status": "email_already_verified"}
+        return {
+            "status": "email_already_verified",
+        }
 
     verification_token = create_auth_token(
         db=db,
@@ -287,13 +435,16 @@ async def resend_verification_email(
             name=current_user.name,
             token=verification_token,
         )
+
     except EmailSendError as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=str(exc),
         )
 
-    return {"status": "verification_email_sent"}
+    return {
+        "status": "verification_email_sent",
+    }
 
 
 @router.post("/auth/forgot-password")
@@ -305,10 +456,15 @@ def forgot_password(
     email = str(payload.email).lower()
 
     user = db.execute(
-        select(models.User).where(models.User.email == email)
+        select(models.User).where(
+            models.User.email == email
+        )
     ).scalar_one_or_none()
 
-    if user is not None and user.is_active:
+    if (
+        user is not None
+        and user.is_active
+    ):
         reset_token = create_auth_token(
             db=db,
             user_id=user.id,
@@ -323,7 +479,10 @@ def forgot_password(
             token=reset_token,
         )
 
-    return {"status": "password_reset_email_sent_if_account_exists"}
+    return {
+        "status":
+            "password_reset_email_sent_if_account_exists",
+    }
 
 
 @router.post("/auth/reset-password")
@@ -343,9 +502,15 @@ def reset_password(
             detail="Invalid or expired reset token",
         )
 
-    user = db.get(models.User, auth_token.user_id)
+    user = db.get(
+        models.User,
+        auth_token.user_id,
+    )
 
-    if user is None or not user.is_active:
+    if (
+        user is None
+        or not user.is_active
+    ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid reset token",
@@ -353,21 +518,29 @@ def reset_password(
 
     now = datetime.now(timezone.utc)
 
-    user.password_hash = hash_password(payload.password)
+    user.password_hash = hash_password(
+        payload.password
+    )
+
     user.updated_at = now
 
     db.execute(
         update(models.AuthSession)
         .where(
-            models.AuthSession.user_id == user.id,
+            models.AuthSession.user_id
+            == user.id,
             models.AuthSession.revoked_at.is_(None),
+            )
+        .values(
+            revoked_at=now
         )
-        .values(revoked_at=now)
     )
 
     db.commit()
 
-    return {"status": "password_reset"}
+    return {
+        "status": "password_reset",
+    }
 
 
 @router.post("/auth/dev/test-email")
@@ -387,15 +560,23 @@ async def send_test_email(
             html="""
             <div style="font-family: Arial, sans-serif; line-height: 1.5;">
                 <h2>VetReservation</h2>
-                <p>To jest testowy email z backendu FastAPI przez Resend.</p>
-                <p>Jeśli widzisz tę wiadomość, konfiguracja działa poprawnie.</p>
+                <p>
+                    To jest testowy email z backendu FastAPI przez Resend.
+                </p>
+                <p>
+                    Jeśli widzisz tę wiadomość,
+                    konfiguracja działa poprawnie.
+                </p>
             </div>
             """,
         )
+
     except EmailSendError as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=str(exc),
         )
 
-    return {"status": "email_sent"}
+    return {
+        "status": "email_sent",
+    }

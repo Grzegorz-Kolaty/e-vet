@@ -1,7 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import Any
-
+from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
@@ -17,6 +16,24 @@ class UserLogin(BaseModel):
     password: str = Field(min_length=1, max_length=150)
 
 
+VetVerificationStatus = Literal[
+    "not_provided",
+    "pending",
+    "verified",
+    "rejected",
+]
+
+
+class VetProfileRead(BaseModel):
+    user_id: uuid.UUID
+    pwz_number: str | None
+    verification_status: VetVerificationStatus
+    rejection_reason: str | None
+    verified_at: datetime | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class UserRead(BaseModel):
     id: uuid.UUID
     email: EmailStr
@@ -29,6 +46,8 @@ class UserRead(BaseModel):
     updated_at: datetime
     photo_url: str | None = None
 
+    vet_profile: VetProfileRead | None = None
+
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -38,6 +57,7 @@ class UserUpdate(BaseModel):
         min_length=1,
         max_length=50,
     )
+
 
 class EmailChangeRequest(BaseModel):
     email: EmailStr
@@ -52,15 +72,18 @@ class EmailChangeConfirm(BaseModel):
         min_length=5,
         max_length=300,
     )
-    
+
+
+class ImageRead(BaseModel):
+    url: str
+
 
 class ClinicCreate(BaseModel):
     clinicName: str
-    phoneNumber: str
+    phoneNumber: str | None = None
     address: dict[str, Any]
-    timeOpen: str
-    timeClose: str
-    coverImage: dict[str, Any] | None = None
+    timeOpen: str | None = None
+    timeClose: str | None = None
 
 
 class ClinicRead(BaseModel):
@@ -72,7 +95,7 @@ class ClinicRead(BaseModel):
     address: dict[str, Any]
     timeOpen: str | None = None
     timeClose: str | None = None
-    coverImage: dict[str, Any] | None = None
+    coverImage: ImageRead | None = None
     createdAt: datetime
 
 

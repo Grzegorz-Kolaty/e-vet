@@ -72,6 +72,7 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - /home/deploy/evet-secrets/nginx:/etc/nginx/certs:ro
       - /home/deploy/evet-runtime/frontend:/usr/share/nginx/html:ro
+      - uploads_data:/app/uploads:ro
 
     depends_on:
       api:

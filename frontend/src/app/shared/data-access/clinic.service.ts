@@ -21,8 +21,6 @@ export default class ClinicService {
    * Potrzebne tylko do budowania URL-i obrazków, np. /uploads/...
    * Interceptor działa dla HttpClienta, ale nie dla <img src>.
    */
-  private readonly apiUrl = environment.apiUrl;
-
   async getMyClinic(): Promise<Clinic | null> {
     try {
       return await firstValueFrom(
@@ -110,15 +108,15 @@ export default class ClinicService {
     }
   }
 
-  getImageUrl(url?: string): string {
-    if (!url) return '';
-
-    if (url.startsWith('http')) {
-      return url;
-    }
-
-    return `${this.apiUrl}${url}`;
-  }
+  // getImageUrl(url?: string): string {
+  //   if (!url) return '';
+  //
+  //   if (url.startsWith('http')) {
+  //     return url;
+  //   }
+  //
+  //   return `${this.apiUrl}${url}`;
+  // }
 
   private getSearchCity(address: Clinic['address']): string | undefined {
     return (

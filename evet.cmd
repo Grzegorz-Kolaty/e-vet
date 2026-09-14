@@ -43,7 +43,6 @@ if errorlevel 1 (
 
 :docker_path_ready
 
-
 REM ==================================================
 REM Command
 REM ==================================================
@@ -52,16 +51,19 @@ if "%~1"=="" goto :help
 
 set "COMMAND=%~1"
 
-if /I "%COMMAND%"=="setup" (
-    call "%~dp0scripts\setup.cmd"
-    exit /b %ERRORLEVEL%
-)
+if /I "%COMMAND%"=="setup" goto :setup
 
 powershell.exe ^
     -NoProfile ^
     -ExecutionPolicy Bypass ^
     -File "%~dp0scripts\dev.ps1" %*
 
+exit /b %ERRORLEVEL%
+
+
+:setup
+
+call "%~dp0scripts\setup.cmd"
 exit /b %ERRORLEVEL%
 
 
@@ -75,6 +77,7 @@ echo.
 echo Usage:
 echo.
 echo   .\evet.cmd setup
+echo.
 echo   .\evet.cmd up
 echo   .\evet.cmd down
 echo   .\evet.cmd start
@@ -83,10 +86,15 @@ echo   .\evet.cmd restart
 echo   .\evet.cmd build
 echo   .\evet.cmd logs
 echo   .\evet.cmd ps
+echo.
+echo   .\evet.cmd makemigration "migration description"
 echo   .\evet.cmd migrate
+echo   .\evet.cmd check
 echo   .\evet.cmd migration
+echo   .\evet.cmd heads
 echo   .\evet.cmd history
 echo   .\evet.cmd downgrade
+echo.
 echo   .\evet.cmd frontend
 echo   .\evet.cmd frontend-stop
 echo.

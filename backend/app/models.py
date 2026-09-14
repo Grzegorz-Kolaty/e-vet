@@ -1,7 +1,17 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, String, Text, func, text
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    Float,
+    ForeignKey,
+    String,
+    Text,
+    func,
+    text,
+)
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -64,7 +74,7 @@ class User(Base):
         index=True,
     )
 
-    photo_url: Mapped[str | None] = mapped_column(
+    photo_path: Mapped[str | None] = mapped_column(
         String(500),
         nullable=True,
     )
@@ -80,6 +90,59 @@ class User(Base):
         nullable=False,
         server_default=func.now(),
         onupdate=func.now(),
+    )
+
+class VetProfile(Base):
+    __tablename__ = "vet_profiles"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+
+    pwz_number: Mapped[str | None] = mapped_column(
+        String(32),
+        nullable=True,
+        unique=True,
+        index=True,
+    )
+
+    verification_status: Mapped[str] = mapped_column(
+        String(30),
+        nullable=False,
+        server_default=text("'not_provided'"),
+    )
+
+    rejection_reason: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    __table_args__ = (
+        CheckConstraint(
+            "verification_status IN "
+            "('not_provided', 'pending', 'verified', 'rejected')",
+            name="ck_vet_profiles_verification_status",
+        ),
     )
 
 
@@ -234,8 +297,8 @@ class Clinic(Base):
         nullable=True,
     )
 
-    cover_image: Mapped[dict | None] = mapped_column(
-        JSONB,
+    cover_path: Mapped[str | None] = mapped_column(
+        String(500),
         nullable=True,
     )
 
@@ -299,8 +362,8 @@ class Pet(Base):
         nullable=True,
     )
 
-    photo_url: Mapped[str | None] = mapped_column(
-        Text,
+    photo_path: Mapped[str | None] = mapped_column(
+        String(500),
         nullable=True,
     )
 

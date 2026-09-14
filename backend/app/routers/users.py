@@ -4,14 +4,15 @@ from io import BytesIO
 from pathlib import Path
 
 from PIL import Image, UnidentifiedImageError
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from app import models
+from app.core.uploads import save_image
 from app.db import get_db
-from app.routers.auth import get_current_user
+from app.routers.auth import build_user_read, get_current_user
 from app.schemas import (
     EmailChangeConfirm,
     EmailChangeRequest,
@@ -79,6 +80,7 @@ def validate_image(content: bytes) -> str:
 @router.patch("/me", response_model=UserRead)
 def update_me(
     payload: UserUpdate,
+    request: Request,
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -90,47 +92,26 @@ def update_me(
     db.commit()
     db.refresh(current_user)
 
-    return current_user
+    return build_user_read(db, current_user, request)
 
 
 @router.put("/me/photo", response_model=UserRead)
 async def upload_profile_photo(
+    request: Request,
     file: UploadFile = File(...),
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    content = await file.read(MAX_FILE_SIZE + 1)
+    current_user.photo_path = await save_image(
+        file=file,
+        directory=f"users/{current_user.id}",
+        filename="avatar",
+    )
 
-    extension = validate_image(content)
+    db.commit()
+    db.refresh(current_user)
 
-    filename = f"{uuid.uuid4()}{extension}"
-    path = UPLOAD_DIR / filename
-
-    old_photo_url = current_user.photo_url
-
-    try:
-        path.write_bytes(content)
-
-        current_user.photo_url = f"/uploads/users/{filename}"
-
-        db.commit()
-        db.refresh(current_user)
-
-    except Exception:
-        db.rollback()
-
-        if path.exists():
-            path.unlink()
-
-        raise
-
-    if old_photo_url:
-        old_path = Path(old_photo_url.lstrip("/"))
-
-        if old_path.exists():
-            old_path.unlink()
-
-    return current_user
+    return build_user_read(db, current_user, request)
 
 
 @router.post("/me/email-change")

@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     environment: str = "development"
 
     database_url: str
+    sql_echo: bool = False
 
     cors_origins: list[str] = []
 

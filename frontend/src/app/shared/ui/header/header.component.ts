@@ -17,7 +17,7 @@ import {Role} from "../../interfaces/user.interface";
 
         <button class="btn bg-transparent text-white d-inline-flex px-0"
                 type="button"
-                [routerLink]="['home']">
+                [routerLink]="['/home']">
           <fa-icon [icon]="['fas', 'paw']" size="xl"/>
           <span class="mx-2 title fw-semibold">
             {{ appTitle }}
@@ -44,13 +44,13 @@ import {Role} from "../../interfaces/user.interface";
           @if (!user) {
             <button class="btn px-4 btn-outline-light border-3 rounded-4 shadow-lg"
                     routerLinkActive="active"
-                    [routerLink]="['auth']">
+                    [routerLink]="['/auth']">
               Zaczynamy&nbsp;🩺
             </button>
           } @else {
             <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
                     routerLinkActive="active"
-                    [routerLink]="['dashboard']">
+                    [routerLink]="['/dashboard']">
               Dashboard&nbsp;🩺
             </button>
 
@@ -60,7 +60,7 @@ import {Role} from "../../interfaces/user.interface";
                     tabindex="0">
               <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
                       routerLinkActive="active"
-                      [routerLink]="['pets']"
+                      [routerLink]="['/pets']"
                       [disabled]="!user?.is_email_verified"
                       [attr.aria-disabled]="!user?.is_email_verified">
                 Twoje&nbsp;zwierzaki&nbsp;📋
@@ -72,7 +72,7 @@ import {Role} from "../../interfaces/user.interface";
                     tabindex="0">
                 <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
                         routerLinkActive="active"
-                        [routerLink]="['clinics', 'browse-clinics']"
+                        [routerLink]="['/clinics', 'browse']"
                         [class.disabled]="!user?.is_email_verified"
                         [attr.aria-disabled]="!user?.is_email_verified">
                   Wyszukaj&nbsp;klinikę&nbsp;💌
@@ -84,7 +84,7 @@ import {Role} from "../../interfaces/user.interface";
                     tabindex="0">
                 <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
                         routerLinkActive="active"
-                        [routerLink]="['appointments', 'history']"
+                        [routerLink]="['/appointments', 'history']"
                         [class.disabled]="!user?.is_email_verified"
                         [attr.aria-disabled]="!user?.is_email_verified">
                   Twoje&nbsp;rezerwacje&nbsp;💌
@@ -98,7 +98,7 @@ import {Role} from "../../interfaces/user.interface";
                     tabindex="0">
                   <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
                           routerLinkActive="active"
-                          [routerLink]="['clinics', 'clinic', user.clinic_id]"
+                          [routerLink]="['/clinics', user.clinic_id]"
                           [disabled]="!user?.is_email_verified"
                           [attr.aria-disabled]="!user?.is_email_verified">
                     Twoja&nbsp;klinika&nbsp;🏥
@@ -110,7 +110,7 @@ import {Role} from "../../interfaces/user.interface";
                     tabindex="0">
                 <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
                         routerLinkActive="active"
-                        [routerLink]="['appointments', 'history']"
+                        [routerLink]="['/appointments', 'history']"
                         [class.disabled]="!user?.is_email_verified"
                         [attr.aria-disabled]="!user?.is_email_verified">
                   Twoje&nbsp;rezerwacje&nbsp;💌
@@ -122,7 +122,7 @@ import {Role} from "../../interfaces/user.interface";
                     tabindex="0">
                 <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
                         routerLinkActive="active"
-                        [routerLink]="['appointments', 'create']"
+                        [routerLink]="['/appointments', 'create']"
                         [class.disabled]="!user?.is_email_verified"
                         [attr.aria-disabled]="!user?.is_email_verified">
                   Planner&nbsp;terminów&nbsp;💌
@@ -133,7 +133,7 @@ import {Role} from "../../interfaces/user.interface";
                     tabindex="0">
                   <button class="btn btn-outline-light border-3 border-dark rounded-4 shadow-lg"
                           routerLinkActive="active"
-                          [routerLink]="['clinics', 'create-clinic']"
+                          [routerLink]="['/clinics', 'create']"
                           [disabled]="!user?.is_email_verified"
                           [attr.aria-disabled]="!user?.is_email_verified">
                     Tworzenie&nbsp;kliniki&nbsp;🏥
